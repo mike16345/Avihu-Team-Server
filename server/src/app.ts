@@ -5,6 +5,8 @@ import http from "http";
 import cors from "cors";
 import userRouter from "./routers/users";
 import weighInsRouter from "./routers/weighIns";
+import dietPlansRouter from "./routers/dietPlans";
+
 import "./db/mainConnection";
 
 dotenv.config();
@@ -18,6 +20,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/users", userRouter);
 app.use("/weighIns", weighInsRouter);
+app.use("/dietPlans", dietPlansRouter);
 
 const server = http.createServer(app);
 

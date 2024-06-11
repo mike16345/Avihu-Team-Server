@@ -1,27 +1,28 @@
 import { ObjectId } from "mongodb";
 
-export interface ICustomItemInstructions {
-  item: string;
-  quantity: number;
-  unit: "grams" | "spoons";
-}
-
-export interface ICustomProteinInstructions extends ICustomItemInstructions {}
-export interface ICustomCarbsInstructions extends ICustomItemInstructions {}
-
-export interface IMeal {
-  totalProtein: number;
-  totalCarbs: number;
-  totalFats?: number;
-  totalVeggies?: number;
-  customProteinInstructions?: ICustomProteinInstructions[];
-  customCarbsInstructions?: ICustomCarbsInstructions;
-  customVeggiesInstructions?: ICustomItemInstructions[];
-  customFatsInstructions?: ICustomItemInstructions[];
-}
-
 export interface IDietPlan {
   id: ObjectId;
+  userId: string;
   meals: IMeal[];
   totalCalories?: number;
 }
+
+export interface ICustomItemInstructions {
+  item: string;
+  quantity: number;
+}
+
+export interface IDietItem {
+  quantity: number;
+  unit: DietItemUnit;
+  customInstructions?: ICustomItemInstructions[];
+}
+
+export interface IMeal {
+  totalProtein: IDietItem;
+  totalCarbs: IDietItem;
+  totalFats?: IDietItem;
+  totalVeggies?: IDietItem;
+}
+
+export type DietItemUnit = "grams" | "spoons";

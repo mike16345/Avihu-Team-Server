@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { WeighInSchemaValidation } from "../models/weighInModel";
 import { weighInServices } from "../services/weighInService";
-import { ObjectId } from "mongodb";
 
 class WeighInsController {
   addWeighIn = async (req: Request, res: Response) => {
@@ -30,12 +29,9 @@ class WeighInsController {
     const id = req.params.id;
     const { weight } = req.body;
 
-    console.log("id", id);
-    console.log("weight", weight);
-
     try {
       const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
-      console.log("updated ", updatedWeighIn);
+
       return res.status(201).json(updatedWeighIn);
     } catch (err) {
       return res.status(500).json({ message: err });
