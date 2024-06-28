@@ -4,10 +4,9 @@ import { DietPlanSchemaValidation } from "../models/dietPlanModel";
 
 class DietPlanController {
   addDietPlan = async (req: Request, res: Response) => {
-    console.log("params", req.params);
     const id = req.params.id;
     const data = req.body;
-    console.log("body", data);
+
     const dietPlan = {
       ...data,
       userId: id,

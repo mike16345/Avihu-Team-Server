@@ -2,8 +2,14 @@ import { DietPlan } from "../models/dietPlanModel";
 
 export class DietPlanService {
   async addDietPlan(data: any) {
+    const { userId, meals } = data;
+
     try {
-      const dietPlanDoc = await DietPlan.create(data);
+      const dietPlanDoc = await DietPlan.findOneAndUpdate(
+        { userId },
+        { $set: { meals } },
+        { new: true, upsert: true }
+      );
 
       return dietPlanDoc;
     } catch (err: any) {
