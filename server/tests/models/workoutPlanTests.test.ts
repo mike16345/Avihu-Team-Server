@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Joi from "joi";
 import {
   setSchema,
   workoutSchema,
@@ -7,6 +6,18 @@ import {
   workoutPlanSchema,
   WorkoutPlanSchemaValidation,
 } from "../../src/models/workoutPlanModel";
+import {
+  ValidSet,
+  InvalidSet,
+  ValidWorkout,
+  InvalidWorkout,
+  ValidMuscleGroupWorkoutPlan,
+  InvalidMuscleGroupWorkoutPlan,
+  ValidWorkoutPlan,
+  InvalidWorkoutPlan,
+  ValidDetailedWorkoutPlan,
+  InvalidDetailedWorkoutPlan,
+} from "../fixtures/workoutPlanFixtures";
 
 const { model, connect, connection } = mongoose;
 
@@ -26,92 +37,54 @@ describe("Mongoose Schemas", () => {
   const WorkoutPlan = model("WorkoutPlan", workoutPlanSchema);
 
   test("should validate a valid set", async () => {
-    const validSet = new Set({ minReps: 8, maxReps: 12 });
+    const validSet = new Set(ValidSet);
     const savedSet = await validSet.save();
-    expect(savedSet.minReps).toBe(8);
-    expect(savedSet.maxReps).toBe(12);
+
+    expect(savedSet.minReps).toBe(ValidSet.minReps);
+    expect(savedSet.maxReps).toBe(ValidSet.maxReps);
   });
 
   test("should throw validation error for invalid set", async () => {
-    const invalidSet = new Set({ maxReps: 12 });
+    const invalidSet = new Set(InvalidSet);
+
     await expect(invalidSet.save()).rejects.toThrow(mongoose.Error.ValidationError);
   });
 
   test("should validate a valid workout", async () => {
-    const validWorkout = new Workout({
-      name: "Bench Press",
-      sets: [{ minReps: 8, maxReps: 12 }],
-      linkToVideo: "http://example.com/benchpress",
-      tipFromTrainer: "Keep your back flat on the bench.",
-    });
+    const validWorkout = new Workout(ValidWorkout);
     const savedWorkout = await validWorkout.save();
-    expect(savedWorkout.name).toBe("Bench Press");
+
+    expect(savedWorkout.name).toBe(ValidWorkout.name);
   });
 
   test("should throw validation error for invalid workout", async () => {
-    const invalidWorkout = new Workout({
-      sets: [{ minReps: 8, maxReps: 12 }],
-    });
+    const invalidWorkout = new Workout(InvalidWorkout);
+
     await expect(invalidWorkout.save()).rejects.toThrow(mongoose.Error.ValidationError);
   });
 
   test("should validate a valid muscle group workout plan", async () => {
-    const validPlan = new MuscleGroupWorkoutPlan({
-      muscleGroup: "Chest",
-      workouts: [
-        {
-          name: "Bench Press",
-          sets: [{ minReps: 8, maxReps: 12 }],
-        },
-      ],
-    });
+    const validPlan = new MuscleGroupWorkoutPlan(ValidMuscleGroupWorkoutPlan);
     const savedPlan = await validPlan.save();
-    expect(savedPlan.muscleGroup).toBe("Chest");
+
+    expect(savedPlan.muscleGroup).toBe(ValidMuscleGroupWorkoutPlan.muscleGroup);
   });
 
   test("should throw validation error for invalid muscle group workout plan", async () => {
-    const invalidPlan = new MuscleGroupWorkoutPlan({
-      muscleGroup: "Chest",
-      workouts: [],
-    });
+    const invalidPlan = new MuscleGroupWorkoutPlan(InvalidMuscleGroupWorkoutPlan);
+
     await expect(invalidPlan.save()).rejects.toThrow(mongoose.Error.ValidationError);
   });
 
   test("should validate a valid detailed workout plan", async () => {
-    const validPlan = new WorkoutPlan({
-      planName: "Beginner Plan",
-      userId: "1",
-      workouts: [
-        {
-          muscleGroup: "Chest",
-          workouts: [
-            {
-              name: "Bench Press",
-              sets: [{ minReps: 8, maxReps: 12 }],
-            },
-          ],
-        },
-      ],
-    });
+    const validPlan = new WorkoutPlan(ValidWorkoutPlan);
     const savedPlan = await validPlan.save();
-    expect(savedPlan.planName).toBe("Beginner Plan");
+
+    expect(savedPlan.planName).toBe(ValidWorkoutPlan.planName);
   });
 
   test("should throw validation error for invalid detailed workout plan", async () => {
-    const invalidPlan = new WorkoutPlan({
-      planName: "This plan name is way too long and exceeds the maximum allowed length",
-      workouts: [
-        {
-          muscleGroup: "Chest",
-          workouts: [
-            {
-              name: "Bench Press",
-              sets: [{ minReps: 8, maxReps: 12 }],
-            },
-          ],
-        },
-      ],
-    });
+    const invalidPlan = new WorkoutPlan(InvalidWorkoutPlan);
 
     await expect(invalidPlan.save()).rejects.toThrow(mongoose.Error.ValidationError);
   });
@@ -119,43 +92,14 @@ describe("Mongoose Schemas", () => {
 
 describe("Joi Validation", () => {
   test("should validate a valid workout plan", () => {
-    const validPlan = {
-      planName: "Beginner Plan",
-      userId: "1",
-      workouts: [
-        {
-          muscleGroup: "Chest",
-          workouts: [
-            {
-              name: "Bench Press",
-              sets: [{ minReps: 8, maxReps: 12 }],
-              linkToVideo: "http://example.com/benchpress",
-              tipFromTrainer: "Keep your back flat on the bench.",
-            },
-          ],
-        },
-      ],
-    };
-    const { error } = WorkoutPlanSchemaValidation.validate(validPlan);
+    const { error } = WorkoutPlanSchemaValidation.validate(ValidDetailedWorkoutPlan);
+
     expect(error).toBeUndefined();
   });
 
   test("should return validation error for invalid workout plan", () => {
-    const invalidPlan = {
-      planName: "This plan name is way too long and exceeds the maximum allowed length",
-      workouts: [
-        {
-          muscleGroup: "Chest",
-          workouts: [
-            {
-              name: "Bench Press",
-              sets: [{ minReps: 8, maxReps: 12 }],
-            },
-          ],
-        },
-      ],
-    };
-    const { error } = WorkoutPlanSchemaValidation.validate(invalidPlan);
+    const { error } = WorkoutPlanSchemaValidation.validate(InvalidDetailedWorkoutPlan);
+
     expect(error).not.toBeUndefined();
   });
 
@@ -167,13 +111,14 @@ describe("Joi Validation", () => {
           workouts: [
             {
               name: "Bench Press",
-              sets: [{ minReps: 8, maxReps: 12 }],
+              sets: [ValidSet],
             },
           ],
         },
       ],
     };
     const { error } = WorkoutPlanSchemaValidation.validate(invalidPlan);
+
     expect(error).not.toBeUndefined();
   });
 });
