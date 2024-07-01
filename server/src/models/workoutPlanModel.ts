@@ -46,7 +46,7 @@ export const muscleGroupWorkoutPlanSchema: Schema<IMuscleGroupWorkoutPlan> = new
     type: String,
     required: true,
   },
-  workouts: {
+  exercises: {
     type: [workoutSchema],
     required: true,
     validate: {
@@ -87,11 +87,11 @@ const workoutValidationSchema = Joi.object({
 
 const muscleGroupWorkoutPlanValidationSchema = Joi.object({
   muscleGroup: Joi.string().required(),
-  workouts: Joi.array().items(workoutValidationSchema).required(),
+  exercises: Joi.array().items(workoutValidationSchema).min(1).required(),
 });
 
 export const WorkoutPlanSchemaValidation = Joi.object({
   userId: Joi.string().required(),
   planName: Joi.string().min(1).max(25).required(),
-  workouts: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).required(),
+  workouts: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });

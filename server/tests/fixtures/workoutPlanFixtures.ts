@@ -49,3 +49,21 @@ export const InvalidDetailedWorkoutPlan = {
   planName: "This plan name is way too long and exceeds the maximum allowed length",
   workouts: [ValidMuscleGroupWorkoutPlan],
 };
+
+export const all = {
+  planName: "Beginner Plan",
+  userId: "1",
+  workouts: [
+    {
+      muscleGroup: "Chest",
+      workouts: [
+        {
+          name: "Bench Press",
+          sets: [{ minReps: 8, maxReps: 12 }],
+          linkToVideo: "http://example.com/benchpress",
+          tipFromTrainer: "Keep your back flat on the bench.",
+        },
+      ],
+    },
+  ],
+};

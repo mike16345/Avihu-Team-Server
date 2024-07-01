@@ -1,5 +1,3 @@
-import { MuscleGroups } from "../enums/MuscleGroups";
-
 export interface ISet {
   minReps: number;
   maxReps: number;
@@ -7,7 +5,7 @@ export interface ISet {
 
 export interface IMuscleGroupWorkoutPlan {
   muscleGroup: string;
-  workouts: IWorkout[];
+  exercises: IWorkout[];
 }
 
 export interface IWorkout {
