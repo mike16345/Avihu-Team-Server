@@ -1,13 +1,14 @@
 import express from "express";
 import { workoutPlanController } from "../controllers/workoutPlanController";
+import { validateWorkoutPlan } from "../middleware/workoutPlanMiddleware";
 
 const router = express.Router();
 
-router.post("/", workoutPlanController.addWorkoutPlan);
+router.post("/", validateWorkoutPlan, workoutPlanController.addWorkoutPlan);
 
-// router.put("/:id", workoutPlanController.updateWorkoutPlan);
+router.put("/:id", validateWorkoutPlan, workoutPlanController.updateWorkoutPlan);
 
-router.put("/:id", workoutPlanController.updateWorkoutPlanByUserId);
+router.put("/user/:userId", validateWorkoutPlan, workoutPlanController.updateWorkoutPlanByUserId);
 
 router.delete("/:id", workoutPlanController.deleteWorkoutPlan);
 

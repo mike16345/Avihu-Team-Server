@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { WorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
 import { workoutPlanService } from "../services/workoutPlanService";
 
@@ -25,9 +25,6 @@ class WorkoutPlanController {
     const id = req.params.id;
     const updatedData = req.body;
 
-    console.log("data: ", updatedData);
-    console.log("id: " + id);
-
     try {
       const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlan(id, updatedData);
 
@@ -38,11 +35,8 @@ class WorkoutPlanController {
   };
 
   updateWorkoutPlanByUserId = async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const id = req.params.userId;
     const updatedData = req.body;
-
-    console.log("data: ", updatedData);
-    console.log("id: " + id);
 
     const { error, value } = WorkoutPlanSchemaValidation.validate(updatedData);
 
@@ -51,10 +45,7 @@ class WorkoutPlanController {
     }
 
     try {
-      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(
-        id,
-        updatedData
-      );
+      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(id, value);
 
       if (!updatedWorkoutPlan) {
         return res.status(404).json({ message: "There was an error updating the workout plan." });

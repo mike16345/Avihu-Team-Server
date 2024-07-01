@@ -20,12 +20,12 @@ export const InvalidWorkout = {
 
 export const ValidMuscleGroupWorkoutPlan = {
   muscleGroup: "Chest",
-  workouts: [ValidWorkout],
+  exercises: [ValidWorkout],
 };
 
 export const InvalidMuscleGroupWorkoutPlan = {
   muscleGroup: "Chest",
-  workouts: [],
+  exercises: [],
 };
 
 export const ValidWorkoutPlan = {
