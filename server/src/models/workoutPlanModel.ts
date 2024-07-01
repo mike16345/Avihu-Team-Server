@@ -49,10 +49,16 @@ export const muscleGroupWorkoutPlanSchema: Schema<IMuscleGroupWorkoutPlan> = new
   workouts: {
     type: [workoutSchema],
     required: true,
+    validate: {
+      validator: function (v: IWorkout[]) {
+        return v.length > 0;
+      },
+      message: "Workouts array cannot be empty",
+    },
   },
 });
 
-const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
+export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
   planName: {
     type: String,
     required: true,
