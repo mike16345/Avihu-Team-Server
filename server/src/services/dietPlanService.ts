@@ -2,19 +2,25 @@ import { DietPlan } from "../models/dietPlanModel";
 
 export class DietPlanService {
   async addDietPlan(data: any) {
-    const { userId, meals } = data;
-
+    console.log("data in service", data);
     try {
-      const dietPlanDoc = await DietPlan.findOneAndUpdate(
-        { userId },
-        { $set: { meals } },
-        { new: true, upsert: true }
-      );
+      const dietPlanDoc = await DietPlan.create(data);
 
       return dietPlanDoc;
     } catch (err: any) {
       console.error("Error adding diet plan:", err);
       throw new Error(`Failed to add diet plan: ${err.message}`);
+    }
+  }
+
+  async getAllDietPlans() {
+    try {
+      const dietPlans = await DietPlan.find({});
+
+      return dietPlans;
+    } catch (err: any) {
+      console.error("Error getting all diet plans:", err);
+      throw new Error(`Failed to get all diet plans: ${err.message}`);
     }
   }
 

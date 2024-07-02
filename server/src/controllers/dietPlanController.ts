@@ -4,24 +4,12 @@ import { DietPlanSchemaValidation } from "../models/dietPlanModel";
 
 class DietPlanController {
   addDietPlan = async (req: Request, res: Response) => {
-    const id = req.params.id;
     const data = req.body;
 
-    const dietPlan = {
-      ...data,
-      userId: id,
-    };
-
-    const { error, value } = DietPlanSchemaValidation.validate(dietPlan);
-
-    if (error) {
-      return res.status(400).json({ message: error.message });
-    }
-
     try {
-      const dietPlan = await DietPlanServices.addDietPlan(value);
+      const dietPlanResult = await DietPlanServices.addDietPlan(data);
 
-      return res.status(201).json(dietPlan);
+      return res.status(201).json(dietPlanResult);
     } catch (err) {
       return res.status(500).json({ message: "An error occurred while adding the diet plan." });
     }
@@ -55,6 +43,18 @@ class DietPlanController {
       return res.status(200).json(response);
     } catch (err) {
       return res.status(500).json({ message: "An error occurred while deleting the diet plan." });
+    }
+  };
+
+  getDietPlans = async (req: Request, res: Response) => {
+    try {
+      const dietPlans = await DietPlanServices.getAllDietPlans();
+
+      res.status(201).send(dietPlans);
+    } catch (err) {
+      return res
+        .status(500)
+        .send({ message: "An error occurred while retrieving all diet plans." });
     }
   };
 

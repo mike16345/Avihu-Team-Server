@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import { IDietItem, IDietPlan, IMeal } from "../interfaces/IDietPlan";
 import Joi from "joi";
 
-const dietItemSchema = new Schema<IDietItem>({
+export const dietItemSchema = new Schema<IDietItem>({
   quantity: { type: Number, required: true },
   unit: { type: String, enum: ["grams", "spoons"], required: true },
   customInstructions: [
@@ -13,14 +13,14 @@ const dietItemSchema = new Schema<IDietItem>({
   ],
 });
 
-const mealSchema = new Schema<IMeal>({
+export const mealSchema = new Schema<IMeal>({
   totalProtein: { type: dietItemSchema, required: true },
   totalCarbs: { type: dietItemSchema, required: true },
   totalFats: { type: dietItemSchema, required: false },
   totalVeggies: { type: dietItemSchema, required: false },
 });
 
-const dietPlanSchema = new Schema<IDietPlan>({
+export const dietPlanSchema = new Schema<IDietPlan>({
   userId: { type: String, required: true },
   meals: { type: [mealSchema], required: true },
   totalCalories: { type: Number, required: false },
@@ -28,7 +28,7 @@ const dietPlanSchema = new Schema<IDietPlan>({
 
 export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
 
-const dietItemValidationSchema = Joi.object({
+export const dietItemValidationSchema = Joi.object({
   quantity: Joi.number().required(),
   unit: Joi.string().valid("grams", "spoons").required(),
   customInstructions: Joi.array()
@@ -41,7 +41,7 @@ const dietItemValidationSchema = Joi.object({
     .optional(),
 });
 
-const mealValidationSchema = Joi.object({
+export const mealValidationSchema = Joi.object({
   totalProtein: dietItemValidationSchema.required(),
   totalCarbs: dietItemValidationSchema.required(),
   totalFats: dietItemValidationSchema.optional(),
