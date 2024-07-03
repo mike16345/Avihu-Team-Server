@@ -4,7 +4,7 @@ import {
   workoutSchema,
   muscleGroupWorkoutPlanSchema,
   workoutPlanSchema,
-  WorkoutPlanSchemaValidation,
+  FullWorkoutPlanSchemaValidation,
 } from "../../src/models/workoutPlanModel";
 import {
   ValidSet,
@@ -17,18 +17,10 @@ import {
   InvalidWorkoutPlan,
   ValidDetailedWorkoutPlan,
   InvalidDetailedWorkoutPlan,
+  validFullWorkoutPlan,
 } from "../fixtures/workoutPlanFixtures";
 
-const { model, connect, connection } = mongoose;
-
-beforeAll(async () => {
-  await connect("mongodb://127.0.0.1:27017/testdb");
-});
-
-afterAll(async () => {
-  await connection.db.dropDatabase();
-  await connection.close();
-});
+const { model } = mongoose;
 
 describe("Mongoose Schemas", () => {
   const Set = model("Set", setSchema);
@@ -77,14 +69,14 @@ describe("Mongoose Schemas", () => {
   });
 
   test("should validate a valid detailed workout plan", async () => {
-    const validPlan = new WorkoutPlan(ValidWorkoutPlan);
+    const validPlan = new WorkoutPlan(ValidDetailedWorkoutPlan);
     const savedPlan = await validPlan.save();
 
-    expect(savedPlan.planName).toBe(ValidWorkoutPlan.planName);
+    expect(savedPlan.planName).toBe(ValidDetailedWorkoutPlan.planName);
   });
 
   test("should throw validation error for invalid detailed workout plan", async () => {
-    const invalidPlan = new WorkoutPlan(InvalidWorkoutPlan);
+    const invalidPlan = new WorkoutPlan(InvalidDetailedWorkoutPlan);
 
     await expect(invalidPlan.save()).rejects.toThrow(mongoose.Error.ValidationError);
   });
@@ -92,13 +84,13 @@ describe("Mongoose Schemas", () => {
 
 describe("Joi Validation", () => {
   test("should validate a valid workout plan", () => {
-    const { error } = WorkoutPlanSchemaValidation.validate(ValidDetailedWorkoutPlan);
+    const { error } = FullWorkoutPlanSchemaValidation.validate(validFullWorkoutPlan);
 
     expect(error).toBeUndefined();
   });
 
   test("should return validation error for invalid workout plan", () => {
-    const { error } = WorkoutPlanSchemaValidation.validate(InvalidDetailedWorkoutPlan);
+    const { error } = FullWorkoutPlanSchemaValidation.validate(InvalidDetailedWorkoutPlan);
 
     expect(error).not.toBeUndefined();
   });
@@ -117,7 +109,7 @@ describe("Joi Validation", () => {
         },
       ],
     };
-    const { error } = WorkoutPlanSchemaValidation.validate(invalidPlan);
+    const { error } = FullWorkoutPlanSchemaValidation.validate(invalidPlan);
 
     expect(error).not.toBeUndefined();
   });

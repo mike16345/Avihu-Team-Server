@@ -4,6 +4,7 @@ import {
   IDetailedWorkoutPlan,
   IWorkout,
   ISet,
+  IFullWorkoutPlan,
 } from "../interfaces/IWorkoutPlan";
 import Joi from "joi";
 
@@ -63,15 +64,36 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
     type: String,
     required: true,
   },
-  userId: { type: String, required: true },
 
   workouts: {
     type: [muscleGroupWorkoutPlanSchema],
+    validate: {
+      validator: function (v: IMuscleGroupWorkoutPlan[]) {
+        return v.length > 0;
+      },
+      message: "Workouts array cannot be empty",
+    },
     required: true,
   },
 });
 
-export const WorkoutPlan = model<IDetailedWorkoutPlan>("workoutPlans", workoutPlanSchema);
+export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
+  userId: {
+    type: String,
+    required: true,
+  },
+
+  workoutPlans: {
+    type: [workoutPlanSchema],
+    validate: {
+      validator: function (v: IDetailedWorkoutPlan[]) {
+        return v.length > 0;
+      },
+      message: "Workout plans array cannot be empty",
+    },
+    required: true,
+  },
+});
 
 const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
@@ -90,8 +112,14 @@ const muscleGroupWorkoutPlanValidationSchema = Joi.object({
   exercises: Joi.array().items(workoutValidationSchema).min(1).required(),
 });
 
-export const WorkoutPlanSchemaValidation = Joi.object({
-  userId: Joi.string().required(),
+const WorkoutPlanSchemaValidation = Joi.object({
   planName: Joi.string().min(1).max(25).required(),
   workouts: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });
+
+export const FullWorkoutPlanSchemaValidation = Joi.object({
+  userId: Joi.string().required(),
+  workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
+});
+
+export const WorkoutPlan = model<IDetailedWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);

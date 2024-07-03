@@ -1,19 +1,12 @@
-import { NextFunction, Request, Response } from "express";
-import { WorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
+import { Request, Response } from "express";
 import { workoutPlanService } from "../services/workoutPlanService";
 
 class WorkoutPlanController {
   addWorkoutPlan = async (req: Request, res: Response) => {
     const data = req.body;
 
-    const { error, value } = WorkoutPlanSchemaValidation.validate(data);
-
-    if (error) {
-      return res.status(400).json({ message: error.message });
-    }
-
     try {
-      const workoutPlan = await workoutPlanService.addWorkoutPlan(value);
+      const workoutPlan = await workoutPlanService.addWorkoutPlan(data);
 
       res.status(201).json(workoutPlan);
     } catch (err) {
@@ -38,14 +31,11 @@ class WorkoutPlanController {
     const id = req.params.userId;
     const updatedData = req.body;
 
-    const { error, value } = WorkoutPlanSchemaValidation.validate(updatedData);
-
-    if (error) {
-      return res.status(400).json({ message: error.message });
-    }
-
     try {
-      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(id, value);
+      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(
+        id,
+        updatedData
+      );
 
       if (!updatedWorkoutPlan) {
         return res.status(404).json({ message: "There was an error updating the workout plan." });

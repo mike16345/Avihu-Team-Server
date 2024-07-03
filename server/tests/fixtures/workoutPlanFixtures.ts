@@ -4,14 +4,14 @@ export const ValidSet = {
 };
 
 export const InvalidSet = {
-  maxReps: 12,
+  minReps: -1,
 };
 
 export const ValidWorkout = {
-  name: "Bench Press",
+  name: "Push Up",
   sets: [ValidSet],
-  linkToVideo: "http://example.com/benchpress",
-  tipFromTrainer: "Keep your back flat on the bench.",
+  linkToVideo: "http://example.com",
+  tipFromTrainer: "Keep your back straight.",
 };
 
 export const InvalidWorkout = {
@@ -30,40 +30,25 @@ export const InvalidMuscleGroupWorkoutPlan = {
 
 export const ValidWorkoutPlan = {
   planName: "Beginner Plan",
-  userId: "1",
   workouts: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const InvalidWorkoutPlan = {
-  planName: "This plan name is way too long and exceeds the maximum allowed length",
+  planName: "",
   workouts: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const ValidDetailedWorkoutPlan = {
-  planName: "Beginner Plan",
-  userId: "1",
+  planName: "Advanced Plan",
   workouts: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const InvalidDetailedWorkoutPlan = {
-  planName: "This plan name is way too long and exceeds the maximum allowed length",
-  workouts: [ValidMuscleGroupWorkoutPlan],
+  planName: "A",
+  workouts: [],
 };
 
-export const all = {
-  planName: "Beginner Plan",
-  userId: "1",
-  workouts: [
-    {
-      muscleGroup: "Chest",
-      workouts: [
-        {
-          name: "Bench Press",
-          sets: [{ minReps: 8, maxReps: 12 }],
-          linkToVideo: "http://example.com/benchpress",
-          tipFromTrainer: "Keep your back flat on the bench.",
-        },
-      ],
-    },
-  ],
+export const validFullWorkoutPlan = {
+  userId: "user123",
+  workoutPlans: [ValidWorkoutPlan],
 };

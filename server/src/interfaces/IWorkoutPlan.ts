@@ -20,3 +20,8 @@ export interface IDetailedWorkoutPlan {
   userId: string;
   workouts: IMuscleGroupWorkoutPlan[];
 }
+
+export interface IFullWorkoutPlan {
+  userId: string;
+  workoutPlans: IDetailedWorkoutPlan[];
+}
