@@ -2,7 +2,6 @@ import { DietPlan } from "../models/dietPlanModel";
 
 export class DietPlanService {
   async addDietPlan(data: any) {
-    console.log("data in service", data);
     try {
       const dietPlanDoc = await DietPlan.create(data);
 
@@ -26,11 +25,7 @@ export class DietPlanService {
 
   async getDietPlanByUserId(userId: string) {
     try {
-      const dietPlan = await DietPlan.findOne({ userId });
-
-      if (!dietPlan) {
-        throw new Error(`Diet plan not found for user ID: ${userId}`);
-      }
+      const dietPlan = await DietPlan.findOne({ userId }).select({ _id: false, __v: false }).lean();
 
       return dietPlan;
     } catch (err: any) {
@@ -39,7 +34,22 @@ export class DietPlanService {
     }
   }
 
-  async deleteDietPlan(userId: string) {
+  async deleteDietPlan(planId: string) {
+    try {
+      const deletedDietPlan = await DietPlan.findByIdAndDelete(planId);
+
+      if (!deletedDietPlan) {
+        throw new Error(`Diet plan not found for ID: ${planId}`);
+      }
+
+      return { message: "Diet plan successfully deleted" };
+    } catch (err: any) {
+      console.error("Error deleting diet plan:", err);
+      throw new Error(`Failed to delete diet plan: ${err.message}`);
+    }
+  }
+
+  async deleteDietPlanByUserId(userId: string) {
     try {
       const deletedDietPlan = await DietPlan.deleteOne({ userId });
 
@@ -51,6 +61,19 @@ export class DietPlanService {
     } catch (err: any) {
       console.error("Error deleting diet plan:", err);
       throw new Error(`Failed to delete diet plan: ${err.message}`);
+    }
+  }
+
+  async updateDietPlanByUserId(userId: string, dietPlan: any) {
+    try {
+      const updatedDietPlan = await DietPlan.findOneAndUpdate({ userId }, dietPlan, {
+        new: true,
+      });
+
+      return updatedDietPlan;
+    } catch (err: any) {
+      console.error("Error updating diet plan:", err);
+      throw new Error(`Failed to update diet plan: ${err.message}`);
     }
   }
 

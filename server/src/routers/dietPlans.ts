@@ -8,10 +8,12 @@ router.post("/", validateDietPlan, dietPlanController.addDietPlan);
 
 router.get("/", dietPlanController.getDietPlans);
 
-router.get("/:id", dietPlanController.getDietPlanByUserId);
+router.get("/user/:id", dietPlanController.getDietPlanByUserId);
 
 router.delete("/:id", dietPlanController.deleteDietPlan);
 
-router.put("/:id", dietPlanController.updateDietPlan);
+router.put("/:id", validateDietPlan, dietPlanController.updateDietPlan);
+
+router.put("/user/:id", validateDietPlan, dietPlanController.updateDietPlanByUserId);
 
 export default router;

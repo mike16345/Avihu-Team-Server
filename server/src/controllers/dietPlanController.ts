@@ -34,6 +34,19 @@ class DietPlanController {
     }
   };
 
+  async updateDietPlanByUserId(req: Request, res: Response) {
+    const userId = req.params.id;
+    const newDietPlan = req.body;
+
+    try {
+      const updatedDietPlan = await DietPlanServices.updateDietPlanByUserId(userId, newDietPlan);
+
+      return res.status(200).json(updatedDietPlan);
+    } catch (err) {
+      return res.status(500).json({ message: "An error occurred while updating the diet plan." });
+    }
+  }
+
   deleteDietPlan = async (req: Request, res: Response) => {
     const userId = req.params.id;
 
@@ -59,14 +72,14 @@ class DietPlanController {
   };
 
   getDietPlanByUserId = async (req: Request, res: Response) => {
-    const { id: userId } = req.query;
+    const userId = req.params.id;
 
     if (!userId || typeof userId !== "string") {
       return res.status(400).json({ message: "User ID is required and should be a string." });
     }
 
     try {
-      const dietPlan = await DietPlanServices.getDietPlanByUserId(userId as string);
+      const dietPlan = await DietPlanServices.getDietPlanByUserId(userId);
 
       return res.status(200).json(dietPlan);
     } catch (err) {
