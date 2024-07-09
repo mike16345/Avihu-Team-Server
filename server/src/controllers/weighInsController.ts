@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { WeighInSchemaValidation } from "../models/weighInModel";
 import { weighInServices } from "../services/weighInService";
-import { ObjectId } from "mongodb";
 
 class WeighInsController {
   addWeighIn = async (req: Request, res: Response) => {
