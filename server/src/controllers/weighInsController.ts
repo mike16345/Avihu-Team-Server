@@ -53,10 +53,22 @@ class WeighInsController {
   };
 
   getWeighInsByUserId = async (req: Request, res: Response) => {
-    const { id } = req.query;
+    const { id } = req.params;
 
     try {
-      const weighIns = await weighInServices.getWeightInsByUserId(id as string);
+      const weighIns = await weighInServices.getWeighInsByUserId(id as string);
+
+      return res.status(201).json(weighIns);
+    } catch (err) {
+      return res.status(500).json({ message: "An error occurred while requesting the weigh-ins." });
+    }
+  };
+
+  getWeighInsById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const weighIns = await weighInServices.getWeighInsById(id);
 
       return res.status(201).json(weighIns);
     } catch (err) {

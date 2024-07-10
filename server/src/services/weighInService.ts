@@ -17,10 +17,21 @@ export class WeighInService {
     }
   }
 
-  async getWeightInsByUserId(id: string) {
+  async getWeighInsByUserId(id: string) {
+    try {
+      const weighIns = await WeighIns.findOne({ userId: id });
+
+      console.log("weigh ins", weighIns);
+      return weighIns;
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async getWeighInsById(id: string) {
     try {
       const weighIns = await WeighIns.findOne({ id });
-      console.log("weigh ins", weighIns);
+
       return weighIns;
     } catch (err) {
       return err;

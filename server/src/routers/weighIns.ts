@@ -7,6 +7,9 @@ router.post("/:id", weighInsController.addWeighIn);
 
 router.get("/:id", weighInsController.getWeighInsByUserId);
 
+router.get("/user/:id", weighInsController.getWeighInsByUserId);
+
+
 router.delete("/:id", weighInsController.deleteWeighIns);
 
 router.put("/:id", weighInsController.updateWeighIn);
