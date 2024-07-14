@@ -20,7 +20,7 @@ export class WeighInService {
   async getWeightInsByUserId(id: string) {
     try {
       const weighIns = await WeighIns.findOne({ id });
-      console.log("weigh ins", weighIns);
+
       return weighIns;
     } catch (err) {
       return err;
@@ -44,8 +44,6 @@ export class WeighInService {
         { "weighIns._id": weighInId },
         { $set: { "weighIns.$.weight": newWeighIn } }
       );
-
-      console.log("updated");
 
       return updatedWeighIn;
     } catch (err) {
