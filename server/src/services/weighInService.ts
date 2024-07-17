@@ -55,8 +55,6 @@ export class WeighInService {
         { $set: { "weighIns.$.weight": newWeighIn } }
       );
 
-      console.log("updated");
-
       return updatedWeighIn;
     } catch (err) {
       return err;

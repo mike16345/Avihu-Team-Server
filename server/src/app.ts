@@ -6,6 +6,7 @@ import cors from "cors";
 import userRouter from "./routers/users";
 import weighInsRouter from "./routers/weighIns";
 import workoutPlanRouter from "./routers/workoutPlans";
+import recordedSetsRouter from "./routers/recordedSets";
 import dietPlansRouter from "./routers/dietPlans";
 
 import "./db/mainConnection";
@@ -23,6 +24,7 @@ app.use("/users", userRouter);
 app.use("/weighIns", weighInsRouter);
 app.use("/dietPlans", dietPlansRouter);
 app.use("/workoutPlans", workoutPlanRouter);
+app.use("/recordedSets", recordedSetsRouter);
 
 const server = http.createServer(app);
 
