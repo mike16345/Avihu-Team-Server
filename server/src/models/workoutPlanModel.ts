@@ -93,24 +93,24 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   },
 });
 
-const setValidationSchema = Joi.object({
+export const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
   maxReps: Joi.number().min(1).optional(),
 });
 
-const workoutValidationSchema = Joi.object({
+export const workoutValidationSchema = Joi.object({
   name: Joi.string().required(),
   sets: Joi.array().items(setValidationSchema).required(),
   linkToVideo: Joi.string().optional(),
   tipFromTrainer: Joi.string().optional(),
 });
 
-const muscleGroupWorkoutPlanValidationSchema = Joi.object({
+export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
   muscleGroup: Joi.string().required(),
   exercises: Joi.array().items(workoutValidationSchema).min(1).required(),
 });
 
-const WorkoutPlanSchemaValidation = Joi.object({
+export const WorkoutPlanSchemaValidation = Joi.object({
   planName: Joi.string().min(1).max(25).required(),
   workouts: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });

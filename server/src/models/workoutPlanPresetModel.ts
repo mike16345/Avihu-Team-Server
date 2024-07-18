@@ -1,9 +1,10 @@
-import { Model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 import Joi from "joi";
 import { IWorkoutPlanPreset } from "../interfaces/IWorkoutPlan";
-import { fullWorkoutPlanSchema } from "./workoutPlanModel";
+import { fullWorkoutPlanSchema, workoutPlanSchema, WorkoutPlanSchemaValidation } from "./workoutPlanModel";
 
 export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
-  name: { type: String, required: true, unique: true },
   workoutPlan: fullWorkoutPlanSchema,
 });
+
+export const WorkoutPlanPreset = model("workoutPresets", workoutPlanSchema);
