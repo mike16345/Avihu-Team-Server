@@ -80,9 +80,7 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
-    required: true,
   },
-
   workoutPlans: {
     type: [workoutPlanSchema],
     validate: {
@@ -118,7 +116,6 @@ const WorkoutPlanSchemaValidation = Joi.object({
 });
 
 export const FullWorkoutPlanSchemaValidation = Joi.object({
-  userId: Joi.string().required(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });
 
