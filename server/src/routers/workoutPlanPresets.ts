@@ -4,6 +4,16 @@ import { WorkoutPlanPresetsController } from "../controllers/workoutPlanPresetCo
 
 const router = express.Router();
 
+router.get("/", WorkoutPlanPresetsController.getAllWorkoutPlanPresets);
+
 router.post("/", validateWorkoutPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
+
+router.put(
+  "/:presetId",
+  validateWorkoutPreset,
+  WorkoutPlanPresetsController.updateWorkoutPlanPreset
+);
+
+router.delete("/:presetId", WorkoutPlanPresetsController.deleteWorkoutPlanPreset);
 
 export default router;
