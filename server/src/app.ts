@@ -6,6 +6,7 @@ import cors from "cors";
 import userRouter from "./routers/users";
 import weighInsRouter from "./routers/weighIns";
 import workoutPlanRouter from "./routers/workoutPlans";
+import exercisePresetRouter from "./routers/exercisePresets";
 
 import "./db/mainConnection";
 
@@ -21,6 +22,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/users", userRouter);
 app.use("/weighIns", weighInsRouter);
 app.use("/workoutPlans", workoutPlanRouter);
+app.use("/presets/exercises", exercisePresetRouter);
 
 const server = http.createServer(app);
 
