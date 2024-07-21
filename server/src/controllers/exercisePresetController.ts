@@ -20,7 +20,7 @@ class ExercisePresetController {
 
             res.status(201).json(excercisePreset)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while adding the new preset` })
+            res.status(500).json(error.message)
         }
     }
     getExercises = async (req: Request, res: Response) => {

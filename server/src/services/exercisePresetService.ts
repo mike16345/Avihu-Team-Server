@@ -8,7 +8,7 @@ export class ExercisePresetService {
 
             const exerciseExists = await exercisePresets.count(data)
             if (Boolean(exerciseExists)) {
-                throw new Error(`Item exists`);
+                throw new Error(`אי אפשר להוסיף פריט שכבר קיים לרשימה!`);
             }
 
 
@@ -17,7 +17,7 @@ export class ExercisePresetService {
             return exercise
 
         } catch (error) {
-            return error
+            return Promise.reject(error)
         }
     }
 
