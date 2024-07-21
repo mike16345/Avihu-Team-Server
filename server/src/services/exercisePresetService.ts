@@ -1,9 +1,16 @@
+import { error } from "console";
 import { exercisePresets } from "../models/exercisePresetModel";
 
 
 export class ExercisePresetService {
     async addExercise(data: any) {
         try {
+
+            const exerciseExists = await exercisePresets.count(data)
+            if (Boolean(exerciseExists)) {
+                throw new Error(`Item exists`);
+            }
+
 
             const exercise = await exercisePresets.create(data)
 
