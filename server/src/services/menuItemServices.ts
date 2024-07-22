@@ -4,6 +4,7 @@ export class MenuItemService{
     async addMenuItem(data:any,){
         const {menuItem,arrayToPushTo}=data
         try {
+
             const newMenuItem= fullMenuItemPresets.findOneAndUpdate(
                 {},
                 {$push:{[arrayToPushTo]:menuItem}},
@@ -11,6 +12,18 @@ export class MenuItemService{
             )
 
             return newMenuItem
+        } catch (error) {
+            return error
+        }
+    }
+
+    async getMenuItems(foodGroup:string){
+        try {
+            const menuItems= await fullMenuItemPresets.findOne({
+                [foodGroup]: { $exists: true, $ne: [] } 
+            })
+            console.log(menuItems);
+            
         } catch (error) {
             return error
         }

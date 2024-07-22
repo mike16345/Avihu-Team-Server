@@ -15,7 +15,17 @@ export class MenuItemPresetController{
 
             res.status(201).json(newMenuItem);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            res.status(500).json({ message: "An error occurred while adding the menu item." });
+        }
+    }
+
+    getMenuItems=async(req:Request,res:Response)=>{
+        const {foodGroup}=req.params
+        try {
+            const menuItems= await menuItemServices.getMenuItems(foodGroup)
+            res.status(201).json(menuItems);
+        } catch (error) {
+            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
         }
     }
 }
