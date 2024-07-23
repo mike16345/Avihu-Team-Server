@@ -7,6 +7,7 @@ const router = Router();
 router.post(`/`, validateMenuItem, menuItemController.addMenuItem)
 router.get(`/:foodGroup`, menuItemController.getMenuItems)
 router.get(`/`, menuItemController.getAllMenuItems)
+router.get(`/:id`, menuItemController.getOneMenuItem)
 router.put(`/:id`, validateMenuItem, menuItemController.editMenuItem)
 router.delete(`/:id`, menuItemController.deleteMenuItem)
 

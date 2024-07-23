@@ -24,6 +24,15 @@ export class MenuItemPresetController {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
         }
     }
+    getOneMenuItem = async (req: Request, res: Response) => {
+        const { id } = req.params
+        try {
+            const menuItems = await menuItemServices.getOneMenuItem(id)
+            res.status(201).json(menuItems);
+        } catch (error) {
+            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
+        }
+    }
     getAllMenuItems = async (req: Request, res: Response) => {
 
         try {

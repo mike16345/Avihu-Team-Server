@@ -21,6 +21,15 @@ export class MenuItemService {
             return error
         }
     }
+    async getOneMenuItem(id: string) {
+        try {
+            const menuItem = await fullMenuItemPresets.findOne({ _id: id })
+            return menuItem
+
+        } catch (error) {
+            return error
+        }
+    }
 
     async getAllMenuItems() {
         try {
