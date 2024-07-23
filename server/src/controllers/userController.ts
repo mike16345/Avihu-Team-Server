@@ -4,6 +4,7 @@ import { UserSchemaValidation } from "../models/userModel";
 
 class UserController {
   addUser = async (req: Request, res: Response) => {
+    
     try {
       const data = {
         name: req.body.name,

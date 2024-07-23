@@ -14,7 +14,7 @@ export class WorkoutPlanPresetService {
   static async updateWorkoutPlanPreset(presetId: string, data: any) {
     try {
       const workoutPlanDoc = await WorkoutPlanPreset.findById(presetId);
-
+      
       if (!workoutPlanDoc) {
         return null;
       }

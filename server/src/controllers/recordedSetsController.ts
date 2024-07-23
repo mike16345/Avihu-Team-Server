@@ -1,3 +1,4 @@
+import { StatusCode } from "../enums/StatusCode";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { Request, Response } from "express";
 
@@ -19,7 +20,7 @@ export class RecordedSetsController {
         data
       );
 
-      res.status(201).send(response);
+      res.status(StatusCode.CREATED).send(response);
     } catch (err: any) {
       res.status(500).send({ message: err.message });
     }
