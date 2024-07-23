@@ -3,6 +3,7 @@ import { fullMenuItemPresets, menuItemShcemaValidation } from "../models/menuIte
 
 export const validateMenuItem = async (req: Request, res: Response, next: NextFunction) => {
     const menuItem = req.body;
+    const { id } = req.params
 
     if (!menuItem.dietaryType) {
         return res.status(400).json({ message: "dietary type is required" });
@@ -17,11 +18,11 @@ export const validateMenuItem = async (req: Request, res: Response, next: NextFu
     if (!menuItem.oneServing) {
         return res.status(400).json({ message: "menu item must have one serving measurments" });
     }
-    if (!menuItem._id) {
+    if (!id) {
         const menuItemExists = await fullMenuItemPresets.findOne({ itemName: menuItem.itemName })
 
         if (menuItemExists) {
-            return res.status(400).json({ message: "menu item already exists" });
+            return res.status(400).json({ message: "פריט כבר קיים במערכת" });
         }
     }
 
