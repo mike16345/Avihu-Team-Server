@@ -27,6 +27,6 @@ export interface IFullWorkoutPlan {
 }
 
 export interface IWorkoutPlanPreset {
-  name: string;
-  workoutPlan: Omit<IFullWorkoutPlan, "userId">;
+  presetName: string;
+  workoutPlans: IDetailedWorkoutPlan[];
 }
