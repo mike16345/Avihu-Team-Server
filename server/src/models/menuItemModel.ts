@@ -1,25 +1,21 @@
-import Joi, {   } from "joi";
+import Joi, { } from "joi";
 import { model, Schema } from "mongoose";
 
-export const oneServingShcema= new Schema({
+export const oneServingShcema = new Schema({
     grams: Number,
     spoons: Number
 })
 
 export const menuItemSchema = new Schema({
-    type:String,
-    itemName:String,
+    dietaryType: String,
+    foodGroup: String,
+    itemName: String,
     oneServing: oneServingShcema
 })
 
-export const fullMenuItemsSchema = new Schema({
-    protein:[menuItemSchema],
-    carbs:[menuItemSchema],
-    fats:[menuItemSchema],
-    vegetables:[menuItemSchema],
-})
 
-export const fullMenuItemPresets = model(`menuItemPresets`, fullMenuItemsSchema);
+
+export const fullMenuItemPresets = model(`menuItems`, menuItemSchema);
 
 export const oneServingShcemaValidation = Joi.object({
     grams: Joi.number().min(1).required(),
@@ -27,7 +23,8 @@ export const oneServingShcemaValidation = Joi.object({
 })
 
 export const menuItemShcemaValidation = Joi.object({
-    type: Joi.string().min(1).required(),
+    dietaryType: Joi.string().min(1).required(),
+    foodGroup: Joi.string().min(1).required(),
     itemName: Joi.string().min(1).required(),
     oneServing: oneServingShcemaValidation
 })
