@@ -4,6 +4,7 @@ import {
   WorkoutPlanSchemaValidation,
 } from "../models/workoutPlanModel";
 import { StatusCode } from "../enums/StatusCode";
+import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
 
 export const validateWorkoutPlan = (req: Request, res: Response, next: NextFunction) => {
   const id = req.params.userId;
@@ -21,9 +22,11 @@ export const validateWorkoutPlan = (req: Request, res: Response, next: NextFunct
   next();
 };
 
-export const validateWorkoutPreset = (req: Request, res: Response, next: NextFunction) => {
-  const { error } = WorkoutPlanSchemaValidation.validate(req.body);
+export const validateWorkoutPlanPreset = (req: Request, res: Response, next: NextFunction) => {
+  console.log("req body:", req.body);
 
+  const { error } = WorkoutPlanPresetSchemaValidation.validate(req.body);
+  console.log("error was caught", error);
   if (error) {
     return res.status(400).json({ message: error.message });
   }
