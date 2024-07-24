@@ -4,23 +4,15 @@ import { exercisePresetServices } from "../services/exercisePresetService";
 
 class ExercisePresetController {
     addExercise = async (req: Request, res: Response) => {
-        const exercise = req.body.itemName;
-
-        const exerciseObject = { itemName: exercise }
-
-        const { error, value } = exercisePresetValidationSchema.validate(exerciseObject)
-
-        if (error) {
-            return res.status(400).json({ message: error.message })
-        }
+        const exercise = req.body;
 
         try {
 
-            const excercisePreset = await exercisePresetServices.addExercise(value)
+            const excercisePreset = await exercisePresetServices.addExercise(exercise)
 
             res.status(201).json(excercisePreset)
         } catch (error) {
-            res.status(500).json(error.message)
+            res.status(500).json(error)
         }
     }
     getExercises = async (req: Request, res: Response) => {
@@ -60,10 +52,10 @@ class ExercisePresetController {
     updateExercise = async (req: Request, res: Response) => {
 
         const { id } = req.params
-        const { itemName } = req.body
+        const newExercise = req.body
 
         try {
-            const exercise = await exercisePresetServices.updateExercise(id, itemName)
+            const exercise = await exercisePresetServices.updateExercise(id, newExercise)
 
             res.status(201).json(exercise)
         } catch (error) {

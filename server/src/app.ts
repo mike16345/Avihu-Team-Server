@@ -11,8 +11,8 @@ import exercisePresetRouter from "./routers/exercisePresets";
 import "./db/mainConnection";
 
 dotenv.config();
+const port = process.env.SERVER_PORT;
 
-const PORT = "3002";
 const app = express();
 
 app.use(express.json());
@@ -26,6 +26,6 @@ app.use("/presets/exercises", exercisePresetRouter);
 
 const server = http.createServer(app);
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

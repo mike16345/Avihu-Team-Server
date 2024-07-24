@@ -6,18 +6,12 @@ export class ExercisePresetService {
     async addExercise(data: any) {
         try {
 
-            const exerciseExists = await exercisePresets.count(data)
-            if (Boolean(exerciseExists)) {
-                throw new Error(`אי אפשר להוסיף פריט שכבר קיים לרשימה!`);
-            }
-
-
             const exercise = await exercisePresets.create(data)
 
             return exercise
 
         } catch (error) {
-            return Promise.reject(error)
+            return error
         }
     }
 
@@ -58,9 +52,9 @@ export class ExercisePresetService {
     async updateExercise(id: string, newExercise: any) {
         try {
 
-            const exercise = await exercisePresets.updateOne(
+            const exercise = await exercisePresets.findOneAndUpdate(
                 { _id: id },
-                { $set: { itemName: newExercise } }
+                newExercise
             )
 
             return exercise
