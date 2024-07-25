@@ -5,6 +5,7 @@ import { WorkoutPlanPresetsController } from "../controllers/workoutPlanPresetCo
 const router = express.Router();
 
 router.get("/", WorkoutPlanPresetsController.getAllWorkoutPlanPresets);
+router.get("/:presetId", WorkoutPlanPresetsController.getWorkoutPlanPresetById);
 
 router.post("/", validateWorkoutPlanPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
 

@@ -76,4 +76,15 @@ export class WorkoutPlanPresetsController {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }
   }
+
+  static async getWorkoutPlanPresetById(req: Request, res: Response) {
+    const { presetId } = req.params
+    try {
+      const workoutPlanPreset = await WorkoutPlanPresetService.getWorkoutPlanPresetById(presetId);
+
+      res.status(StatusCode.OK).send(workoutPlanPreset);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
 }
