@@ -12,6 +12,17 @@ export class MuscleGroupController {
         }
     }
 
+    static async getMuscleGroupById(req: Request, res: Response) {
+        const { id } = req.params
+        try {
+            const muscleGroup = await MuscleGroupService.getMuscleGroupById(id)
+
+            res.send(muscleGroup)
+        } catch (error) {
+            return res.status(500).send(error);
+        }
+    }
+
     static async addMuscleGroup(req: Request, res: Response) {
         const muscleGroup = req.body.itemName
 

@@ -10,6 +10,15 @@ export class MuscleGroupService {
         }
     }
 
+    static async getMuscleGroupById(id: string) {
+        try {
+            const muscleGroup = await muscleGroupPresets.findOne({ _id: id })
+            return muscleGroup
+        } catch (error) {
+            return error
+        }
+    }
+
     static async addMuscleGroup(muscleGroup: string) {
         try {
             const newMuscleGroup = await muscleGroupPresets.create({ itemName: muscleGroup })
