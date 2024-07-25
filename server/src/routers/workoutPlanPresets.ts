@@ -1,0 +1,19 @@
+import express from "express";
+import { validateWorkoutPlanPreset } from "../middleware/workoutPlanMiddleware";
+import { WorkoutPlanPresetsController } from "../controllers/workoutPlanPresetController";
+
+const router = express.Router();
+
+router.get("/", WorkoutPlanPresetsController.getAllWorkoutPlanPresets);
+
+router.post("/", validateWorkoutPlanPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
+
+router.put(
+  "/:presetId",
+  validateWorkoutPlanPreset,
+  WorkoutPlanPresetsController.updateWorkoutPlanPreset
+);
+
+router.delete("/:presetId", WorkoutPlanPresetsController.deleteWorkoutPlanPreset);
+
+export default router;

@@ -3,10 +3,11 @@ import { workoutPlanService } from "../services/workoutPlanService";
 
 class WorkoutPlanController {
   addWorkoutPlan = async (req: Request, res: Response) => {
+    const id = req.params.userId;
     const data = req.body;
 
     try {
-      const workoutPlan = await workoutPlanService.addWorkoutPlan(data);
+      const workoutPlan = await workoutPlanService.addWorkoutPlan({ ...data, userId: id });
 
       res.status(201).json(workoutPlan);
     } catch (err) {
