@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post(`/`, validateExercise, exercisePresetController.addExercise);
 router.get(`/`, exercisePresetController.getExercises);
+router.get(`/:id/:muscleGroup`, exercisePresetController.getExercisesByMusceGroup);
 router.get(`/:id`, exercisePresetController.getExerciseById);
 router.delete(`/:id`, exercisePresetController.deleteExercise);
 router.put(`/:id`, validateExercise, exercisePresetController.updateExercise);

@@ -26,6 +26,17 @@ export class ExercisePresetService {
             return error
         }
     }
+    async getExercisesByMuscleGroup(muscleGroup: string) {
+        try {
+
+            const exercises = await exercisePresets.find({ muscleGroup: muscleGroup })
+
+            return exercises
+
+        } catch (error) {
+            return error
+        }
+    }
 
     async getExerciseById(id: string) {
         try {

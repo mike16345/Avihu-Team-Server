@@ -24,6 +24,17 @@ class ExercisePresetController {
             res.status(500).json({ message: `An error occured while locating the exercise presets` })
         }
     }
+    getExercisesByMusceGroup = async (req: Request, res: Response) => {
+        const { muscleGroup } = req.params
+
+        try {
+            const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(muscleGroup)
+
+            res.status(201).json(muscleGroupExercises)
+        } catch (error) {
+            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+        }
+    }
     getExerciseById = async (req: Request, res: Response) => {
 
         const { id } = req.params
