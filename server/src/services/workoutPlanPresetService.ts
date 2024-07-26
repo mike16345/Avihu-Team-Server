@@ -50,4 +50,14 @@ export class WorkoutPlanPresetService {
       throw err;
     }
   }
+
+  static async getWorkoutPlanPresetById(id: string) {
+    try {
+      const workoutPlanPreset = await WorkoutPlanPreset.findById( id);
+
+      return workoutPlanPreset;
+    } catch (err) {
+      throw err;
+    }
+  }
 }

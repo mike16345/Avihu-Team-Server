@@ -9,7 +9,7 @@ import {
 import Joi from "joi";
 
 export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
-  presetName: {
+  name: {
     type: String,
     required: true,
     unique: true,
@@ -29,6 +29,6 @@ export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
 export const WorkoutPlanPreset = model("workoutPresets", workoutPlanPresetSchema);
 
 export const WorkoutPlanPresetSchemaValidation = Joi.object({
-  presetName: Joi.string().min(1).max(25).required(),
+  name: Joi.string().min(1).max(25).required(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });

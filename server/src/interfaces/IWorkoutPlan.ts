@@ -27,6 +27,6 @@ export interface IFullWorkoutPlan {
 }
 
 export interface IWorkoutPlanPreset {
-  presetName: string;
+  name: string;
   workoutPlans: IDetailedWorkoutPlan[];
 }
