@@ -3,10 +3,11 @@ import { workoutPlanService } from "../services/workoutPlanService";
 
 class WorkoutPlanController {
   addWorkoutPlan = async (req: Request, res: Response) => {
+    const id = req.params.userId;
     const data = req.body;
 
     try {
-      const workoutPlan = await workoutPlanService.addWorkoutPlan(data);
+      const workoutPlan = await workoutPlanService.addWorkoutPlan({ ...data, userId: id });
 
       res.status(201).json(workoutPlan);
     } catch (err) {
@@ -86,10 +87,10 @@ class WorkoutPlanController {
   };
 
   getWorkoutPlanByUserId = async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const userId = req.params.userId;
 
     try {
-      const workoutPlan = await workoutPlanService.getWorkoutPlanById(id);
+      const workoutPlan = await workoutPlanService.getWorkoutPlanByUserId(userId);
 
       if (!workoutPlan) {
         return res.status(404).json({ message: "Workout plan not found." });
