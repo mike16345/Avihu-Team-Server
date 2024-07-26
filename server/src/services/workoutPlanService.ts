@@ -44,6 +44,7 @@ export class WorkoutPlanService {
   async deleteWorkoutPlanById(id: string) {
     try {
       const deletedWorkoutPlan = await WorkoutPlan.findByIdAndDelete(id);
+
       return deletedWorkoutPlan;
     } catch (err) {
       return err;

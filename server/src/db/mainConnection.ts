@@ -17,9 +17,8 @@ async function main() {
   const password = process.env.DB_PASSWORD;
   const cluster = process.env.DB_CLUSTER;
   const DATABASE_SERVER = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.net/`;
-  const port = process.env.PORT;
+  const port = process.env.DB_PORT;
   const dbName = process.env.DB_NAME;
-  console.log("database server:", DATABASE_SERVER);
 
   try {
     mongoose.set("strictQuery", false);
