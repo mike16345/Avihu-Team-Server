@@ -44,9 +44,6 @@ class WeighInsController {
     const id = req.params.id;
     const { weight } = req.body;
 
-    console.log("id", id);
-    console.log("weight", weight);
-
     try {
       const updatedWeighIn = (await weighInServices.updateWeighIn(id, weight)) as UpdateResult;
 
