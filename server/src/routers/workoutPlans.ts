@@ -16,4 +16,6 @@ router.get("/", workoutPlanController.getAllWorkoutPlans);
 
 router.get("/:id", workoutPlanController.getWorkoutPlanById);
 
+router.get("/user/:userId", workoutPlanController.getWorkoutPlanByUserId);
+
 export default router;

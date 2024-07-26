@@ -87,10 +87,10 @@ class WorkoutPlanController {
   };
 
   getWorkoutPlanByUserId = async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const userId = req.params.userId;
 
     try {
-      const workoutPlan = await workoutPlanService.getWorkoutPlanById(id);
+      const workoutPlan = await workoutPlanService.getWorkoutPlanByUserId(userId);
 
       if (!workoutPlan) {
         return res.status(404).json({ message: "Workout plan not found." });
