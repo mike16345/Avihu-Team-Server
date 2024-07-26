@@ -79,7 +79,7 @@ class WeighInsController {
     try {
       const response = await weighInServices.deleteWeighInById(weighInId);
 
-      res.status(200).send(response);
+      res.status(StatusCode.OK).send(response);
     } catch (err: any) {
       return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
