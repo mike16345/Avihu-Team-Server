@@ -7,8 +7,7 @@ export class DietPlanService {
 
       return dietPlanDoc;
     } catch (err: any) {
-      console.error("Error adding diet plan:", err);
-      throw new Error(`Failed to add diet plan: ${err.message}`);
+      throw err;
     }
   }
 
@@ -18,8 +17,17 @@ export class DietPlanService {
 
       return dietPlans;
     } catch (err: any) {
-      console.error("Error getting all diet plans:", err);
-      throw new Error(`Failed to get all diet plans: ${err.message}`);
+      throw err;
+    }
+  }
+
+  async getDietPlanById(planId: string) {
+    try {
+      const dietPlan = await DietPlan.findById(planId).select({ _id: false, __v: false }).lean();
+
+      return dietPlan;
+    } catch (err: any) {
+      throw err;
     }
   }
 
@@ -29,8 +37,7 @@ export class DietPlanService {
 
       return dietPlan;
     } catch (err: any) {
-      console.error("Error getting diet plan by user ID:", err);
-      throw new Error(`Failed to get diet plan by user ID: ${err.message}`);
+      throw err;
     }
   }
 
@@ -38,29 +45,23 @@ export class DietPlanService {
     try {
       const deletedDietPlan = await DietPlan.findByIdAndDelete(planId);
 
-      if (!deletedDietPlan) {
-        throw new Error(`Diet plan not found for ID: ${planId}`);
-      }
-
-      return { message: "Diet plan successfully deleted" };
+      return deletedDietPlan || `Diet plan not found for ID: ${planId}`;
     } catch (err: any) {
-      console.error("Error deleting diet plan:", err);
-      throw new Error(`Failed to delete diet plan: ${err.message}`);
+      throw err;
     }
   }
 
   async deleteDietPlanByUserId(userId: string) {
     try {
-      const deletedDietPlan = await DietPlan.deleteOne({ userId });
+      const deletedDietPlan = await DietPlan.findOneAndDelete({ userId: userId });
 
-      if (deletedDietPlan.deletedCount === 0) {
-        throw new Error(`Diet plan not found for user ID: ${userId}`);
+      if (!deletedDietPlan) {
+        return `Diet plan not found/deleted for user ID: ${userId}`;
       }
 
-      return { message: "Diet plan successfully deleted" };
+      return deletedDietPlan;
     } catch (err: any) {
-      console.error("Error deleting diet plan:", err);
-      throw new Error(`Failed to delete diet plan: ${err.message}`);
+      throw err;
     }
   }
 
@@ -72,8 +73,7 @@ export class DietPlanService {
 
       return updatedDietPlan;
     } catch (err: any) {
-      console.error("Error updating diet plan:", err);
-      throw new Error(`Failed to update diet plan: ${err.message}`);
+      throw err;
     }
   }
 
@@ -83,14 +83,9 @@ export class DietPlanService {
         new: true,
       });
 
-      if (!updatedDietPlan) {
-        throw new Error(`Diet plan not found with ID: ${dietPlanId}`);
-      }
-
-      return updatedDietPlan;
+      return updatedDietPlan || `Diet plan not found with ID: ${dietPlanId}`;
     } catch (err: any) {
-      console.error("Error updating diet plan:", err);
-      throw new Error(`Failed to update diet plan: ${err.message}`);
+      throw err;
     }
   }
 }
