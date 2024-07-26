@@ -1,27 +1,42 @@
 import { Request, Response } from "express";
 import { WeighInSchemaValidation } from "../models/weighInModel";
 import { weighInServices } from "../services/weighInService";
+import { IWeighIn } from "../interfaces/IWeighIns";
+import { UpdateResult } from "mongodb";
+import { StatusCode } from "../enums/StatusCode";
 
 class WeighInsController {
   addWeighIn = async (req: Request, res: Response) => {
     const id = req.params.id;
-    const data = {
-      userId: id,
-      weight: req.body.weight,
-    };
+    const weighInToAdd = req.body;
 
-    const { error, value } = WeighInSchemaValidation.validate(data);
+    const { error, value } = WeighInSchemaValidation.validate(weighInToAdd);
 
     if (error) {
-      return res.status(400).json({ message: error.message });
+      return res.status(StatusCode.BAD_REQUEST).json({ message: error.message });
     }
 
     try {
-      const weighIn = await weighInServices.addWeighIn(value);
+      const weighIn = await weighInServices.addWeighIn(weighInToAdd, id);
 
-      res.status(201).json(weighIn);
+      res.status(StatusCode.CREATED).json(weighIn);
     } catch (err) {
-      res.status(500).json({ message: "An error occurred while adding the weigh-in." });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: "An error occurred while adding the weigh-in." });
+    }
+  };
+
+  addManyWeighIns = async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const weighIns = req.body.weighIns as IWeighIn[];
+
+    try {
+      const result = await weighInServices.addManyWeighIns(weighIns, id);
+
+      res.status(StatusCode.CREATED).send(result);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
   };
 
@@ -29,26 +44,41 @@ class WeighInsController {
     const id = req.params.id;
     const { weight } = req.body;
 
-    console.log("id", id);
-    console.log("weight", weight);
-
     try {
-      const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
-      console.log("updated ", updatedWeighIn);
-      return res.status(201).json(updatedWeighIn);
+      const updatedWeighIn = (await weighInServices.updateWeighIn(id, weight)) as UpdateResult;
+
+      if (updatedWeighIn.matchedCount == 0) {
+        res.status(StatusCode.NOT_FOUND).send({ message: "Weigh in not found!" });
+      }
+
+      res.status(StatusCode.OK).json(updatedWeighIn);
     } catch (err) {
-      return res.status(500).json({ message: err });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err });
     }
   };
 
-  deleteWeighIns = async (req: Request, res: Response) => {
+  deleteUserWeighIns = async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
-      const response = await weighInServices.deleteWeighIns(id);
+      const response = await weighInServices.deleteUserWeighIns(id);
 
-      return res.status(201).json(response);
+      return res.status(StatusCode.OK).json(response);
     } catch (err) {
-      return res.status(500).json({ message: "There was an error deleting weigh ins." });
+      return res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: "There was an error deleting weigh ins." });
+    }
+  };
+
+  deleteWeighInById = async (req: Request, res: Response) => {
+    const { weighInId } = req.params;
+
+    try {
+      const response = await weighInServices.deleteWeighInById(weighInId);
+
+      res.status(StatusCode.OK).send(response);
+    } catch (err: any) {
+      return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
   };
 
@@ -58,9 +88,17 @@ class WeighInsController {
     try {
       const weighIns = await weighInServices.getWeighInsByUserId(id as string);
 
-      return res.status(201).json(weighIns);
+      if (!weighIns) {
+        return res
+          .status(StatusCode.NOT_FOUND)
+          .json({ message: "No weigh ins found for this user." });
+      }
+
+      return res.status(StatusCode.OK).json(weighIns);
     } catch (err) {
-      return res.status(500).json({ message: "An error occurred while requesting the weigh-ins." });
+      return res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: "An error occurred while requesting the weigh-ins." });
     }
   };
 
@@ -70,11 +108,14 @@ class WeighInsController {
     try {
       const weighIns = await weighInServices.getWeighInsById(id);
 
-      return res.status(201).json(weighIns);
+      return res.status(StatusCode.OK).json(weighIns);
     } catch (err) {
-      return res.status(500).json({ message: "An error occurred while requesting the weigh-ins." });
+      return res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: "An error occurred while requesting the weigh-ins." });
     }
   };
 }
 
 export const weighInsController = new WeighInsController();
+1;
