@@ -78,9 +78,22 @@ export class WorkoutPlanPresetsController {
   }
 
   static async getWorkoutPlanPresetById(req: Request, res: Response) {
-    const { presetId } = req.params
+    const id = req.params.presetId;
+    
+    if (!id) {
+      return res
+        .status(StatusCode.BAD_REQUEST)
+        .json({ message: "Workout plan preset ID is required!" });
+    }
+
     try {
-      const workoutPlanPreset = await WorkoutPlanPresetService.getWorkoutPlanPresetById(presetId);
+      const workoutPlanPreset = await WorkoutPlanPresetService.getWorkoutPlanPresetById(id);
+
+      if (!workoutPlanPreset) {
+        return res
+          .status(StatusCode.NOT_FOUND)
+          .json({ message: "Workout plan preset was not found!" });
+      }
 
       res.status(StatusCode.OK).send(workoutPlanPreset);
     } catch (err: any) {

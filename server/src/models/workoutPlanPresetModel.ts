@@ -1,15 +1,10 @@
 import { model, Schema } from "mongoose";
 import { IDetailedWorkoutPlan, IWorkoutPlanPreset } from "../interfaces/IWorkoutPlan";
-import {
-  fullWorkoutPlanSchema,
-  FullWorkoutPlanSchemaValidation,
-  workoutPlanSchema,
-  WorkoutPlanSchemaValidation,
-} from "./workoutPlanModel";
+import { workoutPlanSchema, WorkoutPlanSchemaValidation } from "./workoutPlanModel";
 import Joi from "joi";
 
 export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
-  presetName: {
+  name: {
     type: String,
     required: true,
     unique: true,
@@ -26,9 +21,9 @@ export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
   },
 });
 
-export const WorkoutPlanPreset = model("workoutPresets", workoutPlanPresetSchema);
+export const WorkoutPlanPreset = model("workoutPlanPresets", workoutPlanPresetSchema);
 
 export const WorkoutPlanPresetSchemaValidation = Joi.object({
-  presetName: Joi.string().min(1).max(25).required(),
+  name: Joi.string().min(1).max(25).required(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });

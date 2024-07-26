@@ -119,4 +119,4 @@ export const FullWorkoutPlanSchemaValidation = Joi.object({
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });
 
-export const WorkoutPlan = model<IDetailedWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);
+export const WorkoutPlan = model<IFullWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);

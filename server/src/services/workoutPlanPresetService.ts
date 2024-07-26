@@ -51,9 +51,9 @@ export class WorkoutPlanPresetService {
     }
   }
 
-  static async getWorkoutPlanPresetById(presetId: string) {
+  static async getWorkoutPlanPresetById(id: string) {
     try {
-      const workoutPlanPreset = await WorkoutPlanPreset.findOne({ _id: presetId });
+      const workoutPlanPreset = await WorkoutPlanPreset.findById( id);
 
       return workoutPlanPreset;
     } catch (err) {
