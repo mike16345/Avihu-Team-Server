@@ -49,6 +49,5 @@ export const InvalidDetailedWorkoutPlan = {
 };
 
 export const validFullWorkoutPlan = {
-  userId: "user123",
   workoutPlans: [ValidWorkoutPlan],
 };

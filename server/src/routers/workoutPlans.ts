@@ -4,7 +4,7 @@ import { validateWorkoutPlan } from "../middleware/workoutPlanMiddleware";
 
 const router = express.Router();
 
-router.post("/", validateWorkoutPlan, workoutPlanController.addWorkoutPlan);
+router.post("/:userId", validateWorkoutPlan, workoutPlanController.addWorkoutPlan);
 
 router.put("/:id", validateWorkoutPlan, workoutPlanController.updateWorkoutPlan);
 
