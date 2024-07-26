@@ -17,11 +17,15 @@ export interface IWorkout {
 
 export interface IDetailedWorkoutPlan {
   planName: string;
-  userId: string;
   workouts: IMuscleGroupWorkoutPlan[];
 }
 
 export interface IFullWorkoutPlan {
   userId: string;
+  workoutPlans: IDetailedWorkoutPlan[];
+}
+
+export interface IWorkoutPlanPreset {
+  name: string;
   workoutPlans: IDetailedWorkoutPlan[];
 }
