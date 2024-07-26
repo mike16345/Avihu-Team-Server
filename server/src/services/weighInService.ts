@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { WeighIns } from "../models/weighInModel";
 import { IWeighIn } from "../interfaces/IWeighIns";
 
@@ -79,13 +78,10 @@ export class WeighInService {
 
   async updateWeighIn(weighInId: string, newWeighIn: any) {
     try {
-      console.log("updating");
       const updatedWeighIn = await WeighIns.updateOne(
         { "weighIns._id": weighInId },
         { $set: { "weighIns.$.weight": newWeighIn } }
       );
-
-      console.log("updated");
 
       return updatedWeighIn;
     } catch (err) {
