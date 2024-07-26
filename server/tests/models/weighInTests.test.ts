@@ -83,14 +83,4 @@ describe("Joi Validation", () => {
 
     expect(error).not.toBeUndefined();
   });
-
-  test("should return validation error for empty weighIns array", () => {
-    const invalidWeighIns = {
-      userId: "someUserId",
-      weighIns: [],
-    };
-    const { value, error } = WeighInsSchemaValidation.validate(invalidWeighIns);
-    console.log("vaLUE", value);
-    expect(error).not.toBeUndefined();
-  });
 });

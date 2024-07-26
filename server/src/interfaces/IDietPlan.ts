@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 
 export interface IDietPlan {
-  id: ObjectId;
   userId: string;
   meals: IMeal[];
   totalCalories?: number;
