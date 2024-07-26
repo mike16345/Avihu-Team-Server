@@ -17,7 +17,6 @@ export interface IWorkout {
 
 export interface IDetailedWorkoutPlan {
   planName: string;
-  userId: string;
   workouts: IMuscleGroupWorkoutPlan[];
 }
 
