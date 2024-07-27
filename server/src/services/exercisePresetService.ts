@@ -60,7 +60,7 @@ export class ExercisePresetService {
 
             const exercise = await exercisePresets.updateOne(
                 { _id: id },
-                { $set: { itemName: newExercise } }
+                { $set: { name: newExercise } }
             )
 
             return exercise
