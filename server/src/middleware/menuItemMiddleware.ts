@@ -4,7 +4,8 @@ import { fullMenuItemPresets, menuItemShcemaValidation } from "../models/menuIte
 export const validateMenuItem = async (req: Request, res: Response, next: NextFunction) => {
     const menuItem = req.body;
     const { id } = req.params
-
+    
+    // JOI schema validates all this already. 
     if (!menuItem.dietaryType) {
         return res.status(400).json({ message: "dietary type is required" });
     }
