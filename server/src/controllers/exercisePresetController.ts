@@ -3,6 +3,9 @@ import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { exercisePresetServices } from "../services/exercisePresetService";
 
 class ExercisePresetController {
+    // 1.  For all response returns change the status code to use the StatusCode enum. 
+    // 2.  Make sure to do res.status(StatusCode.YOUR_STATUS).send({message:err.message}) or just send(resultFromService)
+
     addExercise = async (req: Request, res: Response) => {
         const exercise = req.body;
 
@@ -66,6 +69,7 @@ class ExercisePresetController {
         const newExercise = req.body
 
         try {
+            // You should check if exercise is null or not. Otherwise you are returning an OK response instead of an error. 
             const exercise = await exercisePresetServices.updateExercise(id, newExercise)
 
             res.status(201).json(exercise)

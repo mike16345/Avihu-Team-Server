@@ -7,8 +7,6 @@ const router = express.Router();
 router.get("/", WorkoutPlanPresetsController.getAllWorkoutPlanPresets);
 router.get("/:presetId", WorkoutPlanPresetsController.getWorkoutPlanPresetById);
 
-router.get("/:presetId", WorkoutPlanPresetsController.getWorkoutPlanPresetById);
-
 router.post("/", validateWorkoutPlanPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
 
 router.put(

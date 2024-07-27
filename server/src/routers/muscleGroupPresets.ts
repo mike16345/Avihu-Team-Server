@@ -5,6 +5,8 @@ import { checkIfItemExixts } from "../middleware/muscleGroupMiddleWare";
 
 const router = express.Router();
 
+// Put a space between each route. 
+
 router.get(`/`, MuscleGroupController.getAllMuscleGroups)
 router.get(`/:id`, MuscleGroupController.getMuscleGroupById)
 router.post(`/`, checkIfItemExixts, MuscleGroupController.addMuscleGroup)

@@ -1,7 +1,8 @@
 import { model, Schema } from "mongoose";
 
+// Make name required with minimum characters.
 export const muscleGroupSchema = new Schema({
-    itemName: String
-})
+    name: String,
+});
 
-export const muscleGroupPresets = model(`muscleGroupPresets`, muscleGroupSchema)
+export const muscleGroupPresets = model(`muscleGroup`, muscleGroupSchema);

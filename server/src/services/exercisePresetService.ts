@@ -3,6 +3,11 @@ import { exercisePresets } from "../models/exercisePresetModel";
 
 
 export class ExercisePresetService {
+    // Goes for most if not all methods in this class. 
+    // 1. Use throw err instead of return. The catch in the controller won't catch a returned error. 
+    // 2. 
+
+
     async addExercise(data: any) {
         try {
 
@@ -40,7 +45,7 @@ export class ExercisePresetService {
 
     async getExerciseById(id: string) {
         try {
-
+            // Use findById if you are only searching based on the id. 
             const exercise = await exercisePresets.findOne({ _id: id })
 
             return exercise

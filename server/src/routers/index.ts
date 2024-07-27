@@ -4,6 +4,8 @@ import weighInsRouter from "./weighIns";
 import workoutPlanRouter from "./workoutPlans";
 import workoutPlanPresetRouter from "./workoutPlanPresets";
 import dietPlanRouter from "./dietPlans";
+import exercisePresetRouter from "./exercisePresets";
+import muscleGroupPresetsRouter from "./muscleGroupPresets";
 
 const router = express.Router();
 
@@ -12,5 +14,8 @@ router.use("/weighIns", weighInsRouter);
 router.use("/workoutPlans", workoutPlanRouter);
 router.use("/workoutPlansPresets", workoutPlanPresetRouter);
 router.use("/dietPlans", dietPlanRouter);
+router.use("/presets/exercises", exercisePresetRouter);
+router.use("/workoutPlansPresets", workoutPlanPresetRouter);
+router.use("/presets/muscleGroups", muscleGroupPresetsRouter);
 
 export default router;

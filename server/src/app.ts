@@ -4,6 +4,7 @@ import cors from "cors";
 import "./db/mainConnection";
 import router from "./routers";
 import http from "http";
+import { StatusCode } from "./enums/StatusCode";
 
 dotenv.config();
 
@@ -17,12 +18,12 @@ app.use(cors());
 app.use("/", router);
 
 app.use("*", (req, res) => {
-  res.status(404).json({ message: "Route not found" });
+  res.status(StatusCode.BAD_REQUEST).send({ message: "Route not found" });
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({ message: "An unexpected error occurred" });
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: "An unexpected error occurred" });
 });
 
 if (!PORT) {
