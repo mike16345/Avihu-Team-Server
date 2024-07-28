@@ -1,7 +1,6 @@
 import { muscleGroupPresets } from "../models/muscleGroupModel";
 
 export class MuscleGroupService {
-
     static async getAllMuscleGroups() {
         try {
             const allMuscleGroups = await muscleGroupPresets.find()
@@ -36,8 +35,8 @@ export class MuscleGroupService {
 
     static async editMuscleGroup(muscleGroup: string, id: string) {
         try {
-            const newMuscleGroup = await muscleGroupPresets.findOneAndUpdate(
-                { _id: id },
+            const newMuscleGroup = await muscleGroupPresets.findByIdAndDelete(
+                id,
                 muscleGroup,
                 { new: true }
             )
@@ -50,7 +49,7 @@ export class MuscleGroupService {
 
     static async deleteMuscleGroup(id: string) {
         try {
-            const deletedMuscleGroup = await muscleGroupPresets.findOneAndDelete({ _id: id })
+            const deletedMuscleGroup = await muscleGroupPresets.findByIdAndDelete(id)
 
             return deletedMuscleGroup
         } catch (error) {

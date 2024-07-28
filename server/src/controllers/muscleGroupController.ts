@@ -10,23 +10,25 @@ export class MuscleGroupController {
 
             res.status(StatusCode.OK).send(allMuscleGroups)
         } catch (error) {
+
             return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 
     static async getMuscleGroupById(req: Request, res: Response) {
         const { id } = req.params
+
         try {
             const muscleGroup = await MuscleGroupService.getMuscleGroupById(id)
 
             res.status(StatusCode.OK).send(muscleGroup)
         } catch (error) {
+
             return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 
     static async addMuscleGroup(req: Request, res: Response) {
-
         const muscleGroup = req.body
 
         try {
@@ -34,6 +36,7 @@ export class MuscleGroupController {
 
             res.status(StatusCode.CREATED).send(newMuscleGroup)
         } catch (error) {
+
             return res.status(StatusCode.BAD_REQUEST).send(error);
         }
     }
@@ -47,6 +50,7 @@ export class MuscleGroupController {
 
             res.status(StatusCode.OK).send(newMuscleGroup)
         } catch (error) {
+
             return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
@@ -59,6 +63,7 @@ export class MuscleGroupController {
 
             res.status(StatusCode.OK).send(deletedMuscleGroup)
         } catch (error) {
+            
             return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }

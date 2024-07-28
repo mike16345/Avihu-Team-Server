@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
-import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { exercisePresetServices } from "../services/exercisePresetService";
 import { StatusCode } from "../enums/StatusCode";
 
 class ExercisePresetController {
-
 
     addExercise = async (req: Request, res: Response) => {
         const exercise = req.body;
@@ -18,6 +16,7 @@ class ExercisePresetController {
             res.status(StatusCode.BAD_REQUEST).send(error)
         }
     }
+
     getExercises = async (req: Request, res: Response) => {
         try {
             const allExercises = await exercisePresetServices.getExercises()
@@ -27,6 +26,7 @@ class ExercisePresetController {
             res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
+
     getExercisesByMusceGroup = async (req: Request, res: Response) => {
         const { muscleGroup } = req.params
 
@@ -38,8 +38,8 @@ class ExercisePresetController {
             res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
-    getExerciseById = async (req: Request, res: Response) => {
 
+    getExerciseById = async (req: Request, res: Response) => {
         const { id } = req.params
 
         try {
@@ -52,7 +52,6 @@ class ExercisePresetController {
     }
 
     deleteExercise = async (req: Request, res: Response) => {
-
         const { id } = req.params
 
         try {
@@ -63,14 +62,19 @@ class ExercisePresetController {
             res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
-    updateExercise = async (req: Request, res: Response) => {
 
+    updateExercise = async (req: Request, res: Response) => {
         const { id } = req.params
         const newExercise = req.body
 
         try {
-            // You should check if exercise is null or not. Otherwise you are returning an OK response instead of an error. ??
+
             const exercise = await exercisePresetServices.updateExercise(id, newExercise)
+            
+            if (!exercise) {
+              res.status(StatusCode.BAD_REQUEST)
+              return
+            }
 
             res.status(StatusCode.OK).send(exercise)
         } catch (error) {
