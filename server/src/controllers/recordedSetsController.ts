@@ -52,6 +52,11 @@ export class RecordedSetsController {
   static async getUserRecordedExerciseNamesByMuscleGroup(req: Request, res: Response) {
     const { id } = req.params;
 
+    if (!req.query.muscleGroup) {
+      res.status(StatusCode.BAD_REQUEST).send({ message: "muscleGroup query is missing!" });
+      return;
+    }
+
     try {
       const query = { ...req.query, userId: new ObjectId(id) };
       const response = await RecordedSetsService.getUserRecordedExerciseNamesByMuscleGroup(query);
