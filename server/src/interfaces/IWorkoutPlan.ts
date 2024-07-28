@@ -1,7 +1,4 @@
-export interface ISet {
-  minReps: number;
-  maxReps: number;
-}
+import { ISet } from "./ISet";
 
 export interface IMuscleGroupWorkoutPlan {
   muscleGroup: string;

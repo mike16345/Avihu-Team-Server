@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import "./db/mainConnection";
-import router from "./routers";
+import appRouter from "./routers";
 import http from "http";
 import { StatusCode } from "./enums/StatusCode";
 
@@ -15,7 +15,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-app.use("/", router);
+app.use("/", appRouter);
 
 app.use("*", (req, res) => {
   res.status(StatusCode.BAD_REQUEST).send({ message: "Route not found" });

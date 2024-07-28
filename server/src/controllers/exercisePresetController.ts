@@ -7,7 +7,8 @@ class ExercisePresetController {
     addExercise = async (req: Request, res: Response) => {
         const exercise = req.body;
 
-        try {
+    try {
+      const excercisePreset = await exercisePresetServices.addExercise(value);
 
             const excercisePreset = await exercisePresetServices.addExercise(exercise)
 
@@ -42,20 +43,21 @@ class ExercisePresetController {
     getExerciseById = async (req: Request, res: Response) => {
         const { id } = req.params
 
-        try {
-            const exercise = await exercisePresetServices.getExerciseById(id)
+    try {
+      const exercise = await exercisePresetServices.getExerciseById(id);
 
             res.status(StatusCode.OK).send(exercise)
         } catch (error) {
             res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
+  };
 
     deleteExercise = async (req: Request, res: Response) => {
         const { id } = req.params
 
-        try {
-            const exercise = await exercisePresetServices.deleteExercise(id)
+    try {
+      const exercise = await exercisePresetServices.deleteExercise(id);
 
             res.status(StatusCode.OK).send(exercise)
         } catch (error) {
@@ -81,6 +83,7 @@ class ExercisePresetController {
             res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
+  };
 }
 
-export const exercisePresetController = new ExercisePresetController()
+export const exercisePresetController = new ExercisePresetController();

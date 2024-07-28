@@ -3,6 +3,8 @@ import userRouter from "./users";
 import weighInsRouter from "./weighIns";
 import workoutPlanRouter from "./workoutPlans";
 import workoutPlanPresetRouter from "./workoutPlanPresets";
+import recordedSetsRouter from "./recordedSets";
+import menuItemRouter from './menuItemPresets';
 import dietPlanRouter from "./dietPlans";
 import exercisePresetRouter from "./exercisePresets";
 import muscleGroupPresetsRouter from "./muscleGroupPresets";
@@ -17,5 +19,7 @@ router.use("/dietPlans", dietPlanRouter);
 router.use("/presets/exercises", exercisePresetRouter);
 router.use("/workoutPlansPresets", workoutPlanPresetRouter);
 router.use("/presets/muscleGroups", muscleGroupPresetsRouter);
+router.use("/recordedSets", recordedSetsRouter);
+router.use("/menuItems", menuItemRouter);
 
 export default router;
