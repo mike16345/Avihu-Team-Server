@@ -6,7 +6,6 @@ export class MenuItemPresetController {
         const menuItem = req.body;
 
         try {
-
             const newMenuItem = await menuItemServices.addMenuItem(menuItem)
 
             res.status(201).json(newMenuItem);
@@ -17,8 +16,10 @@ export class MenuItemPresetController {
 
     getMenuItems = async (req: Request, res: Response) => {
         const { foodGroup } = req.params
+
         try {
             const menuItems = await menuItemServices.getMenuItems(foodGroup)
+
             res.status(201).json(menuItems);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
@@ -27,22 +28,24 @@ export class MenuItemPresetController {
 
     getOneMenuItem = async (req: Request, res: Response) => {
         const { id } = req.params
+
         try {
             const menuItem = await menuItemServices.getOneMenuItem(id)
+
             res.status(201).json(menuItem);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
         }
     }
-
     getAllMenuItems = async (req: Request, res: Response) => {
 
         try {
             const allMenuItems = await menuItemServices.getAllMenuItems()
+
             res.status(201).json(allMenuItems);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        }
+        } 
     }
     editMenuItem = async (req: Request, res: Response) => {
         const newMenuItem = req.body;
@@ -51,6 +54,7 @@ export class MenuItemPresetController {
 
         try {
             const updatedMenuItem = await menuItemServices.updateMenuItem(newMenuItem, id)
+
             res.status(201).json(updatedMenuItem);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
@@ -63,6 +67,7 @@ export class MenuItemPresetController {
 
         try {
             const deletedMenuItem = await menuItemServices.deleteMenuItem(id)
+
             res.status(201).json(deletedMenuItem);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });

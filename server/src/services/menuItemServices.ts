@@ -5,11 +5,11 @@ export class MenuItemService {
     // Don't do spaces after starting a try catch. 
     async addMenuItem(data: any,) {
         try {
-
             const newMenuItem = fullMenuItemPresets.create(data)
 
             return newMenuItem
         } catch (error) {
+
             return error
         }
     }
@@ -17,9 +17,10 @@ export class MenuItemService {
     async getMenuItems(foodGroup: string) {
         try {
             const menuItems = await fullMenuItemPresets.find({ foodGroup: foodGroup })
-            return menuItems
 
+            return menuItems
         } catch (error) {
+
             return error
         }
     }
@@ -28,8 +29,8 @@ export class MenuItemService {
             const menuItem = await fullMenuItemPresets.findOne({ _id: id })
 
             return menuItem
-
         } catch (error) {
+
             return error
         }
     }
@@ -37,9 +38,10 @@ export class MenuItemService {
     async getAllMenuItems() {
         try {
             const allMenuItems = await fullMenuItemPresets.find()
-            return allMenuItems
 
+            return allMenuItems
         } catch (error) {
+
             return error
         }
     }
@@ -51,18 +53,20 @@ export class MenuItemService {
                 newMenuItem,
                 { new: true }
             )
-            return updatedMenuItem
 
+            return updatedMenuItem
         } catch (error) {
+            
             return error
         }
     }
     async deleteMenuItem(id: string) {
         try {
             const deletedMenuItem = await fullMenuItemPresets.findOneAndRemove({ _id: id })
-            return deletedMenuItem
 
+            return deletedMenuItem
         } catch (error) {
+            
             return error
         }
     }

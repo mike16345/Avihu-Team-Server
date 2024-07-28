@@ -5,24 +5,11 @@ export const validateMenuItem = async (req: Request, res: Response, next: NextFu
     const menuItem = req.body;
     const { id } = req.params
     
-    // JOI schema validates all this already. 
-    if (!menuItem.dietaryType) {
-        return res.status(400).json({ message: "dietary type is required" });
-    }
-    if (!menuItem.foodGroup) {
-        return res.status(400).json({ message: "food group must be defined" });
-    }
 
-    if (!menuItem.name) {
-        return res.status(400).json({ message: "menu item name is required" });
-    }
-    if (!menuItem.oneServing) {
-        return res.status(400).json({ message: "menu item must have one serving measurments" });
-    }
     if (!id) {
         const menuItemExists = await fullMenuItemPresets.findOne({ name: menuItem.name })
 
-        if (menuItemExists) {
+        if (menuItemExists) { 
             return res.status(400).json({ message: "פריט כבר קיים במערכת" });
         }
     }

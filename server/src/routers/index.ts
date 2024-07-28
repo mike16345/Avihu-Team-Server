@@ -19,6 +19,5 @@ router.use("/recordedSets", recordedSetsRouter);
 router.use("/dietPlans", dietPlansRouter);
 router.use("/presets/exercises", exercisePresetsRouter);
 router.use("/menuItems", menuItemRouter);
-router.use("/dietPlans", dietPlanRouter);
 
 export default router;
