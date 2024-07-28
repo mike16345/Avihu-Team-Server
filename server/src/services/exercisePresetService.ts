@@ -3,21 +3,17 @@ import { exercisePresets } from "../models/exercisePresetModel";
 
 
 export class ExercisePresetService {
+
+
     async addExercise(data: any) {
         try {
-
-            const exerciseExists = await exercisePresets.count(data)
-            if (Boolean(exerciseExists)) {
-                throw new Error(`אי אפשר להוסיף פריט שכבר קיים לרשימה!`);
-            }
-
 
             const exercise = await exercisePresets.create(data)
 
             return exercise
 
         } catch (error) {
-            return Promise.reject(error)
+            throw error
         }
     }
 
@@ -29,19 +25,29 @@ export class ExercisePresetService {
             return exercises
 
         } catch (error) {
-            return error
+            throw error
+        }
+    }
+    async getExercisesByMuscleGroup(muscleGroup: string) {
+        try {
+
+            const exercises = await exercisePresets.find({ muscleGroup: muscleGroup })
+
+            return exercises
+
+        } catch (error) {
+            throw error
         }
     }
 
     async getExerciseById(id: string) {
         try {
-
-            const exercise = await exercisePresets.findOne({ _id: id })
+            const exercise = await exercisePresets.findById(id)
 
             return exercise
 
         } catch (error) {
-            return error
+            throw error
         }
     }
     async deleteExercise(id: string) {
@@ -52,21 +58,21 @@ export class ExercisePresetService {
             return exercise
 
         } catch (error) {
-            return error
+            throw error
         }
     }
     async updateExercise(id: string, newExercise: any) {
         try {
 
-            const exercise = await exercisePresets.updateOne(
+            const exercise = await exercisePresets.findOneAndUpdate(
                 { _id: id },
-                { $set: { name: newExercise } }
+                newExercise
             )
 
             return exercise
 
         } catch (error) {
-            return error
+            throw error
         }
     }
 }

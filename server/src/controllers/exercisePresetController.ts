@@ -1,51 +1,53 @@
 import { Request, Response } from "express";
-import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { exercisePresetServices } from "../services/exercisePresetService";
+import { StatusCode } from "../enums/StatusCode";
 
 class ExercisePresetController {
-  // Be consistent in general on how you return responses.
-  // Sometimes you return the whole error, sometimes a custom string, sometimes only the error message.
-
   addExercise = async (req: Request, res: Response) => {
-    // req.body is already this object { name: exercise }
-    // So creating two new variables is unnecessary.
-    const exercise = req.body.name;
-
-    const exerciseObject = { name: exercise };
-
-    //  Place this in middleware
-    const { error, value } = exercisePresetValidationSchema.validate(exerciseObject);
-
-    if (error) {
-      return res.status(400).json({ message: error.message });
-    }
+    const exercise = req.body;
 
     try {
-      const excercisePreset = await exercisePresetServices.addExercise(value);
+      const excercisePreset = await exercisePresetServices.addExercise(exercise);
 
-      res.status(201).json(excercisePreset);
+      res.status(StatusCode.CREATED).send(excercisePreset);
     } catch (error) {
-      res.status(500).json(error.message);
+      res.status(StatusCode.BAD_REQUEST).send(error);
     }
   };
+
   getExercises = async (req: Request, res: Response) => {
     try {
       const allExercises = await exercisePresetServices.getExercises();
 
-      res.status(201).json(allExercises);
+      res.status(StatusCode.OK).send(allExercises);
     } catch (error) {
-      res.status(500).json({ message: `An error occured while locating the exercise presets` });
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
+
+  getExercisesByMusceGroup = async (req: Request, res: Response) => {
+    const { muscleGroup } = req.params;
+
+    try {
+      const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(
+        muscleGroup
+      );
+
+      res.status(StatusCode.OK).send(muscleGroupExercises);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
+    }
+  };
+
   getExerciseById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
       const exercise = await exercisePresetServices.getExerciseById(id);
 
-      res.status(201).json(exercise);
+      res.status(StatusCode.OK).send(exercise);
     } catch (error) {
-      res.status(500).json({ message: `An error occured while locating the exercise presets` });
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
 
@@ -55,21 +57,27 @@ class ExercisePresetController {
     try {
       const exercise = await exercisePresetServices.deleteExercise(id);
 
-      res.status(201).json(exercise);
+      res.status(StatusCode.OK).send(exercise);
     } catch (error) {
-      res.status(500).json({ message: `An error occured while locating the exercise presets` });
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
+
   updateExercise = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const newExercise = req.body;
 
     try {
-      const exercise = await exercisePresetServices.updateExercise(id, name);
+      const exercise = await exercisePresetServices.updateExercise(id, newExercise);
 
-      res.status(201).json(exercise);
+      if (!exercise) {
+        res.status(StatusCode.BAD_REQUEST);
+        return;
+      }
+
+      res.status(StatusCode.OK).send(exercise);
     } catch (error) {
-      res.status(500).json({ message: `An error occured while locating the exercise presets` });
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
 }

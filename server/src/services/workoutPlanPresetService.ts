@@ -6,7 +6,7 @@ export class WorkoutPlanPresetService {
       console.log("creating with data", data);
       const workoutPlanDoc = await WorkoutPlanPreset.create(data);
       console.log("result", workoutPlanDoc);
-      
+
       return workoutPlanDoc;
     } catch (err) {
       throw err;
@@ -43,7 +43,7 @@ export class WorkoutPlanPresetService {
 
   static async getAllWorkoutPlanPresets() {
     try {
-      const workoutPlanPresets = await WorkoutPlanPreset.find({});
+      const workoutPlanPresets = await WorkoutPlanPreset.find();
 
       return workoutPlanPresets;
     } catch (err) {
