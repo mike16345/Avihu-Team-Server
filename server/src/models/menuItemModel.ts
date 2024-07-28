@@ -1,23 +1,35 @@
-import Joi, { required } from "joi";
+import Joi, { required, string } from "joi";
 import { model, Schema } from "mongoose";
 
 export const oneServingShcema = new Schema({
-  grams: Number,
-  spoons: Number,
+  grams: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  spoons: {
+    type: Number,
+    required: true,
+    min: 1
+  },
 });
 
-// CR: Make sure the mongoose schema is properly types so it requires certain fields to exist. Here is an example. 
-// export const menuItemSchemas = new Schema({
-//   dietaryType: { type: String, required: true },
-//   foodGroup: String,
-//   name: String,
-//   oneServing: oneServingShcema,
-// });
+
 
 export const menuItemSchema = new Schema({
-  dietaryType: String,
-  foodGroup: String,
-  name: String,
+  dietaryType: {
+    type: [String],
+  },
+  foodGroup: {
+    type: String,
+    required: true,
+    minlength: 1
+  },
+  name: {
+    type: String,
+    required: true,
+    minlength: 1
+  },
   oneServing: oneServingShcema,
 });
 
@@ -29,7 +41,7 @@ export const oneServingShcemaValidation = Joi.object({
 });
 
 export const menuItemShcemaValidation = Joi.object({
-  dietaryType: Joi.string().min(1).required(),
+  dietaryType: Joi.array().items(Joi.string()),
   foodGroup: Joi.string().min(1).required(),
   name: Joi.string().min(1).required(),
   oneServing: oneServingShcemaValidation,
