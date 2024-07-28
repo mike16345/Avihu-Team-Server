@@ -10,7 +10,7 @@ router.get("/user/:id", RecordedSetsController.getRecordedSetsByUserId);
 
 router.get(
   "/user/:userId/muscleGroup/:muscleGroup",
-  RecordedSetsController.getRecordedSetsByUserAndMuscle
+  RecordedSetsController.getRecordedSetsByUserAndMuscleGroup
 );
 
 export default router;

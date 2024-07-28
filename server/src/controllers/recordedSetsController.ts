@@ -1,3 +1,4 @@
+import { StatusCode } from "../enums/StatusCode";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { Request, Response } from "express";
 
@@ -19,9 +20,9 @@ export class RecordedSetsController {
         data
       );
 
-      res.status(201).send(response);
+      res.status(StatusCode.CREATED).send(response);
     } catch (err: any) {
-      res.status(500).send({ message: err.message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }
   }
 
@@ -32,16 +33,16 @@ export class RecordedSetsController {
       const response = await RecordedSetsService.getRecordedSetsByUserId(id);
 
       if (typeof response === "string") {
-        res.status(404).send({ message: response });
+        res.status(StatusCode.BAD_REQUEST).send({ message: response });
       }
 
-      res.status(200).send(response);
+      res.status(StatusCode.OK).send(response);
     } catch (err: any) {
-      res.status(500).send({ message: err.message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }
   }
 
-  static async getRecordedSetsByUserAndMuscle(req: Request, res: Response) {
+  static async getRecordedSetsByUserAndMuscleGroup(req: Request, res: Response) {
     const { id, muscleGroup } = req.params;
 
     try {
@@ -51,13 +52,13 @@ export class RecordedSetsController {
       );
 
       if (typeof response === "string") {
-        res.status(404).send({ message: response });
+        res.status(StatusCode.NOT_FOUND).send({ message: response });
         return;
       }
 
-      res.status(200).send(response);
+      res.status(StatusCode.OK).send(response);
     } catch (err: any) {
-      res.status(500).send({ message: err.message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }
   }
 }
