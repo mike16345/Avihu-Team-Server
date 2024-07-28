@@ -7,6 +7,7 @@ import recordedSetsRouter from "./recordedSets";
 import dietPlansRouter from "./dietPlans";
 import exercisePresetsRouter from "./exercisePresets";
 import menuItemRouter from './menuItemPresets';
+import dietPlanRouter from "./dietPlans";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use("/recordedSets", recordedSetsRouter);
 router.use("/dietPlans", dietPlansRouter);
 router.use("/presets/exercises", exercisePresetsRouter);
 router.use("/menuItems", menuItemRouter);
+router.use("/dietPlans", dietPlanRouter);
 
 export default router;

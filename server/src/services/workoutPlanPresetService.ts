@@ -3,8 +3,10 @@ import { WorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 export class WorkoutPlanPresetService {
   static async addWorkoutPlanPreset(data: any) {
     try {
+      console.log("creating with data", data);
       const workoutPlanDoc = await WorkoutPlanPreset.create(data);
-
+      console.log("result", workoutPlanDoc);
+      
       return workoutPlanDoc;
     } catch (err) {
       throw err;
@@ -44,6 +46,16 @@ export class WorkoutPlanPresetService {
       const workoutPlanPresets = await WorkoutPlanPreset.find({});
 
       return workoutPlanPresets;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  static async getWorkoutPlanPresetById(id: string) {
+    try {
+      const workoutPlanPreset = await WorkoutPlanPreset.findById( id);
+
+      return workoutPlanPreset;
     } catch (err) {
       throw err;
     }

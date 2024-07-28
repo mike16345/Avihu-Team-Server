@@ -14,16 +14,7 @@ import {
   invalidDietPlan,
 } from "../fixtures/dietPlanFixtures";
 
-const { model, connect, connection } = mongoose;
-
-beforeAll(async () => {
-  await connect("mongodb://127.0.0.1:27017/testdb");
-});
-
-afterAll(async () => {
-  await connection.db.dropDatabase();
-  await connection.close();
-});
+const { model } = mongoose;
 
 describe("Mongoose Schemas", () => {
   const DietItem = model("DietItem", dietItemSchema);

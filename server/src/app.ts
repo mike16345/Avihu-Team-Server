@@ -14,7 +14,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-app.use("/", appRouter);
+app.use("/", router);
 
 app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" });

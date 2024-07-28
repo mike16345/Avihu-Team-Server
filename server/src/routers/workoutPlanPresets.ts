@@ -1,16 +1,18 @@
 import express from "express";
-import { validateWorkoutPreset } from "../middleware/workoutPlanMiddleware";
+import { validateWorkoutPlanPreset } from "../middleware/workoutPlanMiddleware";
 import { WorkoutPlanPresetsController } from "../controllers/workoutPlanPresetController";
 
 const router = express.Router();
 
 router.get("/", WorkoutPlanPresetsController.getAllWorkoutPlanPresets);
 
-router.post("/", validateWorkoutPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
+router.get("/:presetId", WorkoutPlanPresetsController.getWorkoutPlanPresetById);
+
+router.post("/", validateWorkoutPlanPreset, WorkoutPlanPresetsController.addWorkoutPlanPreset);
 
 router.put(
   "/:presetId",
-  validateWorkoutPreset,
+  validateWorkoutPlanPreset,
   WorkoutPlanPresetsController.updateWorkoutPlanPreset
 );
 

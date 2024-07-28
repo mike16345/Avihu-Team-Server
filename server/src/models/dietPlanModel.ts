@@ -50,6 +50,10 @@ export const mealValidationSchema = Joi.object({
 
 export const DietPlanSchemaValidation = Joi.object({
   userId: Joi.string().required(),
-  meals: Joi.array().items(mealValidationSchema).required(),
+  meals: Joi.array()
+    .items(mealValidationSchema)
+    .min(1)
+    .message("Diet Plan must contain at least one meal!")
+    .required(),
   totalCalories: Joi.number().optional(),
 });

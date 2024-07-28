@@ -8,9 +8,13 @@ router.post("/", validateDietPlan, dietPlanController.addDietPlan);
 
 router.get("/", dietPlanController.getDietPlans);
 
+router.get("/:id", dietPlanController.getDietPlanById);
+
 router.get("/user/:id", dietPlanController.getDietPlanByUserId);
 
 router.delete("/:id", dietPlanController.deleteDietPlan);
+
+router.delete("/user/:id", dietPlanController.deleteDietPlan);
 
 router.put("/:id", validateDietPlan, dietPlanController.updateDietPlan);
 
