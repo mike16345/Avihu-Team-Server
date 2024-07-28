@@ -3,85 +3,81 @@ import { exercisePresetServices } from "../services/exercisePresetService";
 import { StatusCode } from "../enums/StatusCode";
 
 class ExercisePresetController {
-
-    addExercise = async (req: Request, res: Response) => {
-        const exercise = req.body;
+  addExercise = async (req: Request, res: Response) => {
+    const exercise = req.body;
 
     try {
-      const excercisePreset = await exercisePresetServices.addExercise(value);
+      const excercisePreset = await exercisePresetServices.addExercise(exercise);
 
-            const excercisePreset = await exercisePresetServices.addExercise(exercise)
-
-            res.status(StatusCode.CREATED).send(excercisePreset)
-        } catch (error) {
-            res.status(StatusCode.BAD_REQUEST).send(error)
-        }
+      res.status(StatusCode.CREATED).send(excercisePreset);
+    } catch (error) {
+      res.status(StatusCode.BAD_REQUEST).send(error);
     }
+  };
 
-    getExercises = async (req: Request, res: Response) => {
-        try {
-            const allExercises = await exercisePresetServices.getExercises()
+  getExercises = async (req: Request, res: Response) => {
+    try {
+      const allExercises = await exercisePresetServices.getExercises();
 
-            res.status(StatusCode.OK).send(allExercises)
-        } catch (error) {
-            res.status(StatusCode.NOT_FOUND).send(error)
-        }
+      res.status(StatusCode.OK).send(allExercises);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
+  };
 
-    getExercisesByMusceGroup = async (req: Request, res: Response) => {
-        const { muscleGroup } = req.params
+  getExercisesByMusceGroup = async (req: Request, res: Response) => {
+    const { muscleGroup } = req.params;
 
-        try {
-            const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(muscleGroup)
+    try {
+      const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(
+        muscleGroup
+      );
 
-            res.status(StatusCode.OK).send(muscleGroupExercises)
-        } catch (error) {
-            res.status(StatusCode.NOT_FOUND).send(error)
-        }
+      res.status(StatusCode.OK).send(muscleGroupExercises);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
+  };
 
-    getExerciseById = async (req: Request, res: Response) => {
-        const { id } = req.params
+  getExerciseById = async (req: Request, res: Response) => {
+    const { id } = req.params;
 
     try {
       const exercise = await exercisePresetServices.getExerciseById(id);
 
-            res.status(StatusCode.OK).send(exercise)
-        } catch (error) {
-            res.status(StatusCode.NOT_FOUND).send(error)
-        }
+      res.status(StatusCode.OK).send(exercise);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
 
-    deleteExercise = async (req: Request, res: Response) => {
-        const { id } = req.params
+  deleteExercise = async (req: Request, res: Response) => {
+    const { id } = req.params;
 
     try {
       const exercise = await exercisePresetServices.deleteExercise(id);
 
-            res.status(StatusCode.OK).send(exercise)
-        } catch (error) {
-            res.status(StatusCode.NOT_FOUND).send(error)
-        }
+      res.status(StatusCode.OK).send(exercise);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
+  };
 
-    updateExercise = async (req: Request, res: Response) => {
-        const { id } = req.params
-        const newExercise = req.body
+  updateExercise = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const newExercise = req.body;
 
-        try {
+    try {
+      const exercise = await exercisePresetServices.updateExercise(id, newExercise);
 
-            const exercise = await exercisePresetServices.updateExercise(id, newExercise)
-            
-            if (!exercise) {
-              res.status(StatusCode.BAD_REQUEST)
-              return
-            }
+      if (!exercise) {
+        res.status(StatusCode.BAD_REQUEST);
+        return;
+      }
 
-            res.status(StatusCode.OK).send(exercise)
-        } catch (error) {
-            res.status(StatusCode.NOT_FOUND).send(error)
-        }
+      res.status(StatusCode.OK).send(exercise);
+    } catch (error) {
+      res.status(StatusCode.NOT_FOUND).send(error);
     }
   };
 }
