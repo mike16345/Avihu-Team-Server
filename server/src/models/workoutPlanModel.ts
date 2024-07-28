@@ -3,10 +3,10 @@ import {
   IMuscleGroupWorkoutPlan,
   IDetailedWorkoutPlan,
   IWorkout,
-  ISet,
   IFullWorkoutPlan,
 } from "../interfaces/IWorkoutPlan";
 import Joi from "joi";
+import { ISet } from "../interfaces/ISet";
 
 export const setSchema: Schema<ISet> = new Schema({
   minReps: {

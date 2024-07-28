@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import "./db/mainConnection";
-import router from "./routers";
+import appRouter from "./routers";
 import http from "http";
 
 dotenv.config();
@@ -14,7 +14,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-app.use("/", router);
+app.use("/", appRouter);
 
 app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" });
