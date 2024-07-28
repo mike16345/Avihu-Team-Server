@@ -1,33 +1,35 @@
 import Joi, { required } from "joi";
 import { model, Schema } from "mongoose";
 
-/**
- * This mongoose schema will allow anything to be added to the database.
- * Type your arguments using this format:
- * {
- *       name:{
- *           type: String,
- *           required:true,
- *       }
- * }
- * }
- */
+
 export const exercisePresetSchema = new Schema({
-  name: String,
-  linkToVideo: String,
-  tipsFromTrainer: String,
-  muscleGroup: String,
+  name: {
+    type: String,
+    required: true,
+    minlength: 1
+  },
+  linkToVideo: {
+    type: String,
+    required: true,
+    minlength: 27
+  },
+  tipsFromTrainer: {
+    type: String,
+    minlength: 1
+  },
+  muscleGroup: {
+    type: String,
+    required: true,
+    minlength: 1
+  },
 });
 
 export const exercisePresets = model(`exercisePresets`, exercisePresetSchema);
 
-// Mongoose schema and JOI schema should match each other .
+const youtubeUrlPattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
 export const exercisePresetValidationSchema = Joi.object({
   name: Joi.string().min(1).required(),
-  // The minimum number characters should be larger. Maybe search up ways to validate youtube links. 
-  linkToVideo: Joi.string().min(1).required(),
-  // Tips from trainer should not be required
-  tipsFromTrainer: Joi.string().min(1).required(),
-  // Muscle group should be required
-  muscleGroup: Joi.string().min(1),
+  linkToVideo: Joi.string().min(27).pattern(youtubeUrlPattern).required(),
+  tipsFromTrainer: Joi.string().min(1),
+  muscleGroup: Joi.string().min(1).required(),
 });

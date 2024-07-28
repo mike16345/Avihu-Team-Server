@@ -1,36 +1,36 @@
 import { muscleGroupPresets } from "../models/muscleGroupModel";
 
 export class MuscleGroupService {
-    // 1. Put spaces before your return statements. 
-    
+
     static async getAllMuscleGroups() {
         try {
             const allMuscleGroups = await muscleGroupPresets.find()
+
             return allMuscleGroups
         } catch (error) {
-            return error
+            throw error
         }
     }
 
     static async getMuscleGroupById(id: string) {
         try {
-            // findById
-            const muscleGroup = await muscleGroupPresets.findOne({ _id: id })
+            const muscleGroup = await muscleGroupPresets.findById(id)
+
             return muscleGroup
         } catch (error) {
-            return error
+            throw error
         }
     }
 
-    
+
     static async addMuscleGroup(muscleGroup: string) {
-        // Read what I wrote in the controller and make the change. 
-        
+
         try {
-            const newMuscleGroup = await muscleGroupPresets.create({ name: muscleGroup })
+            const newMuscleGroup = await muscleGroupPresets.create(muscleGroup)
+
             return newMuscleGroup
         } catch (error) {
-            return error
+            throw error
         }
     }
 
@@ -38,21 +38,23 @@ export class MuscleGroupService {
         try {
             const newMuscleGroup = await muscleGroupPresets.findOneAndUpdate(
                 { _id: id },
-                { name: muscleGroup },
+                muscleGroup,
                 { new: true }
             )
+
             return newMuscleGroup
         } catch (error) {
-            return error
+            throw error
         }
     }
 
     static async deleteMuscleGroup(id: string) {
         try {
             const deletedMuscleGroup = await muscleGroupPresets.findOneAndDelete({ _id: id })
+
             return deletedMuscleGroup
         } catch (error) {
-            return error
+            throw error
         }
     }
 }

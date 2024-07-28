@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import { MuscleGroupService } from "../services/muscleGroupService";
+import { StatusCode } from "../enums/StatusCode";
 
 export class MuscleGroupController {
-    // You aren't specifying a status code when returning a response in all of your try/catch statements. 
 
     static async getAllMuscleGroups(req: Request, res: Response) {
         try {
             const allMuscleGroups = await MuscleGroupService.getAllMuscleGroups()
 
-            res.send(allMuscleGroups)
+            res.status(StatusCode.OK).send(allMuscleGroups)
         } catch (error) {
-            return res.status(500).send(error);
+            return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 
@@ -19,37 +19,35 @@ export class MuscleGroupController {
         try {
             const muscleGroup = await MuscleGroupService.getMuscleGroupById(id)
 
-            res.send(muscleGroup)
+            res.status(StatusCode.OK).send(muscleGroup)
         } catch (error) {
-            return res.status(500).send(error);
+            return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 
     static async addMuscleGroup(req: Request, res: Response) {
-        // The body contains exactly what you want to add to the database. 
-        // Just do const muscleGroupToAdd = req.body
-        // That way you don't need to do {name:muscleGroup} in the service method.
-        const muscleGroup = req.body.name
+
+        const muscleGroup = req.body
 
         try {
             const newMuscleGroup = await MuscleGroupService.addMuscleGroup(muscleGroup)
 
-            res.send(newMuscleGroup)
+            res.status(StatusCode.CREATED).send(newMuscleGroup)
         } catch (error) {
-            return res.status(500).send(error);
+            return res.status(StatusCode.BAD_REQUEST).send(error);
         }
     }
 
     static async editMuscleGroup(req: Request, res: Response) {
-        const muscleGroup = req.body.name
+        const muscleGroup = req.body
         const { id } = req.params;
 
         try {
             const newMuscleGroup = await MuscleGroupService.editMuscleGroup(muscleGroup, id)
 
-            res.send(newMuscleGroup)
+            res.status(StatusCode.OK).send(newMuscleGroup)
         } catch (error) {
-            return res.status(500).send(error);
+            return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 
@@ -59,9 +57,9 @@ export class MuscleGroupController {
         try {
             const deletedMuscleGroup = await MuscleGroupService.deleteMuscleGroup(id)
 
-            res.send(deletedMuscleGroup)
+            res.status(StatusCode.OK).send(deletedMuscleGroup)
         } catch (error) {
-            return res.status(500).send(error);
+            return res.status(StatusCode.NOT_FOUND).send(error);
         }
     }
 }

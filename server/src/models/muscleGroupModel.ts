@@ -1,8 +1,11 @@
 import { model, Schema } from "mongoose";
 
-// Make name required with minimum characters.
 export const muscleGroupSchema = new Schema({
-    name: String,
+    name: {
+        type: String,
+        required: true,
+        minlength: 1
+    },
 });
 
 export const muscleGroupPresets = model(`muscleGroup`, muscleGroupSchema);

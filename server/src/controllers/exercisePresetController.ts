@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { exercisePresetServices } from "../services/exercisePresetService";
+import { StatusCode } from "../enums/StatusCode";
 
 class ExercisePresetController {
-    // 1.  For all response returns change the status code to use the StatusCode enum. 
-    // 2.  Make sure to do res.status(StatusCode.YOUR_STATUS).send({message:err.message}) or just send(resultFromService)
+
 
     addExercise = async (req: Request, res: Response) => {
         const exercise = req.body;
@@ -13,18 +13,18 @@ class ExercisePresetController {
 
             const excercisePreset = await exercisePresetServices.addExercise(exercise)
 
-            res.status(201).json(excercisePreset)
+            res.status(StatusCode.CREATED).send(excercisePreset)
         } catch (error) {
-            res.status(500).json(error)
+            res.status(StatusCode.BAD_REQUEST).send(error)
         }
     }
     getExercises = async (req: Request, res: Response) => {
         try {
             const allExercises = await exercisePresetServices.getExercises()
 
-            res.status(201).json(allExercises)
+            res.status(StatusCode.OK).send(allExercises)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+            res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
     getExercisesByMusceGroup = async (req: Request, res: Response) => {
@@ -33,9 +33,9 @@ class ExercisePresetController {
         try {
             const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(muscleGroup)
 
-            res.status(201).json(muscleGroupExercises)
+            res.status(StatusCode.OK).send(muscleGroupExercises)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+            res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
     getExerciseById = async (req: Request, res: Response) => {
@@ -45,9 +45,9 @@ class ExercisePresetController {
         try {
             const exercise = await exercisePresetServices.getExerciseById(id)
 
-            res.status(201).json(exercise)
+            res.status(StatusCode.OK).send(exercise)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+            res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
 
@@ -58,9 +58,9 @@ class ExercisePresetController {
         try {
             const exercise = await exercisePresetServices.deleteExercise(id)
 
-            res.status(201).json(exercise)
+            res.status(StatusCode.OK).send(exercise)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+            res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
     updateExercise = async (req: Request, res: Response) => {
@@ -69,12 +69,12 @@ class ExercisePresetController {
         const newExercise = req.body
 
         try {
-            // You should check if exercise is null or not. Otherwise you are returning an OK response instead of an error. 
+            // You should check if exercise is null or not. Otherwise you are returning an OK response instead of an error. ??
             const exercise = await exercisePresetServices.updateExercise(id, newExercise)
 
-            res.status(201).json(exercise)
+            res.status(StatusCode.OK).send(exercise)
         } catch (error) {
-            res.status(500).json({ message: `An error occured while locating the exercise presets` })
+            res.status(StatusCode.NOT_FOUND).send(error)
         }
     }
 }
