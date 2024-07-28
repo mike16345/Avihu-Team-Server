@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
-import { IRecordedSet } from "../interfaces/ISet";
+import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
 import { v4 as uuidv4 } from "uuid";
+import { type RecordedSetsQueryParams } from "../types/QueryParams";
 
 const getCurrentDate = () => {
   const date = new Date();
@@ -21,6 +22,7 @@ export class RecordedSetsService {
     // TODO: Fix up the code. And figure out the whole session ID thing.
     try {
       const objectId = new ObjectId(userId);
+      const currentDate = getCurrentDate();
 
       let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({
         userId: objectId,
@@ -39,10 +41,9 @@ export class RecordedSetsService {
         muscleGroupRecord.recordedSets[exercise] = [];
       }
 
-      const currentDate = getCurrentDate();
       const lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0];
       let nextSetNumber = 1;
-      let sessionId = lastSet.sessionId;
+      let sessionId = lastSet?.sessionId;
 
       console.log("last set", lastSet);
 
@@ -53,7 +54,7 @@ export class RecordedSetsService {
           .padStart(2, "0")}-${lastSetDate.getDate().toString().padStart(2, "0")}`;
 
         // nextSetNumber = lastSet.setNumber + 1;
-        if (lastSetDateString === currentDate && sessionId === recordedSet.sessionId) {
+        if (lastSetDateString === currentDate && sessionId === recordedSet?.sessionId) {
           nextSetNumber = lastSet.setNumber + 1;
         }
       }
@@ -69,40 +70,51 @@ export class RecordedSetsService {
       muscleGroupRecord.markModified("recordedSets");
 
       const res = await muscleGroupRecord.save();
+
       return res;
     } catch (e: any) {
       throw e;
     }
   }
 
-  static async getRecordedSetsByUserId(userId: string) {
+  static async getRecordedSetsByUserId({
+    userId,
+    muscleGroup,
+    exercise,
+  }: Partial<RecordedSetsQueryParams>) {
     try {
-      const objectId = new ObjectId(userId);
-      const muscleGroupRecords = await MuscleGroupRecordedSets.find({ userId: objectId });
+      const query: any = { userId };
+
+      if (muscleGroup) {
+        query.muscleGroup = muscleGroup;
+      }
+
+      const muscleGroupRecords = await MuscleGroupRecordedSets.find(query).exec();
 
       if (muscleGroupRecords.length === 0) {
         return "No records found for user!";
       }
 
-      return muscleGroupRecords;
+      if (!exercise) return muscleGroupRecords;
+
+      return (
+        muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
+        "No exercises found for: " + exercise
+      );
     } catch (err: any) {
       throw err;
     }
   }
 
-  static async getRecordedSetsByUserAndMuscleGroup(userId: string, muscleGroup: string) {
+  static async getUserRecordedExerciseNamesByMuscleGroup(query: Partial<RecordedSetsQueryParams>) {
     try {
-      const objectId = new ObjectId(userId);
-      const muscleGroupRecord = await MuscleGroupRecordedSets.findOne({
-        userId: objectId,
-        muscleGroup,
-      });
+      const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
 
-      if (!muscleGroupRecord) {
-        return "No records found for user or muscle group!";
+      if (typeof muscleGroupRecords == "string") {
+        return muscleGroupRecords;
       }
 
-      return muscleGroupRecord.recordedSets[muscleGroup];
+      return Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
     } catch (err: any) {
       throw err;
     }

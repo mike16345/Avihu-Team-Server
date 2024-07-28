@@ -1,6 +1,8 @@
 import { StatusCode } from "../enums/StatusCode";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { Request, Response } from "express";
+import { RecordedSetsQueryParams } from "../types/QueryParams";
+import { ObjectId } from "mongodb";
 
 export class RecordedSetsController {
   static async addRecordedSet(req: Request, res: Response) {
@@ -28,12 +30,17 @@ export class RecordedSetsController {
 
   static async getRecordedSetsByUserId(req: Request, res: Response) {
     const { id } = req.params;
+    const query: Partial<RecordedSetsQueryParams> = { ...req.query };
 
     try {
-      const response = await RecordedSetsService.getRecordedSetsByUserId(id);
+      const objectId = new ObjectId(id);
+      query.userId = objectId;
+
+      const response = await RecordedSetsService.getRecordedSetsByUserId(query);
 
       if (typeof response === "string") {
         res.status(StatusCode.BAD_REQUEST).send({ message: response });
+        return;
       }
 
       res.status(StatusCode.OK).send(response);
@@ -42,14 +49,12 @@ export class RecordedSetsController {
     }
   }
 
-  static async getRecordedSetsByUserAndMuscleGroup(req: Request, res: Response) {
-    const { id, muscleGroup } = req.params;
+  static async getUserRecordedExerciseNamesByMuscleGroup(req: Request, res: Response) {
+    const { id } = req.params;
 
     try {
-      const response = await RecordedSetsService.getRecordedSetsByUserAndMuscleGroup(
-        id,
-        muscleGroup
-      );
+      const query = { ...req.query, userId: new ObjectId(id) };
+      const response = await RecordedSetsService.getUserRecordedExerciseNamesByMuscleGroup(query);
 
       if (typeof response === "string") {
         res.status(StatusCode.NOT_FOUND).send({ message: response });

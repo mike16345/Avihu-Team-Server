@@ -8,9 +8,6 @@ router.post("/", validateRecordedSet, RecordedSetsController.addRecordedSet);
 
 router.get("/user/:id", RecordedSetsController.getRecordedSetsByUserId);
 
-router.get(
-  "/user/:userId/muscleGroup/:muscleGroup",
-  RecordedSetsController.getRecordedSetsByUserAndMuscleGroup
-);
+router.get("/user/:id/names", RecordedSetsController.getUserRecordedExerciseNamesByMuscleGroup);
 
 export default router;
