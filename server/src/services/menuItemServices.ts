@@ -1,6 +1,8 @@
 import { fullMenuItemPresets } from "../models/menuItemModel";
 
 export class MenuItemService {
+    // Spaces before returns. 
+    // Don't do spaces after starting a try catch. 
     async addMenuItem(data: any,) {
         try {
 
