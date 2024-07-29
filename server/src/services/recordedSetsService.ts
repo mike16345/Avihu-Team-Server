@@ -44,8 +44,6 @@ export class RecordedSetsService {
       let nextSetNumber = 1;
       let sessionId = lastSet.sessionId;
 
-      console.log("last set", lastSet);
-
       if (lastSet) {
         const lastSetDate = new Date(lastSet.date);
         const lastSetDateString = `${lastSetDate.getFullYear()}-${(lastSetDate.getMonth() + 1)

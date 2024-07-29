@@ -65,7 +65,7 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
     required: true,
   },
 
-  workouts: {
+  muscleGroups: {
     type: [muscleGroupWorkoutPlanSchema],
     validate: {
       validator: function (v: IMuscleGroupWorkoutPlan[]) {
@@ -112,7 +112,7 @@ export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
 
 export const WorkoutPlanSchemaValidation = Joi.object({
   planName: Joi.string().min(1).max(25).required(),
-  workouts: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
+  muscleGroups: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });
 
 export const FullWorkoutPlanSchemaValidation = Joi.object({
