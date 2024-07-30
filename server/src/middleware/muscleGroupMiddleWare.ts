@@ -7,6 +7,7 @@ export const checkIfMuscleGroupExists = async (req: Request, res: Response, next
     const itemExists = await muscleGroupPresets.findOne({ name: muscleGroup })
 
     if (itemExists) {
+
         res.status(403).send(`קבוצת שריר כבר קיימת במערכת`)
     } else {
         next()

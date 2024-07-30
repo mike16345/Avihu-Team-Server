@@ -35,14 +35,16 @@ export class MuscleGroupService {
 
     static async editMuscleGroup(muscleGroup: string, id: string) {
         try {
-            const newMuscleGroup = await muscleGroupPresets.findByIdAndDelete(
+            const newMuscleGroup = await muscleGroupPresets.findByIdAndUpdate(
                 id,
                 muscleGroup,
                 { new: true }
             )
+            
 
             return newMuscleGroup
         } catch (error) {
+            
             throw error
         }
     }
