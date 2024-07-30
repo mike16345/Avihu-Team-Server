@@ -1,6 +1,6 @@
 import express from "express";
-import { validateWorkoutPlanPreset } from "../middleware/workoutPlanMiddleware";
-import { WorkoutPlanPresetsController } from "../controllers/workoutPlanPresetController";
+import { WorkoutPlanPresetsController } from "../../controllers/workoutPlanPresetController";
+import { validateWorkoutPlanPreset } from "../../middleware/workoutPlanMiddleware";
 
 const router = express.Router();
 

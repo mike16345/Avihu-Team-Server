@@ -22,7 +22,6 @@ export interface IFullWorkoutPlan {
   workoutPlans: IDetailedWorkoutPlan[];
 }
 
-export interface IWorkoutPlanPreset {
+export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
-  workoutPlans: IDetailedWorkoutPlan[];
 }
