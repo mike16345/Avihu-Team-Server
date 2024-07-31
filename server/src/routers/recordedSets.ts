@@ -10,4 +10,6 @@ router.get("/user/:id", RecordedSetsController.getRecordedSetsByUserId);
 
 router.get("/user/:id/names", RecordedSetsController.getUserRecordedExerciseNamesByMuscleGroup);
 
+router.get("/user/:id/names/muscleGroups", RecordedSetsController.getUserRecordedMuscleGroupNames);
+
 export default router;

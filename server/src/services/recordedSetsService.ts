@@ -119,4 +119,20 @@ export class RecordedSetsService {
       throw err;
     }
   }
+
+  static async getUserRecordedMuscleGroupNames(query: Partial<RecordedSetsQueryParams>) {
+    try {
+      const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
+
+      if (typeof muscleGroupRecords == "string") {
+        return muscleGroupRecords;
+      }
+
+      return (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
+        (muscleGroup) => muscleGroup.muscleGroup
+      );
+    } catch (err: any) {
+      throw err;
+    }
+  }
 }

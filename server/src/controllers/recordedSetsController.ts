@@ -71,4 +71,21 @@ export class RecordedSetsController {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }
   }
+
+  static async getUserRecordedMuscleGroupNames(req: Request, res: Response) {
+    const { id } = req.params;
+
+    try {
+      const query = { ...req.query, userId: new ObjectId(id) };
+      const response = await RecordedSetsService.getUserRecordedMuscleGroupNames(query);
+
+      if (typeof response === "string") {
+        return res.status(StatusCode.NOT_FOUND).send({ message: response });
+      }
+
+      res.status(StatusCode.OK).send(response);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
 }
