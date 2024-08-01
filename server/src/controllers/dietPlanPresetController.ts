@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { DietPlanPresetsService } from "../services/dietPlanPresetsService";
 import { StatusCode } from "../enums/StatusCode";
+import { removeNestedIds } from "../utils/utils";
 
 export class DietPlanPresetController {
   static addDietPlanPreset = async (req: Request, res: Response) => {
@@ -17,7 +18,7 @@ export class DietPlanPresetController {
 
   static updateDietPlanPreset = async (req: Request, res: Response) => {
     const dietPlanPresetId = req.params.id;
-    const newDietPlanPreset = req.body;
+    const newDietPlanPreset = removeNestedIds(req.body);
 
     try {
       const updatedDietPlanPreset = await DietPlanPresetsService.updateDietPlanPreset(

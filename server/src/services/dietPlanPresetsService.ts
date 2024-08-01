@@ -25,7 +25,10 @@ export class DietPlanPresetsService {
 
   static async getDietPlanPresetById(id: string) {
     try {
-      const dietPlanPreset = await DietPlanPresetsModel.findById(id);
+      const dietPlanPreset = await DietPlanPresetsModel.findById(id).select({
+        _id: false,
+        __v: false,
+      });
 
       return dietPlanPreset;
     } catch (err: any) {
@@ -42,7 +45,7 @@ export class DietPlanPresetsService {
           new: true,
         }
       );
-      
+
       return updatedDietPlanPreset;
     } catch (err: any) {
       throw err;
