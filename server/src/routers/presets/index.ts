@@ -7,9 +7,8 @@ import dietPlanPresetsRouter from "./dietPlanPresets";
 
 const presetsRouter = Router();
 
-presetsRouter.use("/workoutPlansPresets", workoutPlanPresetRouter);
+presetsRouter.use("/workoutPlans", workoutPlanPresetRouter);
 presetsRouter.use("/exercises", exercisePresetRouter);
-presetsRouter.use("/workoutPlansPresets", workoutPlanPresetRouter);
 presetsRouter.use("/muscleGroups", muscleGroupPresetsRouter);
 presetsRouter.use("/menuItems", menuItemRouter);
 presetsRouter.use("/dietPlans", dietPlanPresetsRouter);
