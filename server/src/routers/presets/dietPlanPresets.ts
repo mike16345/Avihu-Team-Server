@@ -6,6 +6,8 @@ export const router = Router();
 
 router.get("/", DietPlanPresetController.getDietPlanPresets);
 
+router.get("/:id", DietPlanPresetController.getDietPlanPresetById);
+
 router.post("/", validateDietPlanPreset, DietPlanPresetController.addDietPlanPreset);
 
 router.put("/:id", validateDietPlanPreset, DietPlanPresetController.updateDietPlanPreset);
