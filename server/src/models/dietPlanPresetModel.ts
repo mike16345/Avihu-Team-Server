@@ -9,9 +9,10 @@ export const dietPlanSchema = new Schema<IDietPlanPreset>({
   totalCalories: { type: Number, required: false },
 });
 
-export const DietPlanPresetsModel = model<IDietPlan>("dietPlanPresets", dietPlanSchema);
+export const DietPlanPresetsModel = model<IDietPlanPreset>("dietPlanPresets", dietPlanSchema);
 
 export const DietPlanPresetSchemaValidation = Joi.object({
   name: Joi.string().min(1).max(25).required(),
   meals: Joi.array().items(mealValidationSchema).min(1).required(),
+  totalCalories: Joi.number().optional(),
 });
