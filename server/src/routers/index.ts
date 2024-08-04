@@ -1,6 +1,6 @@
 import express from "express";
 import userRouter from "./users";
-import weighInsRouter from "./weighIns";
+import weighInsRouter from "./weighIns/";
 import workoutPlanRouter from "./workoutPlans";
 import recordedSetsRouter from "./recordedSets";
 import dietPlanRouter from "./dietPlans";
