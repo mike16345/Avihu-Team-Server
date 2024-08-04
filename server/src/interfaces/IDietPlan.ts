@@ -24,4 +24,8 @@ export interface IMeal {
   totalVeggies?: IDietItem;
 }
 
+export interface IDietPlanPreset extends Omit<IDietPlan, "userId"> {
+  name: string;
+}
+
 export type DietItemUnit = "grams" | "spoons";
