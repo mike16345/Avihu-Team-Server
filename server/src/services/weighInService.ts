@@ -56,10 +56,6 @@ export class WeighInService {
         { new: true }
       );
 
-      if (!result) {
-        return null;
-      }
-
       return result;
     } catch (err) {
       throw err;

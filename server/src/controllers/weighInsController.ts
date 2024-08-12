@@ -68,6 +68,12 @@ class WeighInsController {
     try {
       const response = await weighInServices.deleteWeighInById(weighInId);
 
+      if (!response) {
+        return res
+          .status(StatusCode.NOT_FOUND)
+          .send({ message: "Did not find weigh in to delete." });
+      }
+
       res.status(StatusCode.OK).send(response);
     } catch (err: any) {
       return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
