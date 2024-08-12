@@ -10,20 +10,12 @@ class WeighInsController {
     const id = req.params.id;
     const weighInToAdd = req.body;
 
-    const { error, value } = WeighInSchemaValidation.validate(weighInToAdd);
-
-    if (error) {
-      return res.status(StatusCode.BAD_REQUEST).json({ message: error.message });
-    }
-
     try {
       const weighIn = await weighInServices.addWeighIn(weighInToAdd, id);
 
       res.status(StatusCode.CREATED).json(weighIn);
-    } catch (err) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred while adding the weigh-in." });
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
     }
   };
 
@@ -45,10 +37,10 @@ class WeighInsController {
     const { weight } = req.body;
 
     try {
-      const updatedWeighIn = (await weighInServices.updateWeighIn(id, weight)) as UpdateResult;
+      const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
 
-      if (updatedWeighIn.matchedCount == 0) {
-        res.status(StatusCode.NOT_FOUND).send({ message: "Weigh in not found!" });
+      if (!updatedWeighIn) {
+        return res.status(StatusCode.NOT_FOUND).send({ message: "Weigh in not found!" });
       }
 
       res.status(StatusCode.OK).json(updatedWeighIn);
