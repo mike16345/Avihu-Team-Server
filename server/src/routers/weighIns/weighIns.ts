@@ -1,6 +1,6 @@
 import express from "express";
-import { weighInsController } from "../controllers/weighInsController";
-import { validateWeighIn } from "../middleware/weighInsMiddleware";
+import { validateWeighIn } from "../../middleware/weighInsMiddleware";
+import { weighInsController } from "../../controllers/weighInsController";
 
 const router = express.Router();
 

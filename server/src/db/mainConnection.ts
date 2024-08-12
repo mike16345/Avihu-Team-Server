@@ -1,16 +1,13 @@
 import dotenv from "dotenv";
+import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import path from "path";
 
 const pathToEnv = path.resolve(__dirname, "..", "..", ".env.local");
 dotenv.config({ path: pathToEnv });
 
-main().catch((err) => {
-  console.error(err);
-  console.log(
-    "Failed to connect to MongoDB. Please make sure env.local file contains credentials."
-  );
-});
+const GridFS = mongoose.mongo.GridFSBucket;
+let gridFSBucket: any;
 
 async function main() {
   const username = process.env.DB_USERNAME;
@@ -24,8 +21,29 @@ async function main() {
     mongoose.set("strictQuery", false);
 
     await mongoose.connect(DATABASE_SERVER, { dbName: dbName });
-    console.log("mongo connected listening on port:", port);
+    console.log("MongoDB connected");
+
+    const conn = mongoose.connection;
+
+    gridFSBucket = new GridFS(conn.db, {
+      bucketName: "weighIns",
+    });
+
+    console.log("GridFS initialized");
+
+    if (port) {
+      console.log("Listening on port:", port);
+    }
   } catch (err) {
     throw err;
   }
 }
+
+main().catch((err) => {
+  console.error(err);
+  console.log(
+    "Failed to connect to MongoDB. Please make sure env.local file contains credentials."
+  );
+});
+
+export { gridFSBucket };
