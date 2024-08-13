@@ -9,6 +9,7 @@ export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
     required: true,
     unique: true,
   },
+
   workoutPlans: {
     type: [workoutPlanSchema],
     validate: {

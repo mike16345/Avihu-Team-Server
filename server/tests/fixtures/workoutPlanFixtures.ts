@@ -30,22 +30,22 @@ export const InvalidMuscleGroupWorkoutPlan = {
 
 export const ValidWorkoutPlan = {
   planName: "Beginner Plan",
-  workouts: [ValidMuscleGroupWorkoutPlan],
+  muscleGroups: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const InvalidWorkoutPlan = {
   planName: "",
-  workouts: [ValidMuscleGroupWorkoutPlan],
+  muscleGroups: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const ValidDetailedWorkoutPlan = {
   planName: "Advanced Plan",
-  workouts: [ValidMuscleGroupWorkoutPlan],
+  muscleGroups: [ValidMuscleGroupWorkoutPlan],
 };
 
 export const InvalidDetailedWorkoutPlan = {
   planName: "A",
-  workouts: [],
+  muscleGroups: [],
 };
 
 export const validFullWorkoutPlan = {

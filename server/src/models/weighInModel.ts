@@ -18,6 +18,7 @@ export const WeighIns = model("weighIns", weighInsSchema);
 
 export const WeighInSchemaValidation = Joi.object({
   weight: Joi.number().min(1).max(600).required(),
+  date: Joi.date().optional(),
 });
 
 export const WeighInsSchemaValidation = Joi.object({

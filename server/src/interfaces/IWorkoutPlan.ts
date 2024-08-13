@@ -14,7 +14,7 @@ export interface IWorkout {
 
 export interface IDetailedWorkoutPlan {
   planName: string;
-  workouts: IMuscleGroupWorkoutPlan[];
+  muscleGroups: IMuscleGroupWorkoutPlan[];
 }
 
 export interface IFullWorkoutPlan {
@@ -22,7 +22,6 @@ export interface IFullWorkoutPlan {
   workoutPlans: IDetailedWorkoutPlan[];
 }
 
-export interface IWorkoutPlanPreset {
+export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
-  workoutPlans: IDetailedWorkoutPlan[];
 }

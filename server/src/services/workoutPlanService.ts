@@ -3,7 +3,6 @@ import { WorkoutPlan } from "../models/workoutPlanModel";
 export class WorkoutPlanService {
   async addWorkoutPlan(data: any) {
     try {
-      console.log("data", data);
       const workoutPlanDoc = await WorkoutPlan.create(data);
 
       return workoutPlanDoc;

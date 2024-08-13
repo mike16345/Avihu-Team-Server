@@ -84,7 +84,6 @@ describe("Mongoose Schemas", () => {
 
 describe("Joi Validation", () => {
   test("should validate a valid workout plan", () => {
-    console.log("valid workot plan", JSON.stringify(validFullWorkoutPlan));
     const { error } = FullWorkoutPlanSchemaValidation.validate(validFullWorkoutPlan);
 
     expect(error).toBeUndefined();
@@ -98,10 +97,10 @@ describe("Joi Validation", () => {
 
   test("should return validation error for missing required fields", () => {
     const invalidPlan = {
-      workouts: [
+      muscleGroups: [
         {
           muscleGroup: "Chest",
-          workouts: [
+          muscleGroups: [
             {
               name: "Bench Press",
               sets: [ValidSet],

@@ -19,7 +19,7 @@
             "headers": [],
             "body": {
                 "type": "json",
-                "raw": " {\r\n  \"presetName\": \"aaa\",\r\n  \"workoutPlans\": [\r\n        {\r\n          \"planName\": \"אימון 1\",\r\n          \"workouts\": [\r\n          {\r\n            \"muscleGroup\": \"Chest\",\r\n            \"exercises\": [\r\n              {\r\n                \"name\": \"פרפר\",\r\n                \"sets\": [\r\n                  {\r\n                    \"maxReps\": \"1\",\r\n                    \"minReps\": \"3\"\r\n                  }\r\n                ]\r\n              }\r\n            ]\r\n          }\r\n        ] \r\n        }\r\n    ]\r\n}",
+                "raw": " {\r\n  \"presetName\": \"aaa\",\r\n  \"workoutPlans\": [\r\n        {\r\n          \"planName\": \"אימון 1\",\r\n          \"muscleGroups\": [\r\n          {\r\n            \"muscleGroup\": \"Chest\",\r\n            \"exercises\": [\r\n              {\r\n                \"name\": \"פרפר\",\r\n                \"sets\": [\r\n                  {\r\n                    \"maxReps\": \"1\",\r\n                    \"minReps\": \"3\"\r\n                  }\r\n                ]\r\n              }\r\n            ]\r\n          }\r\n        ] \r\n        }\r\n    ]\r\n}",
                 "form": []
             }
         },
@@ -36,7 +36,7 @@
             "headers": [],
             "body": {
                 "type": "json",
-                "raw": "{\n        \n  \"planName\": \"Pro Plan\",\n  \"workouts\": [\n    {\n      \"muscleGroup\": \"Biceps\",\n      \"exercises\": [\n        {\n          \"name\": \"Curls\",\n          \"sets\": [\n            {\n              \"minReps\": 8,\n              \"maxReps\": 12\n            }\n          ],\n          \"linkToVideo\": \"http://example.com\",\n          \"tipFromTrainer\": \"Keep your back straight.\"\n        }\n      ]\n    }\n          ]\n}",
+                "raw": "{\n        \n  \"planName\": \"Pro Plan\",\n  \"muscleGroups\": [\n    {\n      \"muscleGroup\": \"Biceps\",\n      \"exercises\": [\n        {\n          \"name\": \"Curls\",\n          \"sets\": [\n            {\n              \"minReps\": 8,\n              \"maxReps\": 12\n            }\n          ],\n          \"linkToVideo\": \"http://example.com\",\n          \"tipFromTrainer\": \"Keep your back straight.\"\n        }\n      ]\n    }\n          ]\n}",
                 "form": []
             }
         },

@@ -14,7 +14,7 @@ export class WeighInService {
 
       return weighInsDoc;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -34,7 +34,7 @@ export class WeighInService {
 
       return weighIns?.weighIns;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -44,7 +44,7 @@ export class WeighInService {
 
       return weighIns;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -55,10 +55,6 @@ export class WeighInService {
         { $pull: { weighIns: { _id: id } } },
         { new: true }
       );
-
-      if (!result) {
-        return null;
-      }
 
       return result;
     } catch (err) {
@@ -72,20 +68,35 @@ export class WeighInService {
 
       return deletedWeighIns;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
-
   async updateWeighIn(weighInId: string, newWeighIn: any) {
     try {
-      const updatedWeighIn = await WeighIns.updateOne(
-        { "weighIns._id": weighInId },
-        { $set: { "weighIns.$.weight": newWeighIn } }
+      // Find the parent document containing the subdocument
+      const parentDoc = await WeighIns.findOne({ "weighIns._id": weighInId });
+
+      if (!parentDoc) {
+        throw new Error("Weigh-in not found");
+      }
+
+      // Find the index of the subdocument
+      const subDocIndex = parentDoc.weighIns.findIndex(
+        (item: any) => item._id.toString() === weighInId
       );
 
-      return updatedWeighIn;
+      if (subDocIndex === -1) {
+        throw new Error("Subdocument not found");
+      }
+
+      // Update the specific subdocument
+      parentDoc.weighIns[subDocIndex].weight = newWeighIn;
+      await parentDoc.save();
+
+      // Return the updated subdocument
+      return parentDoc.weighIns[subDocIndex];
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 }
