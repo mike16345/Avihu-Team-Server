@@ -6,20 +6,16 @@ import { ObjectId } from "mongodb";
 
 export class RecordedSetsController {
   static async addRecordedSet(req: Request, res: Response) {
-    const data = { ...req.body };
-
-    const { userId, exercise, muscleGroup } = data;
-
-    delete data.userId;
-    delete data.muscleGroup;
-    delete data.exercise;
+    const sessionId = req.params.sessionId;
+    const { userId, muscleGroup, exercise, recordedSet } = req.body;
 
     try {
       const response = await RecordedSetsService.addRecordedSet(
         userId,
         muscleGroup,
         exercise,
-        data
+        sessionId,
+        recordedSet
       );
 
       res.status(StatusCode.CREATED).send(response);

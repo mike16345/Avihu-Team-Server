@@ -12,7 +12,6 @@ const recordedSetSchema = new Schema<IRecordedSet>({
   repsDone: { type: Number, required: true },
   note: { type: String },
   date: { type: Date, default: Date.now },
-  sessionId: { type: String, required: true },
 });
 
 const exerciseRecordedSetsSchema = new Schema({
@@ -39,7 +38,6 @@ const RecordedSetJoiSchema = Joi.object<IRecordedSet>({
   weight: Joi.number().required(),
   repsDone: Joi.number().required(),
   note: Joi.string().allow(null, ""),
-  sessionId: Joi.string(),
   date: Joi.date().default(() => new Date()),
 });
 

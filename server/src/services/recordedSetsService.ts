@@ -3,13 +3,10 @@ import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
 import { v4 as uuidv4 } from "uuid";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
+import SessionService from "./sessionService";
 
 const getCurrentDate = () => {
-  const date = new Date();
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date
-    .getDate()
-    .toString()
-    .padStart(2, "0")}`;
+  return new Date().toISOString().split("T")[0];
 };
 
 export class RecordedSetsService {
@@ -17,17 +14,28 @@ export class RecordedSetsService {
     userId: string,
     muscleGroup: string,
     exercise: string,
+    sessionId: string,
     recordedSet: IRecordedSet
   ) {
-    // TODO: Fix up the code. And figure out the whole session ID thing.
     try {
       const objectId = new ObjectId(userId);
       const currentDate = getCurrentDate();
+      const activeSession = await SessionService.getSessionById(sessionId);
+      const isNewSession = activeSession == null;
 
+      console.log("active session ", activeSession);
+      console.log("is new session ", isNewSession);
+
+      let lastSet: IRecordedSet | null = null;
+      let nextSetNumber = 1;
       let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({
         userId: objectId,
         muscleGroup,
       });
+
+      if (!isNewSession) {
+        SessionService.updateSession(sessionId);
+      }
 
       if (!muscleGroupRecord) {
         muscleGroupRecord = new MuscleGroupRecordedSets({
@@ -40,36 +48,20 @@ export class RecordedSetsService {
       if (!muscleGroupRecord.recordedSets[exercise]) {
         muscleGroupRecord.recordedSets[exercise] = [];
       }
-
-      const lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0];
-      let nextSetNumber = 1;
-      let sessionId = lastSet?.sessionId;
+      lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0];
 
       if (lastSet) {
-        const lastSetDate = new Date(lastSet.date);
-        const lastSetDateString = `${lastSetDate.getFullYear()}-${(lastSetDate.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}-${lastSetDate.getDate().toString().padStart(2, "0")}`;
+        const lastSetDate = new Date(lastSet.date).toISOString().split("T")[0];
 
-        // nextSetNumber = lastSet.setNumber + 1;
-        if (lastSetDateString === currentDate && sessionId === recordedSet?.sessionId) {
+        if (lastSetDate === currentDate && !isNewSession) {
           nextSetNumber = lastSet.setNumber + 1;
         }
       }
-
       recordedSet.setNumber = nextSetNumber;
-
-      const newRecordedSet = new RecordedSet({
-        ...recordedSet,
-        setNumber: nextSetNumber,
-        sessionId: sessionId || uuidv4(),
-      });
-      muscleGroupRecord.recordedSets[exercise].push(newRecordedSet);
+      muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
       muscleGroupRecord.markModified("recordedSets");
 
-      const res = await muscleGroupRecord.save();
-
-      return res;
+      return await muscleGroupRecord.save();
     } catch (e: any) {
       throw e;
     }
