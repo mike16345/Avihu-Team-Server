@@ -1,14 +1,29 @@
-import Session, { SessionType } from "../models/sessionModel";
+import Session, { ISessionCreate, SessionType } from "../models/sessionModel";
 import mongoose from "mongoose";
 
 export default class SessionService {
-  static async startSession(userId: string, type: SessionType) {
-    const session = await Session.create({
-      userId: new mongoose.Types.ObjectId(userId),
-      type,
-    });
+  static async startSession(session: ISessionCreate) {
+    try {
+      const sessionDoc = await Session.create(session);
 
-    return session;
+      return sessionDoc;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  static async refreshSession(sessionId: string) {
+    try {
+      const updatedSession = await Session.findByIdAndUpdate(
+        sessionId,
+        { updatedAt: new Date() },
+        { new: true }
+      );
+
+      return updatedSession;
+    } catch (e) {
+      throw e;
+    }
   }
 
   static async getSessionById(sessionId: string) {
@@ -21,9 +36,18 @@ export default class SessionService {
     }
   }
 
-  static async updateSession(sessionId: string) {
+  static async updateSession(sessionId: string, sessionDetails: ISessionCreate) {
     try {
-      await Session.findByIdAndUpdate(sessionId, { updatedAt: new Date() });
+      const result = await Session.findByIdAndUpdate(
+        sessionId,
+        {
+          ...sessionDetails,
+          updatedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      return result;
     } catch (err) {
       throw err;
     }

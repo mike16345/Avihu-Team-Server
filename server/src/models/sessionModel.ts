@@ -11,8 +11,10 @@ interface ISession extends Document {
   updatedAt: Date;
 }
 
+export interface ISessionCreate extends Partial<ISession> {}
+
 const sessionSchema = new Schema<ISession>({
-  userId: Schema.Types.ObjectId,
+  userId: { type: String, required: true },
   type: { type: String, required: true },
   data: { type: Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now, immutable: true },

@@ -4,6 +4,7 @@ import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsMode
 import { v4 as uuidv4 } from "uuid";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
+import { ISessionCreate } from "../models/sessionModel";
 
 const getCurrentDate = () => {
   return new Date().toISOString().split("T")[0];
@@ -23,19 +24,12 @@ export class RecordedSetsService {
       const activeSession = await SessionService.getSessionById(sessionId);
       const isNewSession = activeSession == null;
 
-      console.log("active session ", activeSession);
-      console.log("is new session ", isNewSession);
-
       let lastSet: IRecordedSet | null = null;
       let nextSetNumber = 1;
       let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({
         userId: objectId,
         muscleGroup,
       });
-
-      if (!isNewSession) {
-        SessionService.updateSession(sessionId);
-      }
 
       if (!muscleGroupRecord) {
         muscleGroupRecord = new MuscleGroupRecordedSets({
@@ -60,8 +54,28 @@ export class RecordedSetsService {
       recordedSet.setNumber = nextSetNumber;
       muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
       muscleGroupRecord.markModified("recordedSets");
+      const sessionDetails: ISessionCreate = {
+        userId,
+        type: "workout",
+        data: {
+          setNumber: nextSetNumber,
+        },
+      };
 
-      return await muscleGroupRecord.save();
+      let session;
+
+      if (isNewSession) {
+        session = await SessionService.startSession(sessionDetails);
+      } else {
+        session = await SessionService.updateSession(sessionId, sessionDetails);
+      }
+
+      const savedResult = await muscleGroupRecord.save();
+
+      return {
+        session: session,
+        recordedSet: savedResult,
+      };
     } catch (e: any) {
       throw e;
     }
