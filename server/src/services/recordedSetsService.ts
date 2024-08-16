@@ -1,13 +1,52 @@
 import { ObjectId } from "mongodb";
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
-import { v4 as uuidv4 } from "uuid";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISessionCreate } from "../models/sessionModel";
 
-const getCurrentDate = () => {
-  return new Date().toISOString().split("T")[0];
+const getCurrentDate = () => new Date().toISOString().split("T")[0];
+
+const findOrCreateMuscleGroupRecord = async (userId: ObjectId, muscleGroup: string) => {
+  let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({ userId, muscleGroup });
+  if (!muscleGroupRecord) {
+    muscleGroupRecord = new MuscleGroupRecordedSets({
+      userId,
+      muscleGroup,
+      recordedSets: {},
+    });
+  }
+  return muscleGroupRecord;
+};
+
+const initializeExerciseIfNecessary = (
+  muscleGroupRecord: IMuscleGroupRecordedSets,
+  exercise: string
+) => {
+  if (!muscleGroupRecord.recordedSets[exercise]) {
+    muscleGroupRecord.recordedSets[exercise] = [];
+  }
+};
+
+const calculateNextSetNumber = (
+  lastSet: IRecordedSet | null,
+  isNewSession: boolean,
+  currentDate: string
+) => {
+  if (!lastSet) return 1;
+  const lastSetDate = new Date(lastSet.date).toISOString().split("T")[0];
+  return lastSetDate === currentDate && !isNewSession ? lastSet.setNumber + 1 : 1;
+};
+
+const createOrUpdateSession = async (
+  isNewSession: boolean,
+  sessionId: string,
+  sessionDetails: ISessionCreate
+) => {
+  if (isNewSession) {
+    return SessionService.startSession(sessionDetails);
+  }
+  return SessionService.updateSession(sessionId, sessionDetails);
 };
 
 export class RecordedSetsService {
@@ -24,56 +63,27 @@ export class RecordedSetsService {
       const activeSession = await SessionService.getSessionById(sessionId);
       const isNewSession = activeSession == null;
 
-      let lastSet: IRecordedSet | null = null;
-      let nextSetNumber = 1;
-      let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({
-        userId: objectId,
-        muscleGroup,
-      });
+      const muscleGroupRecord = await findOrCreateMuscleGroupRecord(objectId, muscleGroup);
+      initializeExerciseIfNecessary(muscleGroupRecord, exercise);
 
-      if (!muscleGroupRecord) {
-        muscleGroupRecord = new MuscleGroupRecordedSets({
-          userId: objectId,
-          muscleGroup,
-          recordedSets: {},
-        });
-      }
+      const lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0] || null;
+      const nextSetNumber = calculateNextSetNumber(lastSet, isNewSession, currentDate);
 
-      if (!muscleGroupRecord.recordedSets[exercise]) {
-        muscleGroupRecord.recordedSets[exercise] = [];
-      }
-      lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0];
-
-      if (lastSet) {
-        const lastSetDate = new Date(lastSet.date).toISOString().split("T")[0];
-
-        if (lastSetDate === currentDate && !isNewSession) {
-          nextSetNumber = lastSet.setNumber + 1;
-        }
-      }
       recordedSet.setNumber = nextSetNumber;
       muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
       muscleGroupRecord.markModified("recordedSets");
+
       const sessionDetails: ISessionCreate = {
         userId,
         type: "workout",
-        data: {
-          setNumber: nextSetNumber,
-        },
+        data: { setNumber: nextSetNumber },
       };
 
-      let session;
-
-      if (isNewSession) {
-        session = await SessionService.startSession(sessionDetails);
-      } else {
-        session = await SessionService.updateSession(sessionId, sessionDetails);
-      }
-
+      const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
       const savedResult = await muscleGroupRecord.save();
 
       return {
-        session: session,
+        session,
         recordedSet: savedResult,
       };
     } catch (e: any) {
