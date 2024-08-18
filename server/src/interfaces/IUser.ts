@@ -2,8 +2,13 @@ import { ObjectId } from "mongodb";
 
 export interface IUser {
   id: ObjectId;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phone:string
+  dietaryType:string[];
   password: string;
-  createdAt: Date;
+  dateJoined: Date;
+  dateFinished:Date;
+  planType:string;
 }

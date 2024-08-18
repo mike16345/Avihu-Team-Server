@@ -1,41 +1,38 @@
-import { userServices } from "../services/userService";
+import { UserService } from "../services/userService";
 import { Request, Response } from "express";
 import { UserSchemaValidation } from "../models/userModel";
 
-class UserController {
-  addUser = async (req: Request, res: Response) => {
+export class UserController {
+  static async addUser(req: Request, res: Response) {
     try {
-      const data = {
-        name: req.body.name,
-        email: req.body.email,
-      };
 
-      const { error, value } = UserSchemaValidation.validate(data);
+
+      const { error, value } = UserSchemaValidation.validate(req.body);
 
       if (error) {
         return res.status(400).send(error.message);
       }
 
-      const user = await userServices.createUser(value);
+      const user = await UserService.createUser(value);
       res.status(201).send(user);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  getUsers = async (req: Request, res: Response) => {
+  static async getUsers(req: Request, res: Response) {
     try {
-      const users = await userServices.getUsers();
+      const users = await UserService.getUsers();
       res.status(200).send(users);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  getUser = async (req: Request, res: Response) => {
+  static async getUser(req: Request, res: Response) {
     try {
       const id = req.params.id;
-      const user = await userServices.getUser(id);
+      const user = await UserService.getUser(id);
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -43,14 +40,14 @@ class UserController {
 
       res.status(200).send(user);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  getUserByEmail = async (req: Request, res: Response) => {
+  static async getUserByEmail(req: Request, res: Response) {
     try {
       const email = req.params.email;
-      const user = await userServices.getUserByEmail(email);
+      const user = await UserService.getUserByEmail(email);
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -58,15 +55,14 @@ class UserController {
 
       res.status(200).send(user);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  updateUser = async (req: Request, res: Response) => {
+  static async updateUser(req: Request, res: Response) {
     try {
       const id = req.params.id;
       const data = req.body;
-      data._id = id;
 
       const { error, value } = UserSchemaValidation.validate(data);
 
@@ -74,7 +70,7 @@ class UserController {
         return res.status(400).send(error.message);
       }
 
-      const user = await userServices.updateUser(value);
+      const user = await UserService.updateUser(value, id);
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -82,11 +78,11 @@ class UserController {
 
       res.status(200).send(user);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  updateManyUsers = async (req: Request, res: Response) => {
+  static async updateManyUsers(req: Request, res: Response) {
     try {
       const { error, value } = UserSchemaValidation.validate(req.body);
 
@@ -94,17 +90,17 @@ class UserController {
         return res.status(400).send(error.message);
       }
 
-      const users = await userServices.updateManyUsers(value);
+      const users = await UserService.updateManyUsers(value);
       res.status(200).send(users);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 
-  deleteUser = async (req: Request, res: Response) => {
+  static async deleteUser(req: Request, res: Response) {
     try {
       const id = req.params.id;
-      const user = await userServices.deleteUser(id);
+      const user = await UserService.deleteUser(id);
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -112,9 +108,8 @@ class UserController {
 
       res.status(200).send(user);
     } catch (err: any) {
-      res.status(500).send(err.message);
+      res.status(500).send({message:err});
     }
-  };
+  }
 }
 
-export const userController = new UserController();

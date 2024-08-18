@@ -1,49 +1,45 @@
 import { User } from "../models/userModel";
 
 export class UserService {
-  async createUser(data: any) {
+  static async createUser(data: any) {
     try {
       const newUser = await User.create(data);
-
       return newUser;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async getUsers() {
+  static async getUsers() {
     try {
       const users = await User.find({}).lean();
-
       return users;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async getUser(id: string) {
+  static async getUser(id: string) {
     try {
       const user = await User.findById({ _id: id }).lean();
-
       return user;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async getUserByEmail(email: string) {
+  static async getUserByEmail(email: string) {
     try {
       const user = await User.findOne({ email }).lean();
-
       return user;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async updateUser(data: any) {
+  static async updateUser(data: any,id:string) {
     try {
-      const user = await User.findByIdAndUpdate({ _id: data._id }, data, {
+      const user = await User.findByIdAndUpdate({ _id: id }, data, {
         new: true,
       });
 
@@ -53,25 +49,25 @@ export class UserService {
 
       return user;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async updateManyUsers(data: any[]) {
+  static async updateManyUsers(data: any[]) {
     try {
       const updatedUsers = await Promise.all(
         data.map(async (user) => {
-          return await this.updateUser(user);
+          return await UserService.updateUser(user);
         })
       );
 
       return updatedUsers;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
-  async deleteUser(id: string) {
+  static async deleteUser(id: string) {
     try {
       const user = await User.findByIdAndDelete(id);
       if (!user) {
@@ -80,9 +76,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 }
-
-export const userServices = new UserService();
