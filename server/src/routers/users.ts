@@ -1,5 +1,6 @@
 import express from "express";
 import { UserController } from "../controllers/userController";
+import { validateUser } from "../middleware/usersMiddleware";
 
 const router = express.Router();
 
@@ -7,12 +8,12 @@ const router = express.Router();
 router.get("/", UserController.getUsers);
 
 // Update user
-router.put("/:id", UserController.updateUser);
+router.put("/:id",validateUser, UserController.updateUser);
 
 // Update users (bulk)
-router.put("/bulk", UserController.updateManyUsers);
+router.put("/bulk",validateUser, UserController.updateManyUsers);
 
-router.post("/", UserController.addUser);
+router.post("/",validateUser, UserController.addUser);
 
 // Get user by ID
 router.get("/:id", UserController.getUser);

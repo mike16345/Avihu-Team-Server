@@ -4,40 +4,44 @@ export class UserService {
   static async createUser(data: any) {
     try {
       const newUser = await User.create(data);
+
       return newUser;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
   static async getUsers() {
     try {
       const users = await User.find({}).lean();
+
       return users;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
   static async getUser(id: string) {
     try {
       const user = await User.findById({ _id: id }).lean();
+
       return user;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
   static async getUserByEmail(email: string) {
     try {
       const user = await User.findOne({ email }).lean();
+
       return user;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
-  static async updateUser(data: any,id:string) {
+  static async updateUser(data: any,id?:string) {
     try {
       const user = await User.findByIdAndUpdate({ _id: id }, data, {
         new: true,
@@ -49,7 +53,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
@@ -63,7 +67,7 @@ export class UserService {
 
       return updatedUsers;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 
@@ -76,7 +80,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      return error;
+      throw error;
     }
   }
 }
