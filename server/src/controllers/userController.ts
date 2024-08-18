@@ -35,7 +35,7 @@ export class UserController {
 
       res.status(StatusCode.OK).send(user);
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({message:err});
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({message:err});
     }
   }
 
