@@ -1,16 +1,14 @@
 import { fullMenuItemPresets } from "../models/menuItemModel";
 
 export class MenuItemService {
-    // Spaces before returns. 
-    // Don't do spaces after starting a try catch. 
+ 
     async addMenuItem(data: any,) {
         try {
             const newMenuItem = fullMenuItemPresets.create(data)
 
             return newMenuItem
         } catch (error) {
-
-            return error
+            throw error
         }
     }
 
@@ -20,8 +18,7 @@ export class MenuItemService {
 
             return menuItems
         } catch (error) {
-
-            return error
+            throw error
         }
     }
     async getOneMenuItem(id: string) {
@@ -30,8 +27,7 @@ export class MenuItemService {
 
             return menuItem
         } catch (error) {
-
-            return error
+            throw error
         }
     }
 
@@ -41,8 +37,7 @@ export class MenuItemService {
 
             return allMenuItems
         } catch (error) {
-
-            return error
+            throw error
         }
     }
 
@@ -56,8 +51,7 @@ export class MenuItemService {
 
             return updatedMenuItem
         } catch (error) {
-            
-            return error
+            throw error
         }
     }
     async deleteMenuItem(id: string) {
@@ -66,8 +60,7 @@ export class MenuItemService {
 
             return deletedMenuItem
         } catch (error) {
-            
-            return error
+            throw error
         }
     }
 }

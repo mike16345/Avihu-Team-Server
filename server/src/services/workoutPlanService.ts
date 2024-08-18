@@ -7,7 +7,7 @@ export class WorkoutPlanService {
 
       return workoutPlanDoc;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -17,7 +17,7 @@ export class WorkoutPlanService {
 
       return workoutPlans;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -26,7 +26,7 @@ export class WorkoutPlanService {
       const workoutPlan = await WorkoutPlan.findById(id);
       return workoutPlan;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -36,7 +36,7 @@ export class WorkoutPlanService {
 
       return workoutPlan;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -46,7 +46,7 @@ export class WorkoutPlanService {
 
       return deletedWorkoutPlan;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -58,7 +58,7 @@ export class WorkoutPlanService {
 
       return updatedWorkoutPlan;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -70,7 +70,7 @@ export class WorkoutPlanService {
 
       return updatedWorkoutPlan;
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 }
