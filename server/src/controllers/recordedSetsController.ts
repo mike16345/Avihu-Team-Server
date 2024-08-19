@@ -35,8 +35,7 @@ export class RecordedSetsController {
       const response = await RecordedSetsService.getRecordedSetsByUserId(query);
 
       if (typeof response === "string") {
-        res.status(StatusCode.BAD_REQUEST).send({ message: response });
-        return;
+        return res.status(StatusCode.BAD_REQUEST).send({ message: response });
       }
 
       res.status(StatusCode.OK).send(response);
@@ -58,8 +57,7 @@ export class RecordedSetsController {
       const response = await RecordedSetsService.getUserRecordedExerciseNamesByMuscleGroup(query);
 
       if (typeof response === "string") {
-        res.status(StatusCode.NOT_FOUND).send({ message: response });
-        return;
+        return res.status(StatusCode.NOT_FOUND).send({ message: response });
       }
 
       res.status(StatusCode.OK).send(response);

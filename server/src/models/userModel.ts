@@ -37,7 +37,7 @@ const userSchema: Schema<IUser> = new Schema({
   },
   dateFinished: {
     type: Date,
-    required:true
+    required: true,
   },
   planType: {
     type: String,
@@ -59,8 +59,8 @@ export const UserSchemaValidation = Joi.object({
   firstName: Joi.string().min(2).max(25),
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),
-  password:Joi.string().optional(),
-  phone: Joi.string().pattern(/^0[0-9]{6,10}$/), 
+  password: Joi.string().optional(),
+  phone: Joi.string().pattern(/^0[0-9]{9}$/),
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),

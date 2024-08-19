@@ -39,7 +39,7 @@ export class DietPlanPresetController {
       const response = await DietPlanPresetsService.deleteDietPlanPreset(id);
 
       if (typeof response == "string") {
-        res.status(StatusCode.NOT_FOUND).send({ message: response });
+        return res.status(StatusCode.NOT_FOUND).send({ message: response });
       }
 
       return res.status(StatusCode.OK).send(response);
