@@ -13,7 +13,6 @@ export interface IRecordedSet {
   repsDone: number;
   note: string;
   date: Date;
-  sessionId: string;
 }
 
 export interface IExerciseRecordedSets {
