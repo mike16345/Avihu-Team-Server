@@ -22,6 +22,7 @@
     "mongodb-memory-server": "^9.4.0",
     "mongoose": "^6.3.2",
     "multer": "^1.4.5-lts.1",
+    "serverless-http": "^3.2.0",
     "sharp": "^0.33.4",
     "typescript": "^5.3.3",
     "uuid": "^10.0.0"

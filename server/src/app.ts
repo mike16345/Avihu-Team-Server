@@ -5,6 +5,7 @@ import "./db/mainConnection";
 import appRouter from "./routers";
 import http from "http";
 import { StatusCode } from "./enums/StatusCode";
+import serverless from "serverless-http";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/", appRouter);
+app.get("/aws", (req, res) => res.send("Hello AWS!"));
 
 app.use("*", (req, res) => {
   res.status(StatusCode.BAD_REQUEST).send({ message: "Route not found" });
@@ -34,4 +36,4 @@ server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-export default app;
+module.exports.handler = serverless(app);
