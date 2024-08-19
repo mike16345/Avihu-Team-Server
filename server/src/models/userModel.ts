@@ -6,11 +6,42 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = "dsfasefs$$WT#T#$T#$T$#^%GESG$%U*&^IVSDGRTG$E%";
 
 const userSchema: Schema<IUser> = new Schema({
-  name: String,
-  email: String,
-  createdAt: {
+  firstName: {
+    type: String,
+    required: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  dietaryType: {
+    type: [String],
+    required: true,
+  },
+  password: {
+    type: String,
+    required: false,
+  },
+  dateJoined: {
     type: Date,
     default: Date.now,
+  },
+  dateFinished: {
+    type: Date,
+    required: true,
+  },
+  planType: {
+    type: String,
+    required: true,
   },
 });
 
@@ -25,6 +56,12 @@ export const genToken = (id: string) => {
 };
 
 export const UserSchemaValidation = Joi.object({
-  name: Joi.string().min(2).max(25).required(),
-  email: Joi.string().min(2).max(30).required().email(),
+  firstName: Joi.string().min(2).max(25),
+  lastName: Joi.string().min(2).max(25),
+  email: Joi.string().min(5).max(30).email(),
+  password: Joi.string().optional(),
+  phone: Joi.string().pattern(/^0[0-9]{9}$/),
+  dietaryType: Joi.array().items(Joi.string()),
+  dateFinished: Joi.date(),
+  planType: Joi.string(),
 });
