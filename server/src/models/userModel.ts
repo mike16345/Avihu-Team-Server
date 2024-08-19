@@ -60,7 +60,7 @@ export const UserSchemaValidation = Joi.object({
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),
   password: Joi.string().optional(),
-  phone: Joi.string().pattern(/^0[0-9]{10}$/),
+  phone: Joi.string().pattern(/^0[0-9]{9}$/),
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),
