@@ -3,13 +3,12 @@ import { StatusCode } from "../enums/StatusCode";
 import { uploadWeighInPhoto, getPhotosByUserId } from "../services/weighInPhotosService";
 
 export class WeighInPhotosController {
-  static async uploadPhoto(req: Request, res: Response): Promise<void> {
+  static async uploadPhoto(req: Request, res: Response) {
     const file = req.file;
     const userId = req.params.userId; // Get userId from request body
 
     if (!file || !userId) {
-      res.status(StatusCode.BAD_REQUEST).send("File or userId not provided.");
-      return;
+      return res.status(StatusCode.BAD_REQUEST).send("File or userId not provided.");
     }
 
     try {

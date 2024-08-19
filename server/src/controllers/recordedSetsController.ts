@@ -32,7 +32,7 @@ export class RecordedSetsController {
       const response = await RecordedSetsService.getRecordedSetsByUserId(id);
 
       if (typeof response === "string") {
-        res.status(404).send({ message: response });
+        return res.status(404).send({ message: response });
       }
 
       res.status(200).send(response);
@@ -51,8 +51,7 @@ export class RecordedSetsController {
       );
 
       if (typeof response === "string") {
-        res.status(404).send({ message: response });
-        return;
+        return res.status(404).send({ message: response });
       }
 
       res.status(200).send(response);
