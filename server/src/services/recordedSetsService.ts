@@ -28,14 +28,15 @@ const initializeExerciseIfNecessary = (
   }
 };
 
-const calculateNextSetNumber = (
-  lastSet: IRecordedSet | null,
-  isNewSession: boolean,
-  currentDate: string
-) => {
-  if (!lastSet) return 1;
-  const lastSetDate = new Date(lastSet.date).toISOString().split("T")[0];
-  return lastSetDate === currentDate && !isNewSession ? lastSet.setNumber + 1 : 1;
+const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
+  console.log("active session", activeSession);
+  if (!activeSession) return 1;
+
+  return (
+    (activeSession.data[planName] && activeSession.data[planName][exercise]?.setNumber) + 1 || 1
+  );
+
+  return 1;
 };
 
 const createOrUpdateSession = async (
@@ -60,25 +61,33 @@ export class RecordedSetsService {
     try {
       const objectId = new ObjectId(userId);
       const currentDate = getCurrentDate();
+      console.log("session ", sessionId);
       const activeSession = await SessionService.getSessionById(sessionId);
       const isNewSession = activeSession == null;
 
       const muscleGroupRecord = await findOrCreateMuscleGroupRecord(objectId, muscleGroup);
       initializeExerciseIfNecessary(muscleGroupRecord, exercise);
 
-      const lastSet = muscleGroupRecord.recordedSets[exercise].slice(-1)[0] || null;
-      const nextSetNumber = calculateNextSetNumber(lastSet, isNewSession, currentDate);
+      const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
+      console.log("muscle group : ", muscleGroup);
+      console.log("exercise : ", exercise);
+      console.log("next set number for exercise " + nextSetNumber);
 
       recordedSet.setNumber = nextSetNumber;
       muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
       muscleGroupRecord.markModified("recordedSets");
 
+      const plan = recordedSet.plan;
+      const prevExerciseData = activeSession?.data[plan] || {};
+      console.log("exercise data", prevExerciseData);
       const sessionDetails: ISessionCreate = {
         userId,
         type: "workout",
-        data: { setNumber: nextSetNumber },
+        data: {
+          ...activeSession?.data,
+          [plan]: { ...prevExerciseData, [exercise]: { setNumber: nextSetNumber } },
+        },
       };
-
       const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
       const savedResult = await muscleGroupRecord.save();
 

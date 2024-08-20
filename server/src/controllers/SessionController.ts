@@ -50,6 +50,47 @@ export default class SessionController {
     }
   }
 
+  static async getSessionsByType(req: Request, res: Response) {
+    const type = req.params.type;
+    try {
+      const sessions = await SessionService.getSessionsByType(type);
+      if (!sessions) {
+        return res
+          .status(StatusCode.NOT_FOUND)
+          .send({ message: "No sessions found for this type." });
+      }
+
+      res.status(StatusCode.OK).send(sessions);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
+
+  static async getSessionsByUserId(req: Request, res: Response) {
+    const userId = req.params.userId;
+    try {
+      const sessions = await SessionService.getSessionsByUserId(userId);
+      if (!sessions) {
+        return res
+          .status(StatusCode.NOT_FOUND)
+          .send({ message: "No sessions found for this user." });
+      }
+      res.status(StatusCode.OK).send(sessions);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
+
+  static async getAllSessions(req: Request, res: Response) {
+    try {
+      const sessions = await SessionService.getSessions();
+
+      res.status(StatusCode.OK).send(sessions);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
+
   static async getSessionById(req: Request, res: Response) {
     const sessionId = req.params.sessionId;
     try {
@@ -58,6 +99,15 @@ export default class SessionController {
         return res.status(StatusCode.NOT_FOUND).send({ message: "Session not found." });
       }
       res.status(StatusCode.OK).send(session);
+    } catch (err: any) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    }
+  }
+
+  static async endAllSessions(req: Request, res: Response) {
+    try {
+      await SessionService.endAllSessions();
+      res.status(StatusCode.NO_CONTENT).send();
     } catch (err: any) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
     }

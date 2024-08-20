@@ -26,6 +26,35 @@ export default class SessionService {
     }
   }
 
+  static async getSessionsByUserId(userId: string) {
+    try {
+      const sessions = await Session.find({ userId });
+
+      return sessions;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  static async getSessionsByType(type: SessionType) {
+    try {
+      const sessions = await Session.find({ type });
+
+      return sessions;
+    } catch (e) {
+      throw e;
+    }
+  }
+  static async getSessions() {
+    try {
+      const sessions = await Session.find();
+
+      return sessions;
+    } catch (e) {
+      throw e;
+    }
+  }
+
   static async getSessionById(sessionId: string) {
     try {
       const session = await Session.findById(sessionId);
@@ -65,5 +94,13 @@ export default class SessionService {
     const expirationTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes
 
     await Session.deleteMany({ lastActivityTime: { $lt: expirationTime } });
+  }
+
+  static async endAllSessions() {
+    try {
+      return await Session.deleteMany({});
+    } catch (err) {
+      throw err;
+    }
   }
 }
