@@ -25,6 +25,7 @@ export const scheduleUserChecks = () => {
 
         const job = schedule.scheduleJob({ start: expiresAt, rule: "*/1 * * * *" }, function () {
           user.isChecked = false;
+          user.expiresAt = new Date(Date.now() + 60 * 60 * 1000);
           user
             .save()
             .then(() => {
