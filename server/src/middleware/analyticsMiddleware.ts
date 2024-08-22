@@ -4,9 +4,9 @@ import { Request, Response, NextFunction } from "express";
 export const scheduleUserChecks = (req: Request, res: Response, next: NextFunction) => {
   CheckInModel.find().then((users) => {
     users.forEach((user) => {
-      const lastUpdatedAt = new Date(user.lastUpdatedAt).getTime();
-      const remindInSeconds = user.remindIn;
-      const remindAt = lastUpdatedAt + remindInSeconds * 1000;
+      const lastUpdatedAt = user.lastUpdatedAt.getTime();
+      const remindInMillieSeconds = user.remindIn * 100;
+      const remindAt = lastUpdatedAt + remindInMillieSeconds;
 
       if (Date.now() > remindAt) {
         user.isChecked = false;

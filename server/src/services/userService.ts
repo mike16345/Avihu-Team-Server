@@ -9,6 +9,7 @@ export class UserService {
       const newCheckIn = await CheckInModel.create({
         _id: newUser._id,
         remindIn: newUser.remindIn,
+        lastUpdatedAt: new Date(),
       });
 
       return newUser;
@@ -55,6 +56,17 @@ export class UserService {
 
       if (!user) {
         return "User not available";
+      }
+
+      const correspondingCheckIn = await CheckInModel.findById(user._id);
+      if (correspondingCheckIn) {
+        if (user.remindIn !== correspondingCheckIn?.remindIn) {
+          correspondingCheckIn.remindIn = user.remindIn;
+
+          await CheckInModel.findByIdAndUpdate(correspondingCheckIn._id, {
+            remindIn: user.remindIn,
+          });
+        }
       }
 
       return user;

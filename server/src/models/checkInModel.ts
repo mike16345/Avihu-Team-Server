@@ -12,12 +12,13 @@ const checkInSchema = new Schema({
   },
   remindIn: {
     type: Number,
-    default: 3600,
+    default: 120,
     required: true,
   },
   lastUpdatedAt: {
     type: Date,
     required: true,
+    default: new Date(),
   },
 });
 
