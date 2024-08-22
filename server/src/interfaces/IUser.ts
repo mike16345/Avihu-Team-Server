@@ -5,10 +5,11 @@ export interface IUser {
   firstName: string;
   lastName: string;
   email: string;
-  phone:string
-  dietaryType:string[];
+  phone: string;
+  dietaryType: string[];
   password: string;
   dateJoined: Date;
-  dateFinished:Date;
-  planType:string;
+  dateFinished: Date;
+  planType: string;
+  remindIn: number;
 }

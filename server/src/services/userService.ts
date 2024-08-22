@@ -6,7 +6,10 @@ export class UserService {
     try {
       const newUser = await User.create(data);
 
-      const newCheckIn = await CheckInModel.create({ _id: newUser._id });
+      const newCheckIn = await CheckInModel.create({
+        _id: newUser._id,
+        remindIn: newUser.remindIn,
+      });
 
       return newUser;
     } catch (error) {
@@ -80,6 +83,8 @@ export class UserService {
       if (!user) {
         return "User not available!";
       }
+
+      const deleteCheckIn = await CheckInModel.findByIdAndDelete(id);
 
       return user;
     } catch (error) {

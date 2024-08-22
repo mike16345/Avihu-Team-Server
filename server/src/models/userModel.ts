@@ -3,7 +3,7 @@ import { IUser } from "../interfaces/IUser";
 import Joi from "joi";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "dsfasefs$$WT#T#$T#$T$#^%GESG$%U*&^IVSDGRTG$E%";
+const JWT_SECRET = "dsfasefs$$WT#T#$T#$T$#^%GESG$%U*&^IVSDGRTG$E%"; //ayoo shouldnt this be in the env file??
 
 const userSchema: Schema<IUser> = new Schema({
   firstName: {
@@ -43,6 +43,10 @@ const userSchema: Schema<IUser> = new Schema({
     type: String,
     required: true,
   },
+  remindIn: {
+    type: Number,
+    required: true,
+  },
 });
 
 export const User = model("users", userSchema);
@@ -64,4 +68,5 @@ export const UserSchemaValidation = Joi.object({
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),
+  remindIn: Joi.number().min(259200).max(2678400).required(),
 });
