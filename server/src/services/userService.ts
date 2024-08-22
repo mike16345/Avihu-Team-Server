@@ -1,9 +1,12 @@
+import { CheckInModel } from "../models/checkInModel";
 import { User } from "../models/userModel";
 
 export class UserService {
   static async createUser(data: any) {
     try {
       const newUser = await User.create(data);
+
+      const newCheckIn = await CheckInModel.create({ _id: newUser._id });
 
       return newUser;
     } catch (error) {
@@ -41,7 +44,7 @@ export class UserService {
     }
   }
 
-  static async updateUser(data: any,id?:string) {
+  static async updateUser(data: any, id?: string) {
     try {
       const user = await User.findByIdAndUpdate({ _id: id }, data, {
         new: true,

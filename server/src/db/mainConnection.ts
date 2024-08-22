@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
-import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import path from "path";
-import { scheduleUserChecks } from "../utils/utils";
 
 const pathToEnv = path.resolve(__dirname, "..", "..", ".env.local");
 dotenv.config({ path: pathToEnv });
@@ -36,8 +34,6 @@ async function main() {
     if (port) {
       console.log("Listening on port:", port);
     }
-
-    scheduleUserChecks();
   } catch (err) {
     throw err;
   }

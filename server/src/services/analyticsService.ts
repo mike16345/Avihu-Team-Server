@@ -12,7 +12,6 @@ export class AnalyticsService {
           const user = await User.findById(u._id).select(`firstName lastName`);
 
           users.push({
-            expiresAt: u.expiresAt,
             isChecked: u.isChecked,
             _id: u._id,
             firstName: user?.firstName,
@@ -27,13 +26,14 @@ export class AnalyticsService {
     }
   }
 
-  /*   static async updateMany() {
+  static async updateMany() {
     try {
       const users = await CheckInModel.find();
 
       for (const u of users) {
         const user = await CheckInModel.findByIdAndUpdate(u._id, {
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+          updatedAt: Date.now(),
+          remindIn: 3600,
         });
         console.log(user);
       }
@@ -41,7 +41,7 @@ export class AnalyticsService {
     } catch (error) {
       throw error;
     }
-  } */
+  }
 
   static async checkOffuser(id: string) {
     try {

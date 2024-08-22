@@ -10,10 +10,14 @@ const checkInSchema = new Schema({
     default: false,
     required: true,
   },
-  expiresAt: {
-    type: Date,
-    default: () => new Date(Date.now() + 60 * 60 * 1000),
+  remindIn: {
+    type: Number,
+    default: 3600,
     required: true,
+  },
+  lastUpdatedAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 
