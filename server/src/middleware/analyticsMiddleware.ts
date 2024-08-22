@@ -5,7 +5,7 @@ export const scheduleUserChecks = (req: Request, res: Response, next: NextFuncti
   CheckInModel.find().then((users) => {
     users.forEach((user) => {
       const lastUpdatedAt = user.lastUpdatedAt.getTime();
-      const remindInMillieSeconds = user.remindIn * 100;
+      const remindInMillieSeconds = user.remindIn * 1000;
       const remindAt = lastUpdatedAt + remindInMillieSeconds;
 
       if (Date.now() > remindAt) {
