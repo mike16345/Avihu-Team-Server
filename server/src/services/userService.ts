@@ -6,12 +6,6 @@ export class UserService {
     try {
       const newUser = await User.create(data);
 
-      const newCheckIn = await CheckInModel.create({
-        _id: newUser._id,
-        remindIn: newUser.remindIn,
-        lastUpdatedAt: new Date(),
-      });
-
       return newUser;
     } catch (error) {
       throw error;
@@ -58,17 +52,6 @@ export class UserService {
         return "User not available";
       }
 
-      const correspondingCheckIn = await CheckInModel.findById(user._id);
-      if (correspondingCheckIn) {
-        if (user.remindIn !== correspondingCheckIn?.remindIn) {
-          correspondingCheckIn.remindIn = user.remindIn;
-
-          await CheckInModel.findByIdAndUpdate(correspondingCheckIn._id, {
-            remindIn: user.remindIn,
-          });
-        }
-      }
-
       return user;
     } catch (error) {
       throw error;
@@ -95,8 +78,6 @@ export class UserService {
       if (!user) {
         return "User not available!";
       }
-
-      const deleteCheckIn = await CheckInModel.findByIdAndDelete(id);
 
       return user;
     } catch (error) {
