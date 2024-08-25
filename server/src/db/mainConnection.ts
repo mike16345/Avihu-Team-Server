@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import path from "path";
 

@@ -1,17 +1,18 @@
 import { UserService } from "../services/userService";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { UserSchemaValidation } from "../models/userModel";
 import { StatusCode } from "../enums/StatusCode";
 
 export class UserController {
-  static async addUser(req: Request, res: Response) {
+  static async addUser(req: Request, res: Response, next: NextFunction) {
     try {
-
       const user = await UserService.createUser(req.body);
 
       res.status(StatusCode.CREATED).send(user);
+
+      next();
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({message:err});
+      res.status(StatusCode.BAD_REQUEST).send({ message: err });
     }
   }
 
@@ -20,7 +21,7 @@ export class UserController {
       const users = await UserService.getUsers();
       res.status(StatusCode.OK).send(users);
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({message:err});
+      res.status(StatusCode.NOT_FOUND).send({ message: err });
     }
   }
 
@@ -35,7 +36,7 @@ export class UserController {
 
       res.status(StatusCode.OK).send(user);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({message:err});
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err });
     }
   }
 
@@ -50,11 +51,11 @@ export class UserController {
 
       res.status(StatusCode.OK).send(user);
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({message:err});
+      res.status(StatusCode.NOT_FOUND).send({ message: err });
     }
   }
 
-  static async updateUser(req: Request, res: Response) {
+  static async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
 
@@ -65,8 +66,10 @@ export class UserController {
       }
 
       res.status(StatusCode.OK).send(user);
+
+      next();
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({message:err});
+      res.status(StatusCode.BAD_REQUEST).send({ message: err });
     }
   }
 
@@ -76,7 +79,7 @@ export class UserController {
 
       res.status(StatusCode.OK).send(users);
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({message:err});
+      res.status(StatusCode.BAD_REQUEST).send({ message: err });
     }
   }
 
@@ -91,8 +94,7 @@ export class UserController {
 
       res.status(StatusCode.OK).send(user);
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({message:err});
+      res.status(StatusCode.NOT_FOUND).send({ message: err });
     }
   }
 }
-
