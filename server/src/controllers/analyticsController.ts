@@ -27,7 +27,7 @@ export class AnalyticsController {
           .send({ message: `error creating new check in` });
       }
 
-      res.end();
+      res.status(StatusCode.OK);
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
     }
@@ -45,7 +45,7 @@ export class AnalyticsController {
           .send({ message: `error updating check in` });
       }
 
-      res.end();
+      res.status(StatusCode.OK);
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
     }
