@@ -1,8 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import {
-  FullWorkoutPlanSchemaValidation,
-  WorkoutPlanSchemaValidation,
-} from "../models/workoutPlanModel";
+import { FullWorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
 import { StatusCode } from "../enums/StatusCode";
 import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
 

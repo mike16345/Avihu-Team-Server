@@ -2,28 +2,25 @@ import { Request, Response, NextFunction } from "express";
 import { RecordedSetJoiSchema } from "../models/recordedSetsModel";
 
 export const validateRecordedSet = (req: Request, res: Response, next: NextFunction) => {
-  const data = { ...req.body };
-  if (!data.userId) {
+  const { userId, muscleGroup, exercise, recordedSet } = req.body;
+
+  if (!userId) {
     return res.status(400).json({ message: "userId is required" });
   }
 
-  if (!data.muscleGroup) {
+  if (!muscleGroup) {
     return res.status(400).json({ message: "muscleGroup is required" });
   }
 
-  if (!data.exercise) {
+  if (!exercise) {
     return res.status(400).json({ message: "exercise is required" });
   }
 
-  delete data.userId;
-  delete data.exercise;
-  delete data.muscleGroup;
-
-  const { error } = RecordedSetJoiSchema.validate(data);
+  const { error } = RecordedSetJoiSchema.validate(recordedSet);
 
   if (error) {
+    console.log("error here");
     return res.status(400).json({ message: error.message });
   }
-
   next();
 };

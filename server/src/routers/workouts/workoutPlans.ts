@@ -1,6 +1,6 @@
 import express from "express";
-import { workoutPlanController } from "../controllers/workoutPlanController";
-import { validateWorkoutPlan } from "../middleware/workoutPlanMiddleware";
+import { workoutPlanController } from "../../controllers/workoutPlanController";
+import { validateWorkoutPlan } from "../../middleware/workoutPlanMiddleware";
 
 const router = express.Router();
 

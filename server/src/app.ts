@@ -16,7 +16,6 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 
-
 app.use("/", appRouter);
 app.get("/aws", (req, res) => res.send("Hello AWS!"));
 

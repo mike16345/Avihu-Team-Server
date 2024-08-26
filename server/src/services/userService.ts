@@ -1,3 +1,4 @@
+import { CheckInModel } from "../models/checkInModel";
 import { User } from "../models/userModel";
 
 export class UserService {
@@ -41,7 +42,7 @@ export class UserService {
     }
   }
 
-  static async updateUser(data: any,id?:string) {
+  static async updateUser(data: any, id?: string) {
     try {
       const user = await User.findByIdAndUpdate({ _id: id }, data, {
         new: true,

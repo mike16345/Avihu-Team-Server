@@ -71,8 +71,7 @@ class ExercisePresetController {
       const exercise = await exercisePresetServices.updateExercise(id, newExercise);
 
       if (!exercise) {
-        res.status(StatusCode.BAD_REQUEST);
-        return;
+        return res.status(StatusCode.BAD_REQUEST);
       }
 
       res.status(StatusCode.OK).send(exercise);

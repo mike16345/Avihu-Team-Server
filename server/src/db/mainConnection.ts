@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import path from "path";
 
@@ -13,6 +12,7 @@ async function main() {
   const username = process.env.DB_USERNAME;
   const password = process.env.DB_PASSWORD;
   const cluster = process.env.DB_CLUSTER;
+
   const DATABASE_SERVER = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.net/`;
   const port = process.env.DB_PORT;
   const dbName = process.env.DB_NAME;

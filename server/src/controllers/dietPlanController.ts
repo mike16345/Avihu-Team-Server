@@ -49,7 +49,7 @@ class DietPlanController {
       const response = await DietPlanServices.deleteDietPlan(userId);
 
       if (typeof response == "string") {
-        res.status(404).send({ message: response });
+        return res.status(404).send({ message: response });
       }
 
       return res.status(StatusCode.OK).send(response);
