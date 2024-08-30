@@ -1,11 +1,7 @@
-import { Schema, model } from "mongoose";
-import { IUser } from "../interfaces/IUser";
-import Joi from "joi";
-import jwt from "jsonwebtoken";
+const { Schema, model } = require("mongoose");
+const Joi = require("joi");
 
-const JWT_SECRET = "dsfasefs$$WT#T#$T#$T$#^%GESG$%U*&^IVSDGRTG$E%"; //ayoo shouldnt this be in the env file??
-
-const userSchema: Schema<IUser> = new Schema({
+const userSchema = new Schema({
   firstName: {
     type: String,
     required: true,
@@ -49,17 +45,9 @@ const userSchema: Schema<IUser> = new Schema({
   },
 });
 
-export const User = model("users", userSchema);
+exports.User = model("users", userSchema);
 
-export const genToken = (id: string) => {
-  const token = jwt.sign({ id: id }, JWT_SECRET, {
-    expiresIn: "30d",
-  });
-
-  return token;
-};
-
-export const UserSchemaValidation = Joi.object({
+exports.UserSchemaValidation = Joi.object({
   firstName: Joi.string().min(2).max(25),
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),

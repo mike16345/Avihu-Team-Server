@@ -5,7 +5,6 @@ import "./db/mainConnection";
 import appRouter from "./routers";
 import http from "http";
 import { StatusCode } from "./enums/StatusCode";
-import serverless from "serverless-http";
 
 dotenv.config();
 
@@ -36,4 +35,4 @@ server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-module.exports.handler = serverless(app);
+module.exports.handler = app;
