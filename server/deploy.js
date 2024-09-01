@@ -24,7 +24,7 @@ const envVars = `${DB_NAME}, ${DB_USER}, ${DB_PASSWORD}, ${DB_CLUSTER}`;
 const command = `lambda-build upload ${functionName} -e ${filePath} -r il-central-1`;
 
 // Construct the command to update the Lambda function's environment variables
-const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --environment Variables="{${envVars}}" --region il-central-1`;
+const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout 10 --environment Variables="{${envVars}}" --region il-central-1`;
 
 try {
   console.log(`Updating environment variables with command: ${updateEnvCommand}`);
