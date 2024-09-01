@@ -1,4 +1,7 @@
-const { User } = require("../models/userModel");
+//@ts-nocheck
+import { User } from "../models/userModel";
+
+let cachedUsers = null;
 
 class UserService {
   static async createUser(data) {
@@ -12,7 +15,9 @@ class UserService {
 
   static async getUsers() {
     try {
+      if (cachedUsers) return cachedUsers;
       const users = await User.find();
+      cachedUsers = users;
       
       return users;
     } catch (error) {
@@ -76,4 +81,4 @@ class UserService {
   }
 }
 
-module.exports = UserService;
+export default UserService;

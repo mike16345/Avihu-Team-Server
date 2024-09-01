@@ -1,10 +1,14 @@
-const { StatusCode } = require("../enums/StatusCode");
-const UserService = require("../services/usersService");
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { StatusCode } from "../enums/StatusCode";
+import UserService from "../services/userService";
 
-class UserController {
-  static async addUser(event, context) {
+export class UserController {
+  static async addUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const user = await UserService.createUser(JSON.parse(event.body));
+      const user = await UserService.createUser(JSON.parse(event.body || "{}"));
 
       return {
         statusCode: StatusCode.CREATED,
@@ -13,7 +17,7 @@ class UserController {
           data: user,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.BAD_REQUEST,
         body: JSON.stringify({
@@ -24,10 +28,13 @@ class UserController {
     }
   }
 
-  static async getUsers(event, context) {
+  static async getUsers(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
       const users = await UserService.getUsers();
-      
+
       return {
         statusCode: StatusCode.OK,
         body: JSON.stringify({
@@ -35,7 +42,7 @@ class UserController {
           data: users,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.NOT_FOUND,
         body: JSON.stringify({
@@ -46,10 +53,13 @@ class UserController {
     }
   }
 
-  static async getUser(event, context) {
+  static async getUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = event.queryStringParameters.userId;
-      const user = await UserService.getUser(id);
+      const id = event.queryStringParameters?.userId;
+      const user = await UserService.getUser(id || "");
 
       if (!user) {
         return {
@@ -65,7 +75,7 @@ class UserController {
           data: user,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
         body: JSON.stringify({
@@ -76,10 +86,13 @@ class UserController {
     }
   }
 
-  static async getUserByEmail(event, context) {
+  static async getUserByEmail(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const email = event.queryStringParameters.email;
-      const user = await UserService.getUserByEmail(email);
+      const email = event.queryStringParameters?.email;
+      const user = await UserService.getUserByEmail(email || "");
 
       if (!user) {
         return {
@@ -95,7 +108,7 @@ class UserController {
           data: user,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.NOT_FOUND,
         body: JSON.stringify({
@@ -106,10 +119,13 @@ class UserController {
     }
   }
 
-  static async updateUser(event, context) {
+  static async updateUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = event.queryStringParameters.id;
-      const user = await UserService.updateUser(JSON.parse(event.body), id);
+      const id = event.queryStringParameters?.id;
+      const user = await UserService.updateUser(JSON.parse(event.body || "{}"), id || "");
 
       if (!user) {
         return {
@@ -125,7 +141,7 @@ class UserController {
           data: user,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.BAD_REQUEST,
         body: JSON.stringify({
@@ -136,9 +152,12 @@ class UserController {
     }
   }
 
-  static async updateManyUsers(event, context) {
+  static async updateManyUsers(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const users = await UserService.updateManyUsers(JSON.parse(event.body));
+      const users = await UserService.updateManyUsers(JSON.parse(event.body || "{}"));
 
       return {
         statusCode: StatusCode.OK,
@@ -147,7 +166,7 @@ class UserController {
           data: users,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.BAD_REQUEST,
         body: JSON.stringify({
@@ -158,10 +177,13 @@ class UserController {
     }
   }
 
-  static async deleteUser(event, context) {
+  static async deleteUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = event.queryStringParameters.id;
-      const user = await UserService.deleteUser(id);
+      const id = event.queryStringParameters?.id;
+      const user = await UserService.deleteUser(id || "");
 
       if (!user) {
         return {
@@ -177,7 +199,7 @@ class UserController {
           data: user,
         }),
       };
-    } catch (err) {
+    } catch (err: any) {
       return {
         statusCode: StatusCode.NOT_FOUND,
         body: JSON.stringify({
@@ -188,5 +210,3 @@ class UserController {
     }
   }
 }
-
-exports.UserController = UserController;

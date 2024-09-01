@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-let conn = null;
+let conn: Promise<mongoose.Mongoose> | null = null;
 
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
@@ -8,7 +8,8 @@ const dbName = process.env.DB_NAME;
 const cluster = process.env.DB_CLUSTER;
 
 const uri = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.net/;`;
-exports.connect = async function () {
+
+export default async function () {
   if (conn == null) {
     conn = mongoose
       .connect(uri, {
@@ -21,4 +22,4 @@ exports.connect = async function () {
   }
 
   return conn;
-};
+}

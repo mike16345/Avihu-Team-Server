@@ -1,7 +1,9 @@
-const { Schema, model } = require("mongoose");
-const Joi = require("joi");
+import { IUser } from "../interfaces/IUser";
 
-const userSchema = new Schema({
+import { Schema, model } from "mongoose";
+import Joi from "joi";
+
+const userSchema = new Schema<IUser>({
   firstName: {
     type: String,
     required: true,
@@ -45,9 +47,9 @@ const userSchema = new Schema({
   },
 });
 
-exports.User = model("users", userSchema);
+export const User = model("users", userSchema);
 
-exports.UserSchemaValidation = Joi.object({
+export const UserSchemaValidation = Joi.object({
   firstName: Joi.string().min(2).max(25),
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),

@@ -1,6 +1,7 @@
-const db = require("../db/connect"); // Assuming you have a separate module for the DB connection
-const { UserController } = require("./controllers/usersController");
-const { StatusCode } = require("../enums/StatusCode");
+import connect from "../../db/connect"; // Assuming you have a separate module for the DB connection
+import { UserController } from "../../controllers/userController";
+import { StatusCode } from "../../enums/StatusCode";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 const BASE_PATH = "/users";
 const userApiHandlers = {
@@ -13,21 +14,24 @@ const userApiHandlers = {
   [`DELETE ${BASE_PATH}/one`]: UserController.deleteUser, // Delete user by ID
 };
 
-exports.handler = async (event, context) => {
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   try {
-    await db.connect(); // Ensure the database is connected
+    await connect(); // Ensure the database is connected
     console.log("Connected to database!");
     console.log("event", JSON.stringify(event));
 
     const { httpMethod, path } = event;
 
     // Build the route key for userApiHandlers
-    const routeKey = `${httpMethod} ${path}`;
+    const routeKey = `${httpMethod} ${path}` as keyof typeof userApiHandlers;
 
     // Identify the matching route from userApiHandlers
-    const handlerFunction = userApiHandlers[routeKey];
+    const handlerFunction = userApiHandlers[routeKey as keyof typeof userApiHandlers];
 
     if (!handlerFunction) {
       return {
@@ -42,7 +46,7 @@ exports.handler = async (event, context) => {
     console.error("Error in Lambda handler", error);
     return {
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-      body: JSON.stringify({ message: error, }),
+      body: JSON.stringify({ message: error }),
     };
   }
 };
