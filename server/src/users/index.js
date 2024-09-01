@@ -1,6 +1,6 @@
-const db = require("./db/connect"); // Assuming you have a separate module for the DB connection
+const db = require("../db/connect"); // Assuming you have a separate module for the DB connection
 const { UserController } = require("./controllers/usersController");
-const { StatusCode } = require("./enums/StatusCode");
+const { StatusCode } = require("../enums/StatusCode");
 
 const BASE_PATH = "/users";
 const userApiHandlers = {
