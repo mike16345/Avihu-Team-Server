@@ -27,6 +27,7 @@ class UserController {
   static async getUsers(event, context) {
     try {
       const users = await UserService.getUsers();
+      
       return {
         statusCode: StatusCode.OK,
         body: JSON.stringify({

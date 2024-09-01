@@ -42,7 +42,7 @@ exports.handler = async (event, context) => {
     console.error("Error in Lambda handler", error);
     return {
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-      body: JSON.stringify({ message: "Internal Server Error" }),
+      body: JSON.stringify({ message: error, }),
     };
   }
 };
