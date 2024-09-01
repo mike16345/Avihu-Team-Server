@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon",
     "start": "ts-node -T ./src/app.ts",
-    "test": "jest"
+    "test": "jest",
+    "deploy": "node deploy.js"
   },
   "keywords": [],
   "author": "",
