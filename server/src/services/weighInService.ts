@@ -1,6 +1,8 @@
 import { WeighIns } from "../models/weighInModel";
 import { IWeighIn } from "../interfaces/IWeighIns";
 
+let cachedWeighIns: { [userId: string]: IWeighIn[] | null } = {};
+
 export class WeighInService {
   async addWeighIn(data: any, userId: string) {
     try {
@@ -30,7 +32,10 @@ export class WeighInService {
 
   async getWeighInsByUserId(id: string) {
     try {
+      if (cachedWeighIns[id] !== undefined) return cachedWeighIns[id];
+
       const weighIns = await WeighIns.findOne({ userId: id });
+      cachedWeighIns[id] = weighIns?.weighIns || null;
 
       return weighIns?.weighIns;
     } catch (err) {

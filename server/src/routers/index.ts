@@ -1,5 +1,4 @@
 import express from "express";
-import userRouter from "./users";
 import weighInsRouter from "./weighIns/";
 import dietPlanRouter from "./dietPlans";
 import presetsRouter from "./presets/";
@@ -11,7 +10,6 @@ import analyticsRouter from "./analytics/MainAnalyticsRoutes";
 const router = express.Router();
 
 router.use("/analytics", analyticsRouter);
-router.use("/users", userRouter);
 router.use("/weighIns", weighInsRouter);
 router.use("/dietPlans", dietPlanRouter);
 router.use("/presets", presetsRouter);
