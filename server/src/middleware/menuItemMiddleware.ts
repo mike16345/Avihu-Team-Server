@@ -7,7 +7,7 @@ export const validateMenuItem = async (
   context: Context
 ): Promise<{ isValid: boolean; message?: string; validatedMenuItem?: any }> => {
   const menuItem = JSON.parse(event.body || "{}");
-  const { id } = event.pathParameters || {};
+  const { id } = event.queryStringParameters || {};
 
   try {
     if (!id) {
