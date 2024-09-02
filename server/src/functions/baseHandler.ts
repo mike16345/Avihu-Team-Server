@@ -5,11 +5,15 @@ import connect from "../db/connect";
 type ApiHandlers = {
   [key: string]: Function;
 };
+type apiValidators = {
+  [key: string]: Function;
+};
 
 export const handleApiCall = async (
   event: APIGatewayProxyEvent,
   context: Context,
-  apiHandlers: ApiHandlers
+  apiHandlers: ApiHandlers,
+  apiValidators?: apiValidators
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
 
@@ -20,6 +24,19 @@ export const handleApiCall = async (
 
     // Build the route key for userApiHandlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
+
+    if (apiValidators) {
+      const validatorFunction = apiValidators[routeKey];
+
+      const validationResult = await validatorFunction(event, context);
+
+      if (!validationResult.isValid) {
+        return {
+          statusCode: StatusCode.BAD_REQUEST,
+          body: JSON.stringify({ message: validationResult.message }),
+        };
+      }
+    }
 
     // Identify the matching route from userApiHandlers
     const handlerFunction = apiHandlers[routeKey];
