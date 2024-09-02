@@ -25,7 +25,7 @@ export const handleApiCall = async (
     // Build the route key for userApiHandlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
 
-    if (apiValidators) {
+    if (apiValidators && apiValidators[routeKey]) {
       const validatorFunction = apiValidators[routeKey];
 
       const validationResult = await validatorFunction(event, context);
