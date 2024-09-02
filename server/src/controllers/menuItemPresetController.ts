@@ -33,7 +33,7 @@ export class MenuItemPresetController {
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> {
-    const { foodGroup } = event.pathParameters || {};
+    const { foodGroup } = event.queryStringParameters || {};
 
     try {
       const menuItems = await menuItemServices.getMenuItems(foodGroup || "");
