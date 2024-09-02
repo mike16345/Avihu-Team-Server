@@ -59,7 +59,7 @@ export class MenuItemPresetController {
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> {
-    const { id } = event.pathParameters || {};
+    const { id } = event.queryStringParameters || {};
 
     try {
       const menuItem = await menuItemServices.getOneMenuItem(id || "");
@@ -110,7 +110,7 @@ export class MenuItemPresetController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     const newMenuItem = JSON.parse(event.body || "{}");
-    const { id } = event.pathParameters || {};
+    const { id } = event.queryStringParameters || {};
 
     try {
       const updatedMenuItem = await menuItemServices.updateMenuItem(newMenuItem, id || "");
@@ -136,7 +136,7 @@ export class MenuItemPresetController {
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> {
-    const { id } = event.pathParameters || {};
+    const { id } = event.queryStringParameters || {};
 
     try {
       const deletedMenuItem = await menuItemServices.deleteMenuItem(id || "");
