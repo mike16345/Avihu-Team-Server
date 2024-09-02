@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { handleApiCall } from "../baseHandler";
 import { validateMenuItem } from "../../middleware/menuItemMiddleware";
 
-const BASE_PATH = "/menItems";
+const BASE_PATH = "/menuItems";
 const menuItemApiHandlers = {
   [`GET ${BASE_PATH}`]: MenuItemPresetController.getAllMenuItems,
   [`GET ${BASE_PATH}/one`]: MenuItemPresetController.getOneMenuItem,
