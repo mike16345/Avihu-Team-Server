@@ -51,7 +51,17 @@ export const handleApiCall = async (
     console.log("Connected to database!");
 
     // Run the matched handler function
-    return await handlerFunction(event, context);
+    const response = await handlerFunction(event, context);
+
+    return {
+      ...response,
+      headers: {
+        ...response?.headers,
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*", // Allow any method
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    };
   } catch (error) {
     console.error("Error in Lambda handler", error);
     return {
