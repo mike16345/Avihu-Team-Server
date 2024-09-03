@@ -120,7 +120,6 @@ class WeighInsController {
 
     try {
       const weighIns = await weighInServices.getWeighInsByUserId(id as string);
-
       if (!weighIns) {
         return {
           statusCode: StatusCode.NOT_FOUND,

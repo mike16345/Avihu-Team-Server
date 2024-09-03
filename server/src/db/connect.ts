@@ -10,16 +10,22 @@ const cluster = process.env.DB_CLUSTER;
 const uri = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.net/;`;
 
 export default async function () {
-  if (conn == null) {
-    conn = mongoose
-      .connect(uri, {
-        serverSelectionTimeoutMS: 5000,
-        dbName: dbName,
-      })
-      .then(() => mongoose);
+  try {
+    console.log("connecting to database");
+    if (conn == null) {
+      conn = mongoose
+        .connect(uri, {
+          serverSelectionTimeoutMS: 5000,
+          dbName: dbName,
+        })
+        .then(() => mongoose);
 
-    await conn;
+      await conn;
+    }
+
+    console.log("Connected to database!");
+    return conn;
+  } catch (e) {
+    throw e;
   }
-
-  return conn;
 }
