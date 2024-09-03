@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { weighInServices } from "../services/weighInService";
 import { IWeighIn } from "../interfaces/IWeighIns";
 import { StatusCode } from "../enums/StatusCode";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 class WeighInsController {
   static addWeighIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -11,15 +12,9 @@ class WeighInsController {
     try {
       const weighIn = await weighInServices.addWeighIn(weighInToAdd, id);
 
-      return {
-        statusCode: StatusCode.CREATED,
-        body: JSON.stringify(weighIn),
-      };
+      return createResponseWithData(StatusCode.CREATED, weighIn, "Successfully added weigh in!");
     } catch (err: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: err.message }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 
@@ -29,15 +24,10 @@ class WeighInsController {
 
     try {
       const result = await weighInServices.addManyWeighIns(weighIns, id);
-      return {
-        statusCode: StatusCode.CREATED,
-        body: JSON.stringify(result),
-      };
+
+      return createResponseWithData(StatusCode.CREATED, result, "Successfully added weigh ins!");
     } catch (err: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: err.message }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 
@@ -49,21 +39,12 @@ class WeighInsController {
       const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
 
       if (!updatedWeighIn) {
-        return {
-          statusCode: StatusCode.NOT_FOUND,
-          body: JSON.stringify({ message: "Weigh in not found!" }),
-        };
+        return createResponse(StatusCode.NOT_FOUND, "Weigh in not found!");
       }
 
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify(updatedWeighIn),
-      };
+      return createResponseWithData(StatusCode.OK, updatedWeighIn, "Successfully updated weigh in");
     } catch (err: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: err.message }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 
@@ -74,15 +55,10 @@ class WeighInsController {
 
     try {
       const response = await weighInServices.deleteUserWeighIns(id);
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify(response),
-      };
+
+      return createResponseWithData(StatusCode.OK, response, "Deleted user weigh ins");
     } catch (err) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: "There was an error deleting weigh ins." }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 
@@ -95,21 +71,12 @@ class WeighInsController {
       const response = await weighInServices.deleteWeighInById(weighInId);
 
       if (!response) {
-        return {
-          statusCode: StatusCode.NOT_FOUND,
-          body: JSON.stringify({ message: "Did not find weigh in to delete." }),
-        };
+        return createResponse(StatusCode.NOT_FOUND, "Did not find weigh in to delete.");
       }
 
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify(response),
-      };
+      return createResponseWithData(StatusCode.OK, response, "Deleted weigh in!");
     } catch (err: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: err.message }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 
@@ -121,21 +88,12 @@ class WeighInsController {
     try {
       const weighIns = await weighInServices.getWeighInsByUserId(id as string);
       if (!weighIns) {
-        return {
-          statusCode: StatusCode.NOT_FOUND,
-          body: JSON.stringify({ message: "No weigh ins found for this user." }),
-        };
+        return createResponse(StatusCode.NOT_FOUND, "No weigh ins found for this user.");
       }
 
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify(weighIns),
-      };
-    } catch (err) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: "An error occurred while requesting the weigh-ins." }),
-      };
+      return createResponseWithData(StatusCode.OK, weighIns, "Successfully retrieved weigh ins!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
@@ -145,15 +103,9 @@ class WeighInsController {
     try {
       const weighIns = await weighInServices.getWeighInsById(id);
 
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify(weighIns),
-      };
+      return createResponseWithData(StatusCode.OK, weighIns, "Successfully retrieved weigh ins");
     } catch (err) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({ message: "An error occurred while requesting the weigh-ins." }),
-      };
+      return createServerErrorResponse(err);
     }
   };
 }
