@@ -1,120 +1,163 @@
-import { Request, Response } from "express";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanServices } from "../services/dietPlanService";
-import { DietPlanSchemaValidation } from "../models/dietPlanModel";
 import { StatusCode } from "../enums/StatusCode";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 class DietPlanController {
-  addDietPlan = async (req: Request, res: Response) => {
-    const dietPlan = req.body;
+  static addDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const dietPlan = JSON.parse(event.body || "{}");
 
     try {
       const dietPlanResult = await DietPlanServices.addDietPlan(dietPlan);
 
-      return res.status(StatusCode.CREATED).send(dietPlanResult);
+      return createResponseWithData(
+        StatusCode.CREATED,
+        dietPlanResult,
+        "Successfully added diet plan!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  updateDietPlan = async (req: Request, res: Response) => {
-    const dietPlanId = req.params.id;
-    const newDietPlan = req.body;
+  static updateDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const dietPlanId = event.queryStringParameters?.id || "";
+    const newDietPlan = JSON.parse(event.body || "{}");
 
     try {
       const updatedDietPlan = await DietPlanServices.updateDietPlan(dietPlanId, newDietPlan);
 
-      return res.status(StatusCode.OK).send(updatedDietPlan);
+      if (!updatedDietPlan) return createResponse(StatusCode.NOT_FOUND, "DietPlan not found!");
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedDietPlan,
+        "Successfully updated diet plan!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  async updateDietPlanByUserId(req: Request, res: Response) {
-    const userId = req.params.id;
-    const newDietPlan = req.body;
+  static updateDietPlanByUserId = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const userId = event.queryStringParameters?.id || "";
+    const newDietPlan = JSON.parse(event.body || "{}");
 
     try {
       const updatedDietPlan = await DietPlanServices.updateDietPlanByUserId(userId, newDietPlan);
+      if (!updatedDietPlan)
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `DietPlan by given user id: "${userId}" not found!`
+        );
 
-      return res.status(StatusCode.OK).send(updatedDietPlan);
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedDietPlan,
+        "Successfully updated diet plan by user ID!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
-  }
+  };
 
-  deleteDietPlan = async (req: Request, res: Response) => {
-    const userId = req.params.id;
+  static deleteDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const dietPlanId = event.queryStringParameters?.id || "";
 
     try {
-      const response = await DietPlanServices.deleteDietPlan(userId);
+      const response = await DietPlanServices.deleteDietPlan(dietPlanId);
 
-      if (typeof response == "string") {
-        return res.status(404).send({ message: response });
+      if (typeof response === "string") {
+        return createResponse(StatusCode.NOT_FOUND, response);
       }
 
-      return res.status(StatusCode.OK).send(response);
+      return createResponseWithData(StatusCode.OK, response, "Successfully deleted diet plan!");
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  deleteDietPlanByUserId = async (req: Request, res: Response) => {
-    const dietPlanId = req.params.id;
+  static deleteDietPlanByUserId = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const userId = event.queryStringParameters?.id || "";
 
     try {
-      const response = await DietPlanServices.deleteDietPlanByUserId(dietPlanId);
+      const response = await DietPlanServices.deleteDietPlanByUserId(userId);
+      if (typeof response === "string") {
+        return createResponse(StatusCode.NOT_FOUND, response);
+      }
 
-      return res.status(StatusCode.OK).send(response);
+      return createResponseWithData(
+        StatusCode.OK,
+        response,
+        "Successfully deleted diet plan by user ID!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  getDietPlans = async (req: Request, res: Response) => {
+  static getDietPlans = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       const dietPlans = await DietPlanServices.getAllDietPlans();
 
-      res.status(StatusCode.OK).send(dietPlans);
+      return createResponseWithData(StatusCode.OK, dietPlans, "Successfully retrieved diet plans!");
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  getDietPlanById = async (req: Request, res: Response) => {
-    const dietPlanId = req.params.id;
+  static getDietPlanById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const dietPlanId = event.queryStringParameters?.id || "";
 
-    if (!dietPlanId || typeof dietPlanId !== "string") {
-      return res
-        .status(StatusCode.BAD_REQUEST)
-        .send({ message: "Diet Plan ID is required and should be a string." });
+    if (!dietPlanId) {
+      return createResponse(
+        StatusCode.BAD_REQUEST,
+        "Diet Plan ID is required and should be a string."
+      );
     }
 
     try {
       const dietPlan = await DietPlanServices.getDietPlanById(dietPlanId);
 
-      return res.status(StatusCode.OK).send(dietPlan);
+      if (!dietPlan) return createResponse(StatusCode.NOT_FOUND, "Diet Plan not found!");
+
+      return createResponseWithData(StatusCode.OK, dietPlan, "Successfully retrieved diet plan!");
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  getDietPlanByUserId = async (req: Request, res: Response) => {
-    const userId = req.params.id;
+  static getDietPlanByUserId = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const userId = event.queryStringParameters?.userId || "";
 
-    if (!userId || typeof userId !== "string") {
-      return res
-        .status(StatusCode.BAD_REQUEST)
-        .send({ message: "User ID is required and should be a string." });
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "User ID is required and should be a string.");
     }
 
     try {
       const dietPlan = await DietPlanServices.getDietPlanByUserId(userId);
 
-      return res.status(StatusCode.OK).send(dietPlan);
+      if (!dietPlan)
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Diet Plan not found with user id "${userId}" !`
+        );
+
+      return createResponseWithData(
+        StatusCode.OK,
+        dietPlan,
+        "Successfully retrieved diet plan by user ID!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 }
 
-export const dietPlanController = new DietPlanController();
+export default DietPlanController;
