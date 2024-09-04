@@ -7,7 +7,8 @@ export class Cache<T> {
   private cache: { [key: string]: { data: T; expiresAt: number | null } } = {};
 
   // Set data in the cache with an optional expiration time
-  set(key: string, data: T, options?: CacheOptions<T>): void {
+  set(key: string, data?: T | null, options?: CacheOptions<T>): void {
+    if (!data) return;
     const expiresAt = options?.expireAfter ? Date.now() + options.expireAfter : null;
 
     this.cache[key] = {
