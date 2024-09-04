@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
-import connect from "../db/connect";
+import connectToDB from "../db/connect";
 
 type ApiHandlers = {
   [key: string]: Function;
@@ -16,13 +16,18 @@ export const handleApiCall = async (
   apiValidators?: apiValidators
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "*", // Allow any method
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
 
   // Validate the request method and path
   try {
     console.log("event", JSON.stringify(event));
     const { httpMethod, path } = event;
 
-    // Build the route key for userApiHandlers
+    // Build the route key for api handlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
 
     if (apiValidators && apiValidators[routeKey]) {
@@ -45,23 +50,22 @@ export const handleApiCall = async (
       return {
         statusCode: StatusCode.NOT_FOUND,
         body: JSON.stringify({ message: "Route not found" }),
+        headers,
       };
     }
-    await connect(); // Ensure the database is connected
-    console.log("Connected to database!");
+    await connectToDB();
 
-    // Run the matched handler function
     const response = await handlerFunction(event, context);
-
-    return {
+    const apiResponse = {
       ...response,
       headers: {
         ...response?.headers,
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "*", // Allow any method
-        "Access-Control-Allow-Headers": "Content-Type",
+        ...headers,
       },
     };
+    console.log("api response", apiResponse);
+
+    return apiResponse;
   } catch (error) {
     console.error("Error in Lambda handler", error);
     return {
