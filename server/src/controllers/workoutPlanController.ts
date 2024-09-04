@@ -110,6 +110,10 @@ class WorkoutPlanController {
     try {
       const workoutPlans = await workoutPlanService.getAllWorkoutPlans();
 
+      if (!workoutPlans) {
+        return createResponse(StatusCode.NOT_FOUND, "No workout plans found.");
+      }
+
       return createResponseWithData(
         StatusCode.OK,
         workoutPlans,
