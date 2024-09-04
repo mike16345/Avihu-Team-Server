@@ -1,13 +1,11 @@
-import { ObjectId } from "mongodb";
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISessionCreate } from "../models/sessionModel";
+import mongoose from "mongoose";
 
-const getCurrentDate = () => new Date().toISOString().split("T")[0];
-
-const findOrCreateMuscleGroupRecord = async (userId: ObjectId, muscleGroup: string) => {
+const findOrCreateMuscleGroupRecord = async (userId: any, muscleGroup: string) => {
   let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({ userId, muscleGroup });
   if (!muscleGroupRecord) {
     muscleGroupRecord = new MuscleGroupRecordedSets({
@@ -29,14 +27,11 @@ const initializeExerciseIfNecessary = (
 };
 
 const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
-  console.log("active session", activeSession);
   if (!activeSession) return 1;
 
   return (
     (activeSession.data[planName] && activeSession.data[planName][exercise]?.setNumber) + 1 || 1
   );
-
-  return 1;
 };
 
 const createOrUpdateSession = async (
@@ -59,8 +54,7 @@ export class RecordedSetsService {
     recordedSet: IRecordedSet
   ) {
     try {
-      const objectId = new ObjectId(userId);
-      const currentDate = getCurrentDate();
+      const objectId = new mongoose.mongo.ObjectId(userId);
       console.log("session ", sessionId);
       const activeSession = await SessionService.getSessionById(sessionId);
       const isNewSession = activeSession == null;
