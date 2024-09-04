@@ -1,78 +1,140 @@
-import { Request, Response } from "express";
-import { menuItemServices } from "../services/menuItemServices";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { StatusCode } from "../enums/StatusCode";
+import { MenuItemService } from "../services/menuItemServices";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export class MenuItemPresetController {
-    addMenuItem = async (req: Request, res: Response) => {
-        const menuItem = req.body;
+  static async addMenuItem(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const menuItem = JSON.parse(event.body || "{}");
 
-        try {
-            const newMenuItem = await menuItemServices.addMenuItem(menuItem)
+    try {
+      const newMenuItem = await MenuItemService.addMenuItem(menuItem);
 
-            res.status(201).json(newMenuItem);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while adding the menu item." });
-        }
+      return createResponseWithData(
+        StatusCode.CREATED,
+        newMenuItem,
+        "Menu item added successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
+  }
 
-    getMenuItems = async (req: Request, res: Response) => {
-        const { foodGroup } = req.params
+  static async getMenuItems(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { foodGroup } = event.queryStringParameters || {};
 
-        try {
-            const menuItems = await menuItemServices.getMenuItems(foodGroup)
+    try {
+      const menuItems = await MenuItemService.getMenuItems(foodGroup || "");
 
-            res.status(201).json(menuItems);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        }
+      if (!menuItems) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          "Could not find menu items that match requested food group!"
+        );
+      }
+
+      return createResponseWithData(StatusCode.OK, menuItems, "Menu items retrieved successfully!");
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
+  }
 
-    getOneMenuItem = async (req: Request, res: Response) => {
-        const { id } = req.params
+  static async getOneMenuItem(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { id } = event.queryStringParameters || {};
 
-        try {
-            const menuItem = await menuItemServices.getOneMenuItem(id)
+    try {
+      const menuItem = await MenuItemService.getOneMenuItem(id || "");
 
-            res.status(201).json(menuItem);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        }
+      if (!menuItem) {
+        return createResponse(StatusCode.NOT_FOUND, `Menu item not found!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, menuItem, "Menu item retrieved successfully!");
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
-    getAllMenuItems = async (req: Request, res: Response) => {
+  }
 
-        try {
-            const allMenuItems = await menuItemServices.getAllMenuItems()
+  static async getAllMenuItems(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const allMenuItems = await MenuItemService.getAllMenuItems();
 
-            res.status(201).json(allMenuItems);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        } 
+      if (!allMenuItems) {
+        return createResponse(StatusCode.NOT_FOUND, `Could not find menu items!`);
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        allMenuItems,
+        "All menu items retrieved successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
-    editMenuItem = async (req: Request, res: Response) => {
-        const newMenuItem = req.body;
-        const { id } = req.params;
+  }
 
+  static async editMenuItem(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const newMenuItem = JSON.parse(event.body || "{}");
+    const { id } = event.queryStringParameters || {};
 
-        try {
-            const updatedMenuItem = await menuItemServices.updateMenuItem(newMenuItem, id)
+    try {
+      const updatedMenuItem = await MenuItemService.updateMenuItem(newMenuItem, id || "");
 
-            res.status(201).json(updatedMenuItem);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        }
+      if (!updatedMenuItem) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find the menu item you are trying to update!`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedMenuItem,
+        "Menu item updated successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
+  }
 
-    deleteMenuItem = async (req: Request, res: Response) => {
-        const { id } = req.params;
+  static async deleteMenuItem(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { id } = event.queryStringParameters || {};
 
+    try {
+      const deletedMenuItem = await MenuItemService.deleteMenuItem(id || "");
 
-        try {
-            const deletedMenuItem = await menuItemServices.deleteMenuItem(id)
+      if (!deletedMenuItem) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find the menu item you are trying to delete!`
+        );
+      }
 
-            res.status(201).json(deletedMenuItem);
-        } catch (error) {
-            res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
-        }
+      return createResponseWithData(
+        StatusCode.OK,
+        deletedMenuItem,
+        "Menu item deleted successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
+  }
 }
-
-export const menuItemController = new MenuItemPresetController()

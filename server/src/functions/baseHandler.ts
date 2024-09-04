@@ -9,7 +9,8 @@ type ApiHandlers = {
 export const handleApiCall = async (
   event: APIGatewayProxyEvent,
   context: Context,
-  apiHandlers: ApiHandlers
+  apiHandlers: ApiHandlers,
+  apiValidators?: ApiHandlers
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
   const headers = {
@@ -26,7 +27,7 @@ export const handleApiCall = async (
     // Build the route key for api handlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
 
-    // Identify the matching route from apiHandlers
+    // Identify the matching route from userApiHandlers
     const handlerFunction = apiHandlers[routeKey];
 
     if (!handlerFunction) {
@@ -37,6 +38,19 @@ export const handleApiCall = async (
       };
     }
     await connectToDB();
+
+    if (apiValidators && apiValidators[routeKey]) {
+      const validatorFunction = apiValidators[routeKey];
+
+      const validationResult = await validatorFunction(event, context);
+
+      if (!validationResult.isValid) {
+        return {
+          statusCode: StatusCode.BAD_REQUEST,
+          body: JSON.stringify({ message: validationResult.message }),
+        };
+      }
+    }
 
     const response = await handlerFunction(event, context);
     const apiResponse = {

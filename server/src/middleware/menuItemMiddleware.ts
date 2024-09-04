@@ -1,29 +1,36 @@
-import { Request, Response, NextFunction } from "express";
+import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { fullMenuItemPresets, menuItemShcemaValidation } from "../models/menuItemModel";
+import { StatusCode } from "../enums/StatusCode";
+import { MenuItemService } from "../services/menuItemServices";
 
-export const validateMenuItem = async (req: Request, res: Response, next: NextFunction) => {
-    const menuItem = req.body;
-    const { id } = req.params
-    
+export const validateMenuItem = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<{ isValid: boolean; message?: string; validatedMenuItem?: any }> => {
+  const menuItem = JSON.parse(event.body || "{}");
+  const { id } = event.queryStringParameters || {};
 
+  try {
     if (!id) {
-        const menuItemExists = await fullMenuItemPresets.findOne({ name: menuItem.name })
-
-        if (menuItemExists) { 
-            return res.status(400).json({ message: "פריט כבר קיים במערכת" });
-        }
+      const menuItemExists = await MenuItemService.getOneMenuItemByName(menuItem.name);
+      if (menuItemExists) {
+        return { isValid: false, message: "פריט כבר קיים במערכת" }; // Item already exists in the system
+      }
     }
 
-    delete menuItem.oneServing._id
-    delete menuItem._id
-    delete menuItem.__v
+    delete menuItem.oneServing?._id;
+    delete menuItem._id;
+    delete menuItem.__v;
 
-    const { error } = menuItemShcemaValidation.validate(menuItem)
+    const { error } = menuItemShcemaValidation.validate(menuItem);
 
     if (error) {
-        return res.status(400).json({ message: error.message });
+      return { isValid: false, message: error.message };
     }
 
-    next()
-
-}
+    // Validation passed
+    return { isValid: true, validatedMenuItem: menuItem };
+  } catch (err: any) {
+    return { isValid: false, message: "An error occurred during validation" };
+  }
+};
