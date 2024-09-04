@@ -1,7 +1,9 @@
 import { WeighIns } from "../models/weighInModel";
-import { IWeighIn } from "../interfaces/IWeighIns";
+import { IWeighIn, IWeighIns } from "../interfaces/IWeighIns";
+import { Cache } from "../utils/cache";
+import { HALF_DAY_IN_MILLISECONDS } from "../constants/Constants";
 
-let cachedWeighIns: { [userId: string]: IWeighIn[] | null } = {};
+let weighInsCache = new Cache<IWeighIns>();
 
 export class WeighInService {
   async addWeighIn(data: any, userId: string) {
@@ -32,10 +34,9 @@ export class WeighInService {
 
   async getWeighInsByUserId(id: string) {
     try {
-      if (cachedWeighIns[id] !== undefined) return cachedWeighIns[id];
-
-      const weighIns = await WeighIns.findOne({ userId: id });
-      cachedWeighIns[id] = weighIns?.weighIns || null;
+      const cached = weighInsCache.get(id);
+      const weighIns = cached || (await WeighIns.findOne({ userId: id }));
+      weighInsCache.set(id, weighIns, { expireAfter: HALF_DAY_IN_MILLISECONDS });
 
       return weighIns?.weighIns;
     } catch (err) {
@@ -44,10 +45,13 @@ export class WeighInService {
   }
 
   async getWeighInsById(id: string) {
-    try {
-      const weighIns = await WeighIns.findOne({ id });
+    const cached = weighInsCache.get(id);
 
-      return weighIns;
+    try {
+      const weighIns = cached || (await WeighIns.findOne({ id }));
+      weighInsCache.set(weighIns?.userId, weighIns);
+
+      return weighIns?.weighIns;
     } catch (err) {
       throw err;
     }
@@ -61,6 +65,8 @@ export class WeighInService {
         { new: true }
       );
 
+      weighInsCache.invalidate(result?.userId);
+
       return result;
     } catch (err) {
       throw err;
@@ -70,6 +76,7 @@ export class WeighInService {
   async deleteUserWeighIns(id: string) {
     try {
       const deletedWeighIns = await WeighIns.deleteOne({ userId: id });
+      weighInsCache.invalidate(id);
 
       return deletedWeighIns;
     } catch (err) {
@@ -97,6 +104,7 @@ export class WeighInService {
       // Update the specific subdocument
       parentDoc.weighIns[subDocIndex].weight = newWeighIn;
       await parentDoc.save();
+      weighInsCache.invalidate(parentDoc.userId);
 
       // Return the updated subdocument
       return parentDoc.weighIns[subDocIndex];
