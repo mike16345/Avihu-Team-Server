@@ -1,106 +1,176 @@
-import { Request, Response } from "express";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { workoutPlanService } from "../services/workoutPlanService";
+import { StatusCode } from "../enums/StatusCode";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 class WorkoutPlanController {
-  addWorkoutPlan = async (req: Request, res: Response) => {
-    const id = req.params.userId;
-    const data = req.body;
+  static addWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const userId = event?.queryStringParameters?.id;
+    const workoutPlan = { ...JSON.parse(event.body || "{}"), userId: userId };
+
+    if (!workoutPlan) {
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan data is required.");
+    }
 
     try {
-      const workoutPlan = await workoutPlanService.addWorkoutPlan({ ...data, userId: id });
+      const workoutPlanResult = await workoutPlanService.addWorkoutPlan(workoutPlan);
 
-      res.status(201).json(workoutPlan);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while adding the workout plan." });
+      return createResponseWithData(
+        StatusCode.CREATED,
+        workoutPlanResult,
+        "Successfully added workout plan!"
+      );
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  updateWorkoutPlan = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const updatedData = req.body;
+  static updateWorkoutPlan = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const workoutPlanId = event.queryStringParameters?.id || "";
+    const newWorkoutPlan = JSON.parse(event.body || "{}");
+
+    if (!workoutPlanId) {
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
+    }
 
     try {
-      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlan(id, updatedData);
+      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlan(
+        workoutPlanId,
+        newWorkoutPlan
+      );
 
-      res.status(200).json(updatedWorkoutPlan);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while updating the workout plan." });
+      if (!updatedWorkoutPlan) {
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedWorkoutPlan,
+        "Successfully updated workout plan!"
+      );
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  updateWorkoutPlanByUserId = async (req: Request, res: Response) => {
-    const id = req.params.userId;
-    const updatedData = req.body;
+  static updateWorkoutPlanByUserId = async (event: APIGatewayProxyEvent) => {
+    const userId = event.queryStringParameters?.id || "";
+    const updatedData = event.body;
 
     try {
       const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(
-        id,
+        userId,
         updatedData
       );
 
       if (!updatedWorkoutPlan) {
-        return res.status(404).json({ message: "There was an error updating the workout plan." });
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          "There was an error updating the workout plan."
+        );
       }
 
-      res.status(200).json(updatedWorkoutPlan);
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedWorkoutPlan,
+        "Successfully updated workout plan!"
+      );
     } catch (err) {
-      res.status(500).json({ message: "An error occurred while updating the workout plan." });
+      return createServerErrorResponse(err);
     }
   };
 
-  deleteWorkoutPlan = async (req: Request, res: Response) => {
-    const id = req.params.id;
+  static deleteWorkoutPlan = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
+
+    if (!id) {
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
+    }
 
     try {
-      const deletedWorkoutPlan = await workoutPlanService.deleteWorkoutPlanById(id);
+      const response = await workoutPlanService.deleteWorkoutPlanById(id);
 
-      res.status(200).json(deletedWorkoutPlan);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while deleting the workout plan." });
+      if (!response) {
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
+      }
+
+      return createResponseWithData(StatusCode.OK, response, "Successfully deleted workout plan!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  getAllWorkoutPlans = async (req: Request, res: Response) => {
+  static getAllWorkoutPlans = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
     try {
       const workoutPlans = await workoutPlanService.getAllWorkoutPlans();
 
-      res.status(200).json(workoutPlans);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while retrieving all workout plans." });
+      return createResponseWithData(
+        StatusCode.OK,
+        workoutPlans,
+        "Successfully retrieved all workout plans!"
+      );
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  getWorkoutPlanById = async (req: Request, res: Response) => {
-    const id = req.params.id;
+  static getWorkoutPlanById = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const workoutPlanId = event.queryStringParameters?.id || "";
+
+    if (!workoutPlanId) {
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
+    }
 
     try {
-      const workoutPlan = await workoutPlanService.getWorkoutPlanById(id);
+      const workoutPlan = await workoutPlanService.getWorkoutPlanById(workoutPlanId);
 
       if (!workoutPlan) {
-        return res.status(404).json({ message: "Workout plan not found." });
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
       }
 
-      res.status(200).json(workoutPlan);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while retrieving the workout plan." });
+      return createResponseWithData(
+        StatusCode.OK,
+        workoutPlan,
+        "Successfully retrieved workout plan!"
+      );
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  getWorkoutPlanByUserId = async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+  static getWorkoutPlanByUserId = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const userId = event.queryStringParameters?.userId || "";
+
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "User ID is required.");
+    }
 
     try {
       const workoutPlan = await workoutPlanService.getWorkoutPlanByUserId(userId);
 
       if (!workoutPlan) {
-        return res.status(404).json({ message: "Workout plan not found." });
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
       }
 
-      res.status(200).json(workoutPlan);
-    } catch (err) {
-      res.status(500).json({ message: "An error occurred while retrieving the workout plan." });
+      return createResponseWithData(
+        StatusCode.OK,
+        workoutPlan,
+        "Successfully retrieved workout plan!"
+      );
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 }
 
-export const workoutPlanController = new WorkoutPlanController();
+export default WorkoutPlanController;

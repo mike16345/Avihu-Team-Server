@@ -80,6 +80,7 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
+    required: true,
   },
   workoutPlans: {
     type: [workoutPlanSchema],

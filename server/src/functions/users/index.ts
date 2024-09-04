@@ -1,6 +1,4 @@
-import connect from "../../db/connect"; // Assuming you have a separate module for the DB connection
 import { UserController } from "../../controllers/userController";
-import { StatusCode } from "../../enums/StatusCode";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 

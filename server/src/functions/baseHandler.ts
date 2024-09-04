@@ -32,7 +32,7 @@ export const handleApiCall = async (
     if (!handlerFunction) {
       return {
         statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({ message: "Route not found" }),
+        body: JSON.stringify({ message: `${routeKey} is not a valid route!` }),
         headers,
       };
     }
