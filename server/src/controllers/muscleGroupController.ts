@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { MuscleGroupService } from "../services/muscleGroupService";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export default class MuscleGroupController {
   static async getAllMuscleGroups(
@@ -9,21 +10,18 @@ export default class MuscleGroupController {
   ): Promise<APIGatewayProxyResult> {
     try {
       const allMuscleGroups = await MuscleGroupService.getAllMuscleGroups();
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Muscle groups retrieved successfully!",
-          data: allMuscleGroups,
-        }),
-      };
+
+      if (!allMuscleGroups) {
+        return createResponse(StatusCode.NOT_FOUND, "Could not find any muscle groups!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        allMuscleGroups,
+        "Muscle groups retrieved successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({
-          message: "An error occurred while retrieving muscle groups.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -35,21 +33,18 @@ export default class MuscleGroupController {
 
     try {
       const muscleGroup = await MuscleGroupService.getMuscleGroupById(id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Muscle group retrieved successfully!",
-          data: muscleGroup,
-        }),
-      };
+
+      if (!muscleGroup) {
+        return createResponse(StatusCode.NOT_FOUND, "Muscle group not found!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        muscleGroup,
+        "Muscle group retrieved successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({
-          message: "An error occurred while retrieving the muscle group.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -61,21 +56,18 @@ export default class MuscleGroupController {
 
     try {
       const newMuscleGroup = await MuscleGroupService.addMuscleGroup(muscleGroup);
-      return {
-        statusCode: StatusCode.CREATED,
-        body: JSON.stringify({
-          message: "Muscle group added successfully!",
-          data: newMuscleGroup,
-        }),
-      };
+
+      if (!newMuscleGroup) {
+        return createResponse(StatusCode.BAD_REQUEST, "Failed to add muscle group!");
+      }
+
+      return createResponseWithData(
+        StatusCode.CREATED,
+        newMuscleGroup,
+        "Muscle group added successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.BAD_REQUEST,
-        body: JSON.stringify({
-          message: "An error occurred while adding the muscle group.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -88,21 +80,18 @@ export default class MuscleGroupController {
 
     try {
       const updatedMuscleGroup = await MuscleGroupService.editMuscleGroup(muscleGroup, id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Muscle group updated successfully!",
-          data: updatedMuscleGroup,
-        }),
-      };
+
+      if (!updatedMuscleGroup) {
+        return createResponse(StatusCode.NOT_FOUND, "Muscle group not found or failed to update!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedMuscleGroup,
+        "Muscle group updated successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({
-          message: "An error occurred while updating the muscle group.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -114,21 +103,18 @@ export default class MuscleGroupController {
 
     try {
       const deletedMuscleGroup = await MuscleGroupService.deleteMuscleGroup(id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Muscle group deleted successfully!",
-          data: deletedMuscleGroup,
-        }),
-      };
+
+      if (!deletedMuscleGroup) {
+        return createResponse(StatusCode.NOT_FOUND, "Muscle group not found or failed to delete!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        deletedMuscleGroup,
+        "Muscle group deleted successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({
-          message: "An error occurred while deleting the muscle group.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 }

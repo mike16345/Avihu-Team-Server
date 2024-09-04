@@ -5,15 +5,12 @@ import connectToDB from "../db/connect";
 type ApiHandlers = {
   [key: string]: Function;
 };
-type apiValidators = {
-  [key: string]: Function;
-};
 
 export const handleApiCall = async (
   event: APIGatewayProxyEvent,
   context: Context,
   apiHandlers: ApiHandlers,
-  apiValidators?: apiValidators
+  apiValidators?: ApiHandlers
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
   const headers = {
@@ -30,6 +27,18 @@ export const handleApiCall = async (
     // Build the route key for api handlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
 
+    // Identify the matching route from userApiHandlers
+    const handlerFunction = apiHandlers[routeKey];
+
+    if (!handlerFunction) {
+      return {
+        statusCode: StatusCode.NOT_FOUND,
+        body: JSON.stringify({ message: "Route not found" }),
+        headers,
+      };
+    }
+    await connectToDB();
+
     if (apiValidators && apiValidators[routeKey]) {
       const validatorFunction = apiValidators[routeKey];
 
@@ -42,18 +51,6 @@ export const handleApiCall = async (
         };
       }
     }
-
-    // Identify the matching route from userApiHandlers
-    const handlerFunction = apiHandlers[routeKey];
-
-    if (!handlerFunction) {
-      return {
-        statusCode: StatusCode.NOT_FOUND,
-        body: JSON.stringify({ message: "Route not found" }),
-        headers,
-      };
-    }
-    await connectToDB();
 
     const response = await handlerFunction(event, context);
     const apiResponse = {

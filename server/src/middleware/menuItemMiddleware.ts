@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { fullMenuItemPresets, menuItemShcemaValidation } from "../models/menuItemModel";
 import { StatusCode } from "../enums/StatusCode";
+import { MenuItemService } from "../services/menuItemServices";
 
 export const validateMenuItem = async (
   event: APIGatewayProxyEvent,
@@ -11,7 +12,7 @@ export const validateMenuItem = async (
 
   try {
     if (!id) {
-      const menuItemExists = await fullMenuItemPresets.findOne({ name: menuItem.name });
+      const menuItemExists = await MenuItemService.getOneMenuItemByName(menuItem.name);
       if (menuItemExists) {
         return { isValid: false, message: "פריט כבר קיים במערכת" }; // Item already exists in the system
       }

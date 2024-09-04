@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
-import { menuItemServices } from "../services/menuItemServices";
+import { MenuItemService } from "../services/menuItemServices";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export class MenuItemPresetController {
   static async addMenuItem(
@@ -10,22 +11,15 @@ export class MenuItemPresetController {
     const menuItem = JSON.parse(event.body || "{}");
 
     try {
-      const newMenuItem = await menuItemServices.addMenuItem(menuItem);
-      return {
-        statusCode: StatusCode.CREATED,
-        body: JSON.stringify({
-          message: "Menu item added successfully!",
-          data: newMenuItem,
-        }),
-      };
+      const newMenuItem = await MenuItemService.addMenuItem(menuItem);
+
+      return createResponseWithData(
+        StatusCode.CREATED,
+        newMenuItem,
+        "Menu item added successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while adding the menu item.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -36,22 +30,18 @@ export class MenuItemPresetController {
     const { foodGroup } = event.queryStringParameters || {};
 
     try {
-      const menuItems = await menuItemServices.getMenuItems(foodGroup || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Menu items retrieved successfully!",
-          data: menuItems,
-        }),
-      };
+      const menuItems = await MenuItemService.getMenuItems(foodGroup || "");
+
+      if (!menuItems) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          "Could not find menu items that match requested food group!"
+        );
+      }
+
+      return createResponseWithData(StatusCode.OK, menuItems, "Menu items retrieved successfully!");
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while retrieving the menu items.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -62,22 +52,15 @@ export class MenuItemPresetController {
     const { id } = event.queryStringParameters || {};
 
     try {
-      const menuItem = await menuItemServices.getOneMenuItem(id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Menu item retrieved successfully!",
-          data: menuItem,
-        }),
-      };
+      const menuItem = await MenuItemService.getOneMenuItem(id || "");
+
+      if (!menuItem) {
+        return createResponse(StatusCode.NOT_FOUND, `Menu item not found!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, menuItem, "Menu item retrieved successfully!");
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while retrieving the menu item.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -86,22 +69,19 @@ export class MenuItemPresetController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     try {
-      const allMenuItems = await menuItemServices.getAllMenuItems();
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "All menu items retrieved successfully!",
-          data: allMenuItems,
-        }),
-      };
+      const allMenuItems = await MenuItemService.getAllMenuItems();
+
+      if (!allMenuItems) {
+        return createResponse(StatusCode.NOT_FOUND, `Could not find menu items!`);
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        allMenuItems,
+        "All menu items retrieved successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while retrieving all menu items.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -113,22 +93,22 @@ export class MenuItemPresetController {
     const { id } = event.queryStringParameters || {};
 
     try {
-      const updatedMenuItem = await menuItemServices.updateMenuItem(newMenuItem, id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Menu item updated successfully!",
-          data: updatedMenuItem,
-        }),
-      };
+      const updatedMenuItem = await MenuItemService.updateMenuItem(newMenuItem, id || "");
+
+      if (!updatedMenuItem) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find the menu item you are trying to update!`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedMenuItem,
+        "Menu item updated successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while updating the menu item.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 
@@ -139,24 +119,22 @@ export class MenuItemPresetController {
     const { id } = event.queryStringParameters || {};
 
     try {
-      const deletedMenuItem = await menuItemServices.deleteMenuItem(id || "");
-      return {
-        statusCode: StatusCode.OK,
-        body: JSON.stringify({
-          message: "Menu item deleted successfully!",
-          data: deletedMenuItem,
-        }),
-      };
+      const deletedMenuItem = await MenuItemService.deleteMenuItem(id || "");
+
+      if (!deletedMenuItem) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find the menu item you are trying to delete!`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        deletedMenuItem,
+        "Menu item deleted successfully!"
+      );
     } catch (error: any) {
-      return {
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        body: JSON.stringify({
-          message: "An error occurred while deleting the menu item.",
-          error: error.message,
-        }),
-      };
+      return createServerErrorResponse(error.message);
     }
   }
 }
-
-export const menuItemController = new MenuItemPresetController();
