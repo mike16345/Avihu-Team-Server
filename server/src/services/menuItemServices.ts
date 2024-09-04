@@ -1,14 +1,13 @@
 import { fullMenuItemPresets } from "../models/menuItemModel";
-import { updateCachedArrays, updateCachedDataPerItem } from "../utils/utils";
+import { Cache } from "../utils/cache";
 
-let cachedMenuItemData: { [key: string]: any } = {};
+let cachedMenuItems = new Cache<any>();
 
 export class MenuItemService {
   static async addMenuItem(data: any) {
     try {
       const newMenuItem = await fullMenuItemPresets.create(data);
-
-      cachedMenuItemData = updateCachedDataPerItem(cachedMenuItemData, newMenuItem);
+      cachedMenuItems.invalidate("all");
 
       return newMenuItem;
     } catch (error) {
@@ -17,14 +16,11 @@ export class MenuItemService {
   }
 
   static async getMenuItems(foodGroup: string) {
-    if (cachedMenuItemData[foodGroup]) {
-      return cachedMenuItemData[foodGroup];
-    }
+    const cached = cachedMenuItems.get(foodGroup);
 
     try {
-      const menuItems = await fullMenuItemPresets.find({ foodGroup: foodGroup });
-
-      cachedMenuItemData = updateCachedArrays(cachedMenuItemData, menuItems, foodGroup);
+      const menuItems = cached || (await fullMenuItemPresets.find({ foodGroup: foodGroup }));
+      cachedMenuItems.set(foodGroup, menuItems);
 
       return menuItems;
     } catch (error) {
@@ -32,14 +28,11 @@ export class MenuItemService {
     }
   }
   static async getOneMenuItem(id: string) {
-    if (cachedMenuItemData[id]) {
-      return cachedMenuItemData[id];
-    }
+    const cached = cachedMenuItems.get(id);
 
     try {
-      const menuItem = await fullMenuItemPresets.findOne({ _id: id });
-
-      cachedMenuItemData = updateCachedDataPerItem(cachedMenuItemData, menuItem);
+      const menuItem = cached || (await fullMenuItemPresets.findOne({ _id: id }));
+      cachedMenuItems.set(id, menuItem);
 
       return menuItem;
     } catch (error) {
@@ -47,14 +40,11 @@ export class MenuItemService {
     }
   }
   static async getOneMenuItemByName(name: string) {
-    if (cachedMenuItemData[name]) {
-      return cachedMenuItemData[name];
-    }
+    const cached = cachedMenuItems.get(name);
 
     try {
-      const menuItem = await fullMenuItemPresets.findOne({ name });
-
-      cachedMenuItemData = updateCachedDataPerItem(cachedMenuItemData, menuItem);
+      const menuItem = cached || (await fullMenuItemPresets.findOne({ name }));
+      cachedMenuItems.set(name, menuItem);
 
       return menuItem;
     } catch (error) {
@@ -63,14 +53,10 @@ export class MenuItemService {
   }
 
   static async getAllMenuItems() {
-    if (cachedMenuItemData[`all`]) {
-      return cachedMenuItemData[`all`];
-    }
-
+    const cached = cachedMenuItems.get(`all`);
     try {
-      const allMenuItems = await fullMenuItemPresets.find();
-
-      cachedMenuItemData = updateCachedArrays(cachedMenuItemData, allMenuItems, `all`);
+      const allMenuItems = cached || (await fullMenuItemPresets.find());
+      cachedMenuItems.set(`all`, allMenuItems);
 
       return allMenuItems;
     } catch (error) {
@@ -83,19 +69,18 @@ export class MenuItemService {
       const updatedMenuItem = await fullMenuItemPresets.findOneAndUpdate({ _id: id }, newMenuItem, {
         new: true,
       });
-
-      cachedMenuItemData = updateCachedDataPerItem(cachedMenuItemData, updatedMenuItem);
+      cachedMenuItems.invalidateAll();
 
       return updatedMenuItem;
     } catch (error) {
       throw error;
     }
   }
+
   static async deleteMenuItem(id: string) {
     try {
       const deletedMenuItem = await fullMenuItemPresets.findOneAndRemove({ _id: id });
-
-      cachedMenuItemData = updateCachedDataPerItem(cachedMenuItemData, deletedMenuItem, `delete`);
+      cachedMenuItems.invalidateAll();
 
       return deletedMenuItem;
     } catch (error) {
