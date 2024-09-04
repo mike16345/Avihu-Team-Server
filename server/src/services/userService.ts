@@ -1,12 +1,16 @@
 //@ts-nocheck
 import { User } from "../models/userModel";
+import { Cache } from "../utils/cache";
 
-let cachedUsers = null;
+let cachedUsers = new Cache<IUser[]>();
+let singleUsersCache = new Cache<IUser>();
 
 class UserService {
   static async createUser(data) {
     try {
       const newUser = await User.create(data);
+      cachedUsers.invalidateAll();
+
       return newUser;
     } catch (error) {
       throw error;
@@ -14,11 +18,12 @@ class UserService {
   }
 
   static async getUsers() {
+    const cached = cachedUsers.get("all");
+
     try {
-      if (cachedUsers) return cachedUsers;
-      const users = await User.find();
-      cachedUsers = users;
-      
+      const users = cached || (await User.find());
+      cachedUsers.set("all", users);
+
       return users;
     } catch (error) {
       throw error;
@@ -26,8 +31,11 @@ class UserService {
   }
 
   static async getUser(id) {
+    const cached = singleUsersCache.get(id);
     try {
-      const user = await User.findById(id).lean();
+      const user = cached || (await User.findById(id).lean());
+      singleUsersCache.set(id, user);
+
       return user;
     } catch (error) {
       throw error;
@@ -35,8 +43,12 @@ class UserService {
   }
 
   static async getUserByEmail(email) {
+    const cached = singleUsersCache.get(email);
+
     try {
-      const user = await User.findOne({ email }).lean();
+      const user = cached || (await User.findOne({ email }).lean());
+      singleUsersCache.set(email, user);
+
       return user;
     } catch (error) {
       throw error;
@@ -46,9 +58,12 @@ class UserService {
   static async updateUser(data, id) {
     try {
       const user = await User.findByIdAndUpdate(id, data, { new: true });
-      if (!user) {
-        return "User not available";
+
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.invalidate(id);
       }
+
       return user;
     } catch (error) {
       throw error;
@@ -62,6 +77,9 @@ class UserService {
           return await UserService.updateUser(user, user._id);
         })
       );
+      singleUsersCache.invalidateAll();
+      cachedUsers.invalidateAll();
+
       return updatedUsers;
     } catch (error) {
       throw error;
@@ -71,9 +89,11 @@ class UserService {
   static async deleteUser(id) {
     try {
       const user = await User.findByIdAndDelete(id);
-      if (!user) {
-        return "User not available!";
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.invalidate(id);
       }
+
       return user;
     } catch (error) {
       throw error;
