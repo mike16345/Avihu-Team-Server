@@ -1,8 +1,6 @@
-import { IDietPlan } from "../interfaces/IDietPlan";
 import { DietPlan } from "../models/dietPlanModel";
 import { Cache } from "../utils/cache";
 
-let dietPlanCache: { [id: string]: IDietPlan | null } = {};
 let cachedDietPlans = new Cache<any>();
 
 export class DietPlanService {
