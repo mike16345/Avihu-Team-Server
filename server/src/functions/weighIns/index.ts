@@ -1,10 +1,8 @@
-import connect from "../../db/connect"; // Assuming you have a separate module for the DB connection
-import { StatusCode } from "../../enums/StatusCode";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import WeighInsController from "../../controllers/weighInsController";
 import { handleApiCall } from "../baseHandler";
-const BASE_PATH = "/weighIns/weights";
 
+const BASE_PATH = "/weighIns/weights";
 const weighInApiHandlers = {
   [`GET ${BASE_PATH}/one`]: WeighInsController.getWeighInsById, // Get weigh ins by ID
   [`GET ${BASE_PATH}/user`]: WeighInsController.getWeighInsByUserId, // Get user by ID
