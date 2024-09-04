@@ -4,6 +4,9 @@ import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISessionCreate } from "../models/sessionModel";
 import mongoose from "mongoose";
+import { Cache } from "../utils/cache";
+
+const cachedRecordedSets = new Cache<any>();
 
 const findOrCreateMuscleGroupRecord = async (userId: any, muscleGroup: string) => {
   let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({ userId, muscleGroup });
@@ -56,7 +59,7 @@ export class RecordedSetsService {
     try {
       const objectId = new mongoose.mongo.ObjectId(userId);
       console.log("session ", sessionId);
-      const activeSession = await SessionService.getSessionById(sessionId);
+      const activeSession = sessionId ? await SessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
 
       const muscleGroupRecord = await findOrCreateMuscleGroupRecord(objectId, muscleGroup);
@@ -85,6 +88,9 @@ export class RecordedSetsService {
       const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
       const savedResult = await muscleGroupRecord.save();
 
+      cachedRecordedSets.invalidate(`user:${userId}:muscleGroup:${muscleGroup}`);
+      cachedRecordedSets.invalidate(`user:${userId}:exercise:${exercise}`);
+
       return {
         session,
         recordedSet: savedResult,
@@ -99,6 +105,16 @@ export class RecordedSetsService {
     muscleGroup,
     exercise,
   }: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${userId}:${muscleGroup ? `muscleGroup:${muscleGroup}` : ""}${
+      exercise ? `:exercise:${exercise}` : ""
+    }`;
+    const cached = cachedRecordedSets.get(cacheKey);
+    console.log("cache key: " + cacheKey);
+    if (cached) {
+      console.log("returning cached data", cached);
+      return cached;
+    }
+
     try {
       const query: any = { userId };
 
@@ -112,18 +128,30 @@ export class RecordedSetsService {
         return "No records found for user!";
       }
 
+      cachedRecordedSets.set(cacheKey, muscleGroupRecords);
       if (!exercise) return muscleGroupRecords;
 
-      return (
-        muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
-        "No exercises found for: " + exercise
-      );
+      const result = exercise
+        ? muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
+          `No exercises found for: ${exercise}`
+        : muscleGroupRecords;
+
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }
   }
 
   static async getUserRecordedExerciseNamesByMuscleGroup(query: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${query.userId}:muscleGroup:${query.muscleGroup}:exerciseNames`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     try {
       const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
 
@@ -131,13 +159,23 @@ export class RecordedSetsService {
         return muscleGroupRecords;
       }
 
-      return Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
+      const result = Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }
   }
 
   static async getUserRecordedMuscleGroupNames(query: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${query.userId}:muscleGroupNames`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     try {
       const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
 
@@ -145,9 +183,12 @@ export class RecordedSetsService {
         return muscleGroupRecords;
       }
 
-      return (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
+      const result = (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
         (muscleGroup) => muscleGroup.muscleGroup
       );
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }
