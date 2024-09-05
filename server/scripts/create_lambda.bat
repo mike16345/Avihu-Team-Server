@@ -2,7 +2,7 @@
 set FUNCTION_NAME=%1
 set RUNTIME=nodejs20.x
 set HANDLER=index.handler
-set ZIP_FILE=fileb://../../basicLambda.zip
+set ZIP_FILE=fileb://./archive.zip
 set ROLE_ARN=arn:aws:iam::913524933161:role/BasicLambdaRole
 
 REM Check if all arguments are provided
