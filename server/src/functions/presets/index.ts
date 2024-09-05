@@ -34,6 +34,7 @@ export const handler = async (
 
 function determinePreset(path: string): string {
   const cleanedPath = path.split("?")[0].split("#")[0];
+  const splitPaths = cleanedPath.split("/");
 
-  return cleanedPath;
+  return `/${splitPaths[1]}/${splitPaths[2]}`;
 }

@@ -1,29 +1,37 @@
-import { Request, Response } from "express";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { WorkoutPlanPresetService } from "../services/workoutPlanPresetService";
-import mongoose from "mongoose";
 import { StatusCode } from "../enums/StatusCode";
-import { STATUS_CODES } from "http";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export class WorkoutPlanPresetsController {
-  static async addWorkoutPlanPreset(req: Request, res: Response) {
-    try {
-      const data = req.body;
+  static async addWorkoutPlanPreset(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const data = JSON.parse(event.body || "{}");
 
+    try {
       const workoutPlanPreset = await WorkoutPlanPresetService.addWorkoutPlanPreset(data);
 
       if (!workoutPlanPreset) {
-        res.status(400).send({ message: "There was an error adding the workout plan preset!" });
+        return createResponse(
+          StatusCode.BAD_REQUEST,
+          "There was an error adding the workout plan preset!"
+        );
       }
 
-      res.status(StatusCode.CREATED).send(workoutPlanPreset);
+      return createResponseWithData(StatusCode.CREATED, workoutPlanPreset);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async updateWorkoutPlanPreset(req: Request, res: Response) {
-    const id = req.params.presetId;
-    const data = req.body;
+  static async updateWorkoutPlanPreset(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
+    const id = event.queryStringParameters?.presetId;
+    const data = JSON.parse(event.body || "{}");
+
+    if (!id) {
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
+    }
 
     try {
       const updatedWorkoutPlanPreset = await WorkoutPlanPresetService.updateWorkoutPlanPreset(
@@ -32,72 +40,68 @@ export class WorkoutPlanPresetsController {
       );
 
       if (!updatedWorkoutPlanPreset) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .json({ message: "Workout plan preset was not found!." });
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan preset was not found!");
       }
 
-      return res.status(StatusCode.OK).send(updatedWorkoutPlanPreset);
+      return createResponseWithData(StatusCode.OK, updatedWorkoutPlanPreset);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async deleteWorkoutPlanPreset(req: Request, res: Response) {
-    const id = req.params.presetId;
+  static async deleteWorkoutPlanPreset(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
+    const id = event.queryStringParameters?.presetId;
 
     if (!id) {
-      return res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ message: "Workout plan preset ID is required!" });
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
     }
 
     try {
       const deletedWorkoutPlanPreset = await WorkoutPlanPresetService.deleteWorkoutPlanPreset(id);
 
       if (!deletedWorkoutPlanPreset) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .json({ message: "Workout plan preset was not found!" });
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan preset was not found!");
       }
 
-      res.status(StatusCode.OK).send(deletedWorkoutPlanPreset);
+      return createResponseWithData(StatusCode.OK, deletedWorkoutPlanPreset);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getAllWorkoutPlanPresets(req: Request, res: Response) {
+  static async getAllWorkoutPlanPresets(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
     try {
       const workoutPlanPresets = await WorkoutPlanPresetService.getAllWorkoutPlanPresets();
 
-      res.status(StatusCode.OK).send(workoutPlanPresets);
+      return createResponseWithData(StatusCode.OK, workoutPlanPresets);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getWorkoutPlanPresetById(req: Request, res: Response) {
-    const id = req.params.presetId;
-    
+  static async getWorkoutPlanPresetById(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
+    const id = event.queryStringParameters?.presetId;
+
     if (!id) {
-      return res
-        .status(StatusCode.BAD_REQUEST)
-        .json({ message: "Workout plan preset ID is required!" });
+      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
     }
 
     try {
       const workoutPlanPreset = await WorkoutPlanPresetService.getWorkoutPlanPresetById(id);
 
       if (!workoutPlanPreset) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .json({ message: "Workout plan preset was not found!" });
+        return createResponse(StatusCode.NOT_FOUND, "Workout plan preset was not found!");
       }
 
-      res.status(StatusCode.OK).send(workoutPlanPreset);
+      return createResponseWithData(StatusCode.OK, workoutPlanPreset);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 }
