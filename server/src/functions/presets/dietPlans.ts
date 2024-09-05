@@ -1,4 +1,4 @@
-import DietPlanPresetController from "../../../controllers/dietPlanPresetController";
+import DietPlanPresetController from "../../controllers/dietPlanPresetController";
 
 export const BASE_PATH = "/presets/dietPlans";
 
