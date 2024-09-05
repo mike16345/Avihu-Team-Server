@@ -1,26 +1,33 @@
-import { Request, Response, NextFunction } from "express";
-import { exercisePresets, exercisePresetValidationSchema } from "../models/exercisePresetModel";
+import { APIGatewayProxyEvent, Context } from "aws-lambda";
+import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
+import { ExercisePresetService } from "../services/exercisePresetService";
 
-export const validateExercise = async (req: Request, res: Response, next: NextFunction) => {
-    const exercise = req.body;
-    const { id } = req.params;
+export const validateExercise = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<{ isValid: boolean; message?: string; validatedExercise?: any }> => {
+  const exercise = JSON.parse(event.body || "{}");
+  const { id } = event.queryStringParameters || {};
 
-
+  try {
+    const { error } = exercisePresetValidationSchema.validate(exercise);
+    if (error) {
+      return { isValid: false, message: error.message };
+    }
 
     if (!id) {
-        const exerciseExists = await exercisePresets.findOne({ name: exercise.name })
-        if (exerciseExists) {
-            return res.status(400).json(`תרגיל כבר קיים במערכת`);
-        }
+      const exerciseExists = await ExercisePresetService.getExerciseByName(exercise.name);
+      if (exerciseExists) {
+        return { isValid: false, message: "תרגיל כבר קיים במערכת" }; // Exercise already exists in the system
+      }
     }
 
-    const { error } = exercisePresetValidationSchema.validate(exercise)
+    delete exercise._id;
+    delete exercise.__v;
 
-    if (error) {
-
-        return res.status(400).json(error);
-    }
-
-    next()
-
-}
+    // Validation passed
+    return { isValid: true, validatedExercise: exercise };
+  } catch (err: any) {
+    return { isValid: false, message: "An error occurred during validation" };
+  }
+};
