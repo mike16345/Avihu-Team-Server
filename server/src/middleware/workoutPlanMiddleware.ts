@@ -1,31 +1,23 @@
-import { Request, Response, NextFunction } from "express";
 import { FullWorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
 import { StatusCode } from "../enums/StatusCode";
 import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
+import { createResponse, createValidatorResponse } from "../utils/utils";
+import { APIGatewayEvent } from "aws-lambda";
 
-export const validateWorkoutPlan = (req: Request, res: Response, next: NextFunction) => {
-  const id = req.params.userId;
+export const validateWorkoutPlan = (event: APIGatewayEvent) => {
+  const { id } = event?.queryStringParameters || {};
+  const body = JSON.parse(event?.body || "{}");
 
   if (!id) {
-    return res.status(StatusCode.BAD_REQUEST).json({ message: "User ID is required!" });
+    return createValidatorResponse(true, "User ID is required!");
   }
 
-  const { error } = FullWorkoutPlanSchemaValidation.validate(req.body);
-
-  if (error) {
-    return res.status(StatusCode.BAD_REQUEST).json({ message: error.message });
-  }
-
-  next();
+  const { error } = FullWorkoutPlanSchemaValidation.validate(body);
+  return createValidatorResponse(!!error, error?.message);
 };
 
-export const validateWorkoutPlanPreset = (req: Request, res: Response, next: NextFunction) => {
+export const validateWorkoutPlanPreset = (event: APIGatewayEvent) => {
+  const { error } = WorkoutPlanPresetSchemaValidation.validate(event.body);
 
-  const { error } = WorkoutPlanPresetSchemaValidation.validate(req.body);
-  
-  if (error) {
-    return res.status(400).json({ message: error.message });
-  }
-
-  next();
+  return createValidatorResponse(!!error, error?.message);
 };

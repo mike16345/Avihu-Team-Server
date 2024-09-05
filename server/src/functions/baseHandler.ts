@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda
 import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
 import { createResponse } from "../utils/utils";
+import { API_HEADERS } from "../constants/Constants";
 
 type ApiHandlers = {
   [key: string]: Function;
@@ -14,28 +15,19 @@ export const handleApiCall = async (
   apiValidators?: ApiHandlers
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "*", // Allow any method
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
 
-  // Validate the request method and path
   try {
-    console.log("event", JSON.stringify(event));
     const { httpMethod, path } = event;
-
-    // Build the route key for api handlers
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
-
-    // Identify the matching route from userApiHandlers
     const handlerFunction = apiHandlers[routeKey];
+
+    console.log("event", JSON.stringify(event));
 
     if (!handlerFunction) {
       return {
-        statusCode: StatusCode.NOT_FOUND,
+        statusCode: StatusCode.BAD_GATEWAY,
         body: JSON.stringify({ message: `${routeKey} is not a valid route!` }),
-        headers,
+        headers: API_HEADERS,
       };
     }
     await connectToDB();
@@ -45,7 +37,10 @@ export const handleApiCall = async (
       const validationResult = await validatorFunction(event, context);
 
       if (!validationResult.isValid) {
-        return { ...createResponse(StatusCode.BAD_REQUEST, validationResult.message), headers };
+        return {
+          ...createResponse(StatusCode.BAD_REQUEST, validationResult.message),
+          headers: API_HEADERS,
+        };
       }
     }
 
@@ -54,7 +49,7 @@ export const handleApiCall = async (
       ...response,
       headers: {
         ...response?.headers,
-        ...headers,
+        ...API_HEADERS,
       },
     };
     console.log("api response", apiResponse);
@@ -64,7 +59,10 @@ export const handleApiCall = async (
     console.error("Error in Lambda handler", error);
     return {
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-      body: JSON.stringify({ message: error }),
+      body: JSON.stringify({
+        message: `There was an error with the request:\n\n\n Error:${error}`,
+      }),
+      headers: API_HEADERS,
     };
   }
 };

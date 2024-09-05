@@ -6,16 +6,25 @@ import {
   exerciseMiddlewareHandlers,
   EXERCISES_BASE_PATH,
 } from "./exercises";
+import {
+  workoutPlanPresetApiHandlers,
+  BASE_PATH as WORKOUT_BASE_PATH,
+  workoutPlanPresetApiMiddleware,
+} from "./workoutPlans";
+import { StatusCode } from "../../enums/StatusCode";
+import { API_HEADERS } from "../../constants/Constants";
 
 export const BASE_PATH = "/presets";
 
 const routeToPresetMap: Record<string, Record<string, Function>> = {
   [DIET_PLANS_BASE_PATH]: dietPlanPresetApiHandlers,
   [EXERCISES_BASE_PATH]: exercisePresetApiHandlers,
+  [WORKOUT_BASE_PATH]: workoutPlanPresetApiHandlers,
 };
 
 const presetMiddleWareMap: Record<string, Record<string, Function>> = {
   [EXERCISES_BASE_PATH]: exerciseMiddlewareHandlers,
+  [WORKOUT_BASE_PATH]: workoutPlanPresetApiMiddleware,
 };
 
 export const handler = async (
@@ -25,18 +34,12 @@ export const handler = async (
   const presetHandlerKey = determinePreset(event.path) as keyof typeof routeToPresetMap;
   const middlewareHandler = presetMiddleWareMap[presetHandlerKey];
   const presetApiHandler = routeToPresetMap[presetHandlerKey];
-  console.log("preset key", presetHandlerKey);
-  console.log("preset handler keys", Object.keys(routeToPresetMap));
 
   if (!presetApiHandler) {
     return {
-      statusCode: 404,
+      statusCode: StatusCode.NOT_FOUND,
       body: JSON.stringify({ message: "Not Found" }),
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "*", // Allow any method
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+      headers: API_HEADERS,
     };
   }
 

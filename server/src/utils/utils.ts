@@ -43,3 +43,10 @@ export const createServerErrorResponse = (err: any) => {
     }),
   };
 };
+
+export const createValidatorResponse = (isValid: boolean, message?: string) => {
+  return {
+    isValid,
+    message,
+  };
+};
