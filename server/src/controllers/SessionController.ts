@@ -1,12 +1,17 @@
-import { Request, Response } from "express";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import SessionService from "../services/sessionService";
 import { StatusCode } from "../enums/StatusCode";
-import mongoose from "mongoose";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 import { ISessionCreate } from "../models/sessionModel";
 
 export default class SessionController {
-  static async startSession(req: Request, res: Response) {
-    const { userId, type, data } = req.body;
+  static async startSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const { userId, type, data } = JSON.parse(event.body || "{}");
+
+    if (!userId || !type) {
+      return createResponse(StatusCode.BAD_REQUEST, "userId and type are required.");
+    }
+
     const session: ISessionCreate = {
       userId,
       type,
@@ -15,101 +20,113 @@ export default class SessionController {
 
     try {
       const result = await SessionService.startSession(session);
-
-      res.status(StatusCode.CREATED).send(result);
+      return createResponseWithData(StatusCode.CREATED, result);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async refreshSession(req: Request, res: Response) {
-    const sessionId = req.params.sessionId;
+  static async refreshSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const sessionId = event.queryStringParameters?.sessionId;
+
+    if (!sessionId) {
+      return createResponse(StatusCode.BAD_REQUEST, "sessionId is required.");
+    }
 
     try {
       const session = await SessionService.refreshSession(sessionId);
 
       if (!session) {
-        return res.status(StatusCode.NOT_FOUND).send({ message: "Session not found!" });
+        return createResponse(StatusCode.NOT_FOUND, "Session not found.");
       }
 
-      res.status(StatusCode.OK).send(session);
+      return createResponseWithData(StatusCode.OK, session);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async endSession(req: Request, res: Response) {
-    const sessionId = req.params.sessionId;
+  static async endSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const sessionId = event.queryStringParameters?.sessionId;
+
+    if (!sessionId) {
+      return createResponse(StatusCode.BAD_REQUEST, "sessionId is required.");
+    }
 
     try {
       await SessionService.endSession(sessionId);
-
-      res.status(StatusCode.NO_CONTENT).send();
+      return createResponse(StatusCode.NO_CONTENT);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getSessionsByType(req: Request, res: Response) {
-    const type = req.params.type;
+  static async getSessionsByType(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const type = event.queryStringParameters?.type;
+
+    if (!type) {
+      return createResponse(StatusCode.BAD_REQUEST, "type is required.");
+    }
+
     try {
       const sessions = await SessionService.getSessionsByType(type);
+
       if (!sessions) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .send({ message: "No sessions found for this type." });
+        return createResponse(StatusCode.NOT_FOUND, "No sessions found for this type.");
       }
 
-      res.status(StatusCode.OK).send(sessions);
+      return createResponseWithData(StatusCode.OK, sessions);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getSessionsByUserId(req: Request, res: Response) {
-    const userId = req.params.userId;
+  static async getSessionsByUserId(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const userId = event.queryStringParameters?.userId;
+
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "userId is required.");
+    }
+
     try {
       const sessions = await SessionService.getSessionsByUserId(userId);
+
       if (!sessions) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .send({ message: "No sessions found for this user." });
+        return createResponse(StatusCode.NOT_FOUND, "No sessions found for this user.");
       }
-      res.status(StatusCode.OK).send(sessions);
+
+      return createResponseWithData(StatusCode.OK, sessions);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getAllSessions(req: Request, res: Response) {
-    try {
-      const sessions = await SessionService.getSessions();
+  static async getSessionById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const sessionId = event.queryStringParameters?.sessionId;
 
-      res.status(StatusCode.OK).send(sessions);
-    } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+    if (!sessionId) {
+      return createResponse(StatusCode.BAD_REQUEST, "sessionId is required.");
     }
-  }
 
-  static async getSessionById(req: Request, res: Response) {
-    const sessionId = req.params.sessionId;
     try {
       const session = await SessionService.getSessionById(sessionId);
+
       if (!session) {
-        return res.status(StatusCode.NOT_FOUND).send({ message: "Session not found." });
+        return createResponse(StatusCode.NOT_FOUND, "Session not found.");
       }
-      res.status(StatusCode.OK).send(session);
+
+      return createResponseWithData(StatusCode.OK, session);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async endAllSessions(req: Request, res: Response) {
+  static async endAllSessions(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
       await SessionService.endAllSessions();
-      res.status(StatusCode.NO_CONTENT).send();
+      return createResponse(StatusCode.NO_CONTENT);
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   }
 }
