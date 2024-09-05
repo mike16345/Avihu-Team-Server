@@ -64,16 +64,16 @@ async function deployLambda() {
   const { selectedHandler, selectedFunction } = await inquirer.default.prompt([
     {
       type: "list",
-      name: "selectedHandler",
-      message: "Select a Lambda handler to deploy:",
-      choices: handlerChoices,
+      name: "selectedFunction",
+      message: "Select a Lambda function to update:",
+      choices: lambdaFunctions,
       pageSize: 20,
     },
     {
       type: "list",
-      name: "selectedFunction",
-      message: "Select a Lambda function to update:",
-      choices: lambdaFunctions,
+      name: "selectedHandler",
+      message: "Select a Lambda handler to deploy:",
+      choices: handlerChoices,
       pageSize: 20,
     },
   ]);
