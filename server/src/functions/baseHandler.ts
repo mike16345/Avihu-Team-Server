@@ -42,11 +42,10 @@ export const handleApiCall = async (
 
     if (apiValidators && apiValidators[routeKey]) {
       const validatorFunction = apiValidators[routeKey];
-
       const validationResult = await validatorFunction(event, context);
 
       if (!validationResult.isValid) {
-        return createResponse(StatusCode.BAD_REQUEST, validationResult.message);
+        return { ...createResponse(StatusCode.BAD_REQUEST, validationResult.message), headers };
       }
     }
 

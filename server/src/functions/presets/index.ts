@@ -1,7 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { BASE_PATH as DIET_PLANS_BASE_PATH, dietPlanPresetApiHandlers } from "./dietPlans";
 import { handleApiCall } from "../baseHandler";
-import { exercisePresetApiHandlers, EXERCISES_BASE_PATH } from "./exercises";
+import {
+  exercisePresetApiHandlers,
+  exerciseMiddlewareHandlers,
+  EXERCISES_BASE_PATH,
+} from "./exercises";
 
 export const BASE_PATH = "/presets";
 
@@ -11,7 +15,7 @@ const routeToPresetMap: Record<string, Record<string, Function>> = {
 };
 
 const presetMiddleWareMap: Record<string, Record<string, Function>> = {
-  [EXERCISES_BASE_PATH]: exercisePresetApiHandlers,
+  [EXERCISES_BASE_PATH]: exerciseMiddlewareHandlers,
 };
 
 export const handler = async (
