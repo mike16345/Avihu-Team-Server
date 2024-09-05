@@ -36,11 +36,7 @@ export const handler = async (
     };
   }
 
-  if (middlewareHandler) {
-    await handleApiCall(event, context, middlewareHandler);
-  }
-
-  return await handleApiCall(event, context, presetApiHandler);
+  return await handleApiCall(event, context, presetApiHandler, middlewareHandler);
 };
 
 function determinePreset(path: string): string {
