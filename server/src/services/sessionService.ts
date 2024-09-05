@@ -71,6 +71,7 @@ export default class SessionService {
     try {
       const sessions = await Session.find({ type });
       sessionCache.set(cacheKey, sessions); // Cache the sessions by type
+      
       return sessions;
     } catch (e) {
       throw e;

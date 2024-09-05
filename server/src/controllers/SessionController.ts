@@ -55,7 +55,8 @@ export default class SessionController {
 
     try {
       await SessionService.endSession(sessionId);
-      return createResponse(StatusCode.NO_CONTENT);
+
+      return createResponse(StatusCode.NO_CONTENT, "Succesfully ended session.");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
@@ -124,7 +125,7 @@ export default class SessionController {
   static async endAllSessions(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
       await SessionService.endAllSessions();
-      return createResponse(StatusCode.NO_CONTENT);
+      return createResponse(StatusCode.NO_CONTENT, "Successfully ended all sessions.");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
