@@ -1,80 +1,105 @@
-import { error } from "console";
 import { exercisePresets } from "../models/exercisePresetModel";
+import { Cache } from "../utils/cache";
 
+// Initialize the cache for exercise presets
+let cachedExercises = new Cache<any>();
 
 export class ExercisePresetService {
+  static async addExercise(data: any) {
+    try {
+      const newExercise = await exercisePresets.create(data);
+      // Invalidate cache for all exercises after adding a new one
+      cachedExercises.invalidate("all");
 
-
-    async addExercise(data: any) {
-        try {
-
-            const exercise = await exercisePresets.create(data)
-
-            return exercise
-
-        } catch (error) {
-            throw error
-        }
+      return newExercise;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    async getExercises() {
-        try {
+  static async getExercises() {
+    // Check if exercises are cached
+    const cached = cachedExercises.get("all");
 
-            const exercises = await exercisePresets.find()
+    try {
+      // If cached, return the cached data, otherwise fetch from DB
+      const exercises = cached || (await exercisePresets.find());
+      cachedExercises.set("all", exercises); // Cache the fetched exercises
 
-            return exercises
-
-        } catch (error) {
-            throw error
-        }
+      return exercises;
+    } catch (error) {
+      throw error;
     }
-    async getExercisesByMuscleGroup(muscleGroup: string) {
-        try {
+  }
 
-            const exercises = await exercisePresets.find({ muscleGroup: muscleGroup })
+  static async getExercisesByMuscleGroup(muscleGroup: string) {
+    // Check if exercises for the muscle group are cached
+    const cached = cachedExercises.get(muscleGroup);
 
-            return exercises
+    try {
+      // If cached, return the cached data, otherwise fetch from DB
+      const exercises = cached || (await exercisePresets.find({ muscleGroup }));
+      cachedExercises.set(muscleGroup, exercises); // Cache the fetched exercises by muscle group
 
-        } catch (error) {
-            throw error
-        }
+      return exercises;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    async getExerciseById(id: string) {
-        try {
-            const exercise = await exercisePresets.findById(id)
+  static async getExerciseById(id: string) {
+    // Check if the exercise by ID is cached
+    const cached = cachedExercises.get(id);
 
-            return exercise
+    try {
+      // If cached, return the cached data, otherwise fetch from DB
+      const exercise = cached || (await exercisePresets.findById(id));
+      cachedExercises.set(id, exercise); // Cache the fetched exercise by ID
 
-        } catch (error) {
-            throw error
-        }
+      return exercise;
+    } catch (error) {
+      throw error;
     }
-    async deleteExercise(id: string) {
-        try {
+  }
 
-            const exercise = await exercisePresets.deleteOne({ _id: id })
+  static async getExerciseByName(name: string) {
+    // Check if the exercise by name is cached
+    const cached = cachedExercises.get(name);
 
-            return exercise
+    try {
+      // If cached, return the cached data, otherwise fetch from DB
+      const exercise = cached || (await exercisePresets.findOne({ name }));
+      cachedExercises.set(name, exercise); // Cache the fetched exercise by name
 
-        } catch (error) {
-            throw error
-        }
+      return exercise;
+    } catch (error) {
+      throw error;
     }
-    async updateExercise(id: string, newExercise: any) {
-        try {
+  }
 
-            const exercise = await exercisePresets.findOneAndUpdate(
-                { _id: id },
-                newExercise
-            )
+  static async deleteExercise(id: string) {
+    try {
+      const deletedExercise = await exercisePresets.deleteOne({ _id: id });
+      // Invalidate all cache since the data has changed
+      cachedExercises.invalidateAll();
 
-            return exercise
-
-        } catch (error) {
-            throw error
-        }
+      return deletedExercise;
+    } catch (error) {
+      throw error;
     }
+  }
+
+  static async updateExercise(id: string, newExercise: any) {
+    try {
+      const updatedExercise = await exercisePresets.findOneAndUpdate({ _id: id }, newExercise, {
+        new: true,
+      });
+      // Invalidate all cache since the data has changed
+      cachedExercises.invalidateAll();
+
+      return updatedExercise;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
-
-export const exercisePresetServices = new ExercisePresetService()

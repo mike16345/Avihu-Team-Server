@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
+import { createResponse } from "../utils/utils";
 
 type ApiHandlers = {
   [key: string]: Function;
@@ -45,10 +46,7 @@ export const handleApiCall = async (
       const validationResult = await validatorFunction(event, context);
 
       if (!validationResult.isValid) {
-        return {
-          statusCode: StatusCode.BAD_REQUEST,
-          body: JSON.stringify({ message: validationResult.message }),
-        };
+        return createResponse(StatusCode.BAD_REQUEST, validationResult.message);
       }
     }
 
