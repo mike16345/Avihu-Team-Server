@@ -56,7 +56,7 @@ class WorkoutPlanController {
   };
 
   static updateWorkoutPlanByUserId = async (event: APIGatewayProxyEvent) => {
-    const userId = event.queryStringParameters?.id || "";
+    const userId = event.queryStringParameters?.userId || "";
     const updatedData = event.body;
 
     try {
@@ -72,6 +72,7 @@ class WorkoutPlanController {
         );
       }
 
+      console.log("returning response");
       return createResponseWithData(
         StatusCode.OK,
         updatedWorkoutPlan,

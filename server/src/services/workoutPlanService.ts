@@ -85,14 +85,15 @@ export class WorkoutPlanService {
 
   async updateWorkoutPlanByUserId(id: string, updatedData: any) {
     try {
+      console.log("searching for workout plan to update", id);
       const updatedWorkoutPlan = await WorkoutPlan.findOneAndUpdate({ userId: id }, updatedData, {
         new: true,
       });
-
+      console.log("updated workout plan ", updatedWorkoutPlan);
       allWorkoutPlansCache.invalidateAll();
       workoutPlansCache.invalidate(String(updatedWorkoutPlan?._id || ""));
       workoutPlansCache.invalidate(id);
-
+      console.log("invalidated cache");
       return updatedWorkoutPlan;
     } catch (err) {
       throw err;
