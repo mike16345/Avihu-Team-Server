@@ -38,7 +38,7 @@ export const handler = async (
   if (!presetApiHandler) {
     return {
       statusCode: StatusCode.NOT_FOUND,
-      body: JSON.stringify({ message: "Not Found" }),
+      body: JSON.stringify({ message: `No preset handlers found for: ${presetHandlerKey}` }),
       headers: API_HEADERS,
     };
   }
