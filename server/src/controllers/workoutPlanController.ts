@@ -56,8 +56,8 @@ class WorkoutPlanController {
   };
 
   static updateWorkoutPlanByUserId = async (event: APIGatewayProxyEvent) => {
-    const userId = event.queryStringParameters?.userId || "";
-    const updatedData = event.body;
+    const userId = String(event.queryStringParameters?.userId) || "";
+    const updatedData = JSON.parse(event.body || "{}");
 
     try {
       const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(
