@@ -2,6 +2,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { AnalyticsService } from "../services/analyticsService";
 import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import { WorkoutPlan } from "../models/workoutPlanModel";
+import { DietPlan } from "../models/dietPlanModel";
+import { ApiHandlers } from "../functions/baseHandler";
+import { User } from "../models/userModel";
+import { Model } from "mongoose";
 
 export class AnalyticsController {
   static async getAllCheckInUsers(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -57,6 +62,17 @@ export class AnalyticsController {
       }
 
       return createResponseWithData(StatusCode.OK, checkedUser);
+    } catch (error: any) {
+      return createServerErrorResponse(error);
+    }
+  }
+  static async getUsersWithNoPlans(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const collection = event.queryStringParameters?.collection || "";
+
+    try {
+      const users = await AnalyticsService.getUsersWithoutPlans(collection);
+
+      return createResponseWithData(StatusCode.OK, users);
     } catch (error: any) {
       return createServerErrorResponse(error);
     }

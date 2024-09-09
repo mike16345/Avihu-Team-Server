@@ -1,6 +1,11 @@
+import { Model } from "mongoose";
+import { StatusCode } from "../enums/StatusCode";
 import { CheckInModel } from "../models/checkInModel";
+import { DietPlan } from "../models/dietPlanModel";
 import { User } from "../models/userModel";
+import { WorkoutPlan } from "../models/workoutPlanModel";
 import { Cache } from "../utils/cache";
+import { createResponse } from "../utils/utils";
 
 const userCache = new Cache<any>();
 const checkInCache = new Cache<any>();
@@ -98,6 +103,30 @@ export class AnalyticsService {
       checkInCache.invalidate("all"); // Invalidate check-in cache
 
       return updatedCheckIn;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getUsersWithoutPlans(collection: string) {
+    const modelList: { [key: string]: Model<any> } = {
+      [`workoutPlan`]: WorkoutPlan,
+      [`dietPlan`]: DietPlan,
+    };
+
+    if (!modelList[collection]) {
+      return createResponse(StatusCode.BAD_REQUEST, "Collection is required!");
+    }
+    try {
+      const users = await User.find({}, { firstName: 1, lastName: 1 });
+
+      const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
+
+      const usersWithPlanSet = new Set(usersWithPlans.map((user) => user.userId.toString()));
+
+      const usersWithoutPlan = users.filter((user) => !usersWithPlanSet.has(user._id.toString()));
+
+      return usersWithoutPlan;
     } catch (error) {
       throw error;
     }

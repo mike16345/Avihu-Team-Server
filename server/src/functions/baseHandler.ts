@@ -4,7 +4,7 @@ import connectToDB from "../db/connect";
 import { createResponse } from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
 
-type ApiHandlers = {
+export type ApiHandlers = {
   [key: string]: Function;
 };
 
