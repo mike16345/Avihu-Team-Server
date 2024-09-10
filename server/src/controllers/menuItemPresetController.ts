@@ -41,7 +41,7 @@ export class MenuItemPresetController {
 
         try {
             const allMenuItems = await menuItemServices.getAllMenuItems()
-
+            
             res.status(201).json(allMenuItems);
         } catch (error) {
             res.status(500).json({ message: "An error occurred while retreiving the menu Items." });
