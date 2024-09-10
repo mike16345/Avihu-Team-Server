@@ -1,9 +1,9 @@
-import { ObjectId } from "mongodb";
-
 export interface IDietPlan {
   userId: string;
   meals: IMeal[];
   totalCalories?: number;
+  freeCalories?: number;
+  customInstructions?: string;
 }
 
 export interface ICustomItemInstructions {
@@ -14,7 +14,7 @@ export interface ICustomItemInstructions {
 export interface IDietItem {
   quantity: number;
   unit: DietItemUnit;
-  customInstructions?: ICustomItemInstructions[];
+  customItems?: ICustomItemInstructions[];
 }
 
 export interface IMeal {
