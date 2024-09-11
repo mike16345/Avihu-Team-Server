@@ -7,8 +7,13 @@ export interface IDietPlan {
 }
 
 export interface ICustomItemInstructions {
-  item: string;
-  quantity: number;
+  name: string;
+  dietaryType: string[];
+  foodGroup: string;
+  oneServing: {
+    grams: number;
+    spoons: number;
+  };
 }
 
 export interface IDietItem {
