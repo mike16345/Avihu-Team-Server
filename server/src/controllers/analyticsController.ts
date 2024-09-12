@@ -77,4 +77,16 @@ export class AnalyticsController {
       return createServerErrorResponse(error);
     }
   }
+
+  static async getUsersFinishingThisMonth(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const users = await AnalyticsService.getUsersFinishingThisMonth();
+
+      return createResponseWithData(StatusCode.OK, users);
+    } catch (error) {
+      return createServerErrorResponse(error);
+    }
+  }
 }

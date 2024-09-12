@@ -8,6 +8,7 @@ const analyticsApiHandlers = {
   [`GET ${BASE_PATH}/checkIns`]: AnalyticsController.getAllCheckInUsers,
   [`PATCH ${BASE_PATH}/checkIns/one`]: AnalyticsController.checkOffUser, // Delete user by ID
   [`GET ${BASE_PATH}/users`]: AnalyticsController.getUsersWithNoPlans,
+  [`GET ${BASE_PATH}/users/expiring`]: AnalyticsController.getUsersFinishingThisMonth,
 };
 
 export const handler = async (

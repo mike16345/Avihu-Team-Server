@@ -131,4 +131,27 @@ export class AnalyticsService {
       throw error;
     }
   }
+
+  static async getUsersFinishingThisMonth() {
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    try {
+      const users = await User.find(
+        {
+          $expr: {
+            $and: [
+              { $eq: [{ $month: "$dateFinished" }, month] },
+              { $eq: [{ $year: "$dateFinished" }, year] },
+            ],
+          },
+        },
+        { firstName: 1, lastName: 1 }
+      );
+
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
