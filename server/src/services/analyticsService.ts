@@ -2,8 +2,8 @@ import { Model } from "mongoose";
 import { CheckInModel } from "../models/checkInModel";
 import { DietPlan } from "../models/dietPlanModel";
 import { User } from "../models/userModel";
-import { Cache } from "../utils/cache";
 import { WorkoutPlan } from "../models/workoutPlanModel";
+import { Cache } from "../utils/cache";
 
 const userCache = new Cache<any>();
 const checkInCache = new Cache<any>();
@@ -135,7 +135,7 @@ export class AnalyticsService {
   static async getUsersFinishingThisMonth() {
     const cached = checkInCache.get(`usersExpiring`);
     if (cached) return cached;
-    
+
     const date = new Date();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();

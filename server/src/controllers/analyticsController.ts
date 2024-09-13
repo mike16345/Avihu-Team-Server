@@ -2,6 +2,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { AnalyticsService } from "../services/analyticsService";
 import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import { WorkoutPlan } from "../models/workoutPlanModel";
+import { DietPlan } from "../models/dietPlanModel";
+import { ApiHandlers } from "../functions/baseHandler";
+import { User } from "../models/userModel";
+import { Model } from "mongoose";
 
 export class AnalyticsController {
   static async getAllCheckInUsers(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -61,32 +66,27 @@ export class AnalyticsController {
       return createServerErrorResponse(error);
     }
   }
-
-  static async getUsersWithNoPlans(req: Request, res: Response) {
-    const { collection } = req.params;
-
-    console.log(collection);
+  static async getUsersWithNoPlans(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const collection = event.queryStringParameters?.collection || "";
 
     try {
       const users = await AnalyticsService.getUsersWithoutPlans(collection);
 
-      if (!users) {
-        res.status(StatusCode.BAD_REQUEST).send({ message: `collections is required` });
-      }
-
-      return res.send(users);
+      return createResponseWithData(StatusCode.OK, users);
     } catch (error: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
+      return createServerErrorResponse(error);
     }
   }
 
-  static async getUsersFinishingThisMonth(req: Request, res: Response) {
+  static async getUsersFinishingThisMonth(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
     try {
       const users = await AnalyticsService.getUsersFinishingThisMonth();
 
-      res.send(users);
+      return createResponseWithData(StatusCode.OK, users);
     } catch (error) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
+      return createServerErrorResponse(error);
     }
   }
 }
