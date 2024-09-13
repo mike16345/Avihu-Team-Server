@@ -58,7 +58,15 @@ export class MenuItemService {
       const allMenuItems = cached || (await fullMenuItemPresets.find());
       cachedMenuItems.set(`all`, allMenuItems);
 
-      return allMenuItems;
+      let mapped: { [key: string]: any[] } = {};
+      allMenuItems.forEach((item) => {
+        if (!mapped[item.foodGroup]) {
+          mapped[item.foodGroup] = [];
+        }
+        mapped[item.foodGroup].push(item);
+      });
+
+      return mapped;
     } catch (error) {
       throw error;
     }

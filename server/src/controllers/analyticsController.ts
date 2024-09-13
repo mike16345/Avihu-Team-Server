@@ -61,4 +61,32 @@ export class AnalyticsController {
       return createServerErrorResponse(error);
     }
   }
+
+  static async getUsersWithNoPlans(req: Request, res: Response) {
+    const { collection } = req.params;
+
+    console.log(collection);
+
+    try {
+      const users = await AnalyticsService.getUsersWithoutPlans(collection);
+
+      if (!users) {
+        res.status(StatusCode.BAD_REQUEST).send({ message: `collections is required` });
+      }
+
+      return res.send(users);
+    } catch (error: any) {
+      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
+    }
+  }
+
+  static async getUsersFinishingThisMonth(req: Request, res: Response) {
+    try {
+      const users = await AnalyticsService.getUsersFinishingThisMonth();
+
+      res.send(users);
+    } catch (error) {
+      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
+    }
+  }
 }
