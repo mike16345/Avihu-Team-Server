@@ -96,7 +96,7 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
 
 export const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
-  maxReps: Joi.number().min(1).optional(),
+  maxReps: Joi.number().greater(Joi.ref("minReps")).optional(),
 });
 
 export const workoutValidationSchema = Joi.object({
