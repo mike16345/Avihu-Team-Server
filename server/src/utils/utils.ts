@@ -1,4 +1,6 @@
+import { APIGatewayEvent } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
+import Joi from "joi";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -49,4 +51,17 @@ export const createValidatorResponse = (isValid: boolean, message?: string) => {
     isValid,
     message,
   };
+};
+
+export const validateBody = (event: APIGatewayEvent, validator: Joi.AnySchema<any>) => {
+  const body = extractBodyFromEvent(event);
+  const data = removeNestedIds(body);
+  const { error } = validator.validate(data);
+  const isValid = !error;
+
+  return createValidatorResponse(isValid, error?.message);
+};
+
+export const extractBodyFromEvent = (event: APIGatewayEvent) => {
+  return JSON.parse(event.body || "{}");
 };

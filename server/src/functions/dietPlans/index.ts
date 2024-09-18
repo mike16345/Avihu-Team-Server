@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import DietPlanController from "../../controllers/dietPlanController";
+import { validateDietPlan } from "../../middleware/dietPlanMiddleware";
 
 const BASE_PATH = "/dietPlans";
 const dietPlanApiHandlers = {
@@ -14,9 +15,15 @@ const dietPlanApiHandlers = {
   [`DELETE ${BASE_PATH}/one`]: DietPlanController.deleteDietPlan, // Delete user by ID
 };
 
+const dietPlanMiddlewares = {
+  [`POST ${BASE_PATH}`]: validateDietPlan,
+  [`PUT ${BASE_PATH}/one`]: validateDietPlan,
+  [`PUT ${BASE_PATH}/one/user`]: validateDietPlan,
+};
+
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, dietPlanApiHandlers);
+  return await handleApiCall(event, context, dietPlanApiHandlers, dietPlanMiddlewares);
 };
