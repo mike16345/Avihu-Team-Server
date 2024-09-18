@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { muscleGroupPresets } from "../models/muscleGroupModel";
-import { StatusCode } from "../enums/StatusCode";
 
 export const checkIfMuscleGroupExists = async (
   event: APIGatewayProxyEvent,

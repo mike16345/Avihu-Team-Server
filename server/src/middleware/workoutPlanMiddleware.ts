@@ -21,6 +21,7 @@ export const validateWorkoutPlanPreset = (event: APIGatewayEvent) => {
   const body = JSON.parse(event?.body || "{}");
 
   const { error } = WorkoutPlanPresetSchemaValidation.validate(body);
+  const isValid = !error;
 
-  return createValidatorResponse(!!error, error?.message);
+  return createValidatorResponse(isValid, error?.message);
 };

@@ -33,9 +33,10 @@ export const handleApiCall = async (
     await connectToDB();
 
     if (apiValidators && apiValidators[routeKey]) {
+      console.log("Performing validations");
       const validatorFunction = apiValidators[routeKey];
       const validationResult = await validatorFunction(event, context);
-      console.log("validation result ", validationResult);
+      console.log("Validation result: ", validationResult);
       if (!validationResult.isValid) {
         return {
           ...createResponse(StatusCode.BAD_REQUEST, validationResult.message),
