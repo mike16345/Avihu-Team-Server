@@ -33,10 +33,17 @@ export class WeighInService {
   }
 
   async getWeighInsByUserId(id: string) {
+    let sorted: IWeighIn[] = [];
     try {
       const cached = weighInsCache.get(id);
       const weighIns = cached || (await WeighIns.findOne({ userId: id }));
-      weighInsCache.set(id, weighIns, { expireAfter: HALF_DAY_IN_MILLISECONDS });
+      if (weighIns?.weighIns && !cached) {
+        sorted = weighIns.weighIns.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        weighIns.weighIns = sorted;
+        weighInsCache.set(id, weighIns, { expireAfter: HALF_DAY_IN_MILLISECONDS });
+      }
 
       return weighIns?.weighIns;
     } catch (err) {
