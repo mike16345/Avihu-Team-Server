@@ -59,7 +59,7 @@ export class MenuItemService {
       cachedMenuItems.set(`all`, allMenuItems);
 
       let mapped: { [key: string]: any[] } = {};
-      allMenuItems.forEach((item) => {
+      allMenuItems.forEach((item: any) => {
         if (!mapped[item.foodGroup]) {
           mapped[item.foodGroup] = [];
         }

@@ -19,7 +19,6 @@ export default async function () {
           dbName: dbName,
         })
         .then(() => mongoose);
-
       await conn;
     }
 
@@ -29,3 +28,4 @@ export default async function () {
     throw e;
   }
 }
+export { conn };

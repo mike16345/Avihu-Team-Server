@@ -86,9 +86,13 @@ class WeighInsController {
     const id = event.queryStringParameters?.id;
 
     try {
-      const weighIns = await weighInServices.getWeighInsByUserId(id as string);
-      if (!weighIns) {
-        return createResponse(StatusCode.NOT_FOUND, "No weigh ins found for this user.");
+      const weighIns = (await weighInServices.getWeighInsByUserId(id as string)) || [];
+      if (!weighIns.length) {
+        return createResponseWithData(
+          StatusCode.NOT_FOUND,
+          weighIns,
+          "No weigh ins found for this user."
+        );
       }
 
       return createResponseWithData(StatusCode.OK, weighIns, "Successfully retrieved weigh ins!");
