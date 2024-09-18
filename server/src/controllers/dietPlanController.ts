@@ -1,7 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanServices } from "../services/dietPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  removeNestedIds,
+} from "../utils/utils";
 
 class DietPlanController {
   static addDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -22,7 +27,7 @@ class DietPlanController {
 
   static updateDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const dietPlanId = event.queryStringParameters?.id || "";
-    const newDietPlan = JSON.parse(event.body || "{}");
+    const newDietPlan = removeNestedIds(JSON.parse(event.body || "{}"));
 
     try {
       const updatedDietPlan = await DietPlanServices.updateDietPlan(dietPlanId, newDietPlan);
@@ -43,7 +48,7 @@ class DietPlanController {
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
     const userId = event.queryStringParameters?.id || "";
-    const newDietPlan = JSON.parse(event.body || "{}");
+    const newDietPlan = removeNestedIds(JSON.parse(event.body || "{}"));
 
     try {
       const updatedDietPlan = await DietPlanServices.updateDietPlanByUserId(userId, newDietPlan);
