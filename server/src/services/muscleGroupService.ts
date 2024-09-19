@@ -1,61 +1,55 @@
 import { muscleGroupPresets } from "../models/muscleGroupModel";
 
 export class MuscleGroupService {
-    static async getAllMuscleGroups() {
-        try {
-            const allMuscleGroups = await muscleGroupPresets.find()
+  static async getAllMuscleGroups() {
+    try {
+      const allMuscleGroups = await muscleGroupPresets.find();
 
-            return allMuscleGroups
-        } catch (error) {
-            throw error
-        }
+      return allMuscleGroups;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    static async getMuscleGroupById(id: string) {
-        try {
-            const muscleGroup = await muscleGroupPresets.findById(id)
+  static async getMuscleGroupById(id: string) {
+    try {
+      const muscleGroup = await muscleGroupPresets.findById(id);
 
-            return muscleGroup
-        } catch (error) {
-            throw error
-        }
+      return muscleGroup;
+    } catch (error) {
+      throw error;
     }
+  }
 
+  static async addMuscleGroup(muscleGroup: string) {
+    try {
+      const newMuscleGroup = await muscleGroupPresets.create(muscleGroup);
 
-    static async addMuscleGroup(muscleGroup: string) {
-
-        try {
-            const newMuscleGroup = await muscleGroupPresets.create(muscleGroup)
-
-            return newMuscleGroup
-        } catch (error) {
-            throw error
-        }
+      return newMuscleGroup;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    static async editMuscleGroup(muscleGroup: string, id: string) {
-        try {
-            const newMuscleGroup = await muscleGroupPresets.findByIdAndUpdate(
-                id,
-                muscleGroup,
-                { new: true }
-            )
-            
+  static async editMuscleGroup(muscleGroup: any, id: string) {
+    try {
+      const newMuscleGroup = await muscleGroupPresets.findByIdAndUpdate(id, muscleGroup, {
+        new: true,
+      });
 
-            return newMuscleGroup
-        } catch (error) {
-            
-            throw error
-        }
+      return newMuscleGroup;
+    } catch (error) {
+      throw error;
     }
+  }
 
-    static async deleteMuscleGroup(id: string) {
-        try {
-            const deletedMuscleGroup = await muscleGroupPresets.findByIdAndDelete(id)
+  static async deleteMuscleGroup(id: string) {
+    try {
+      const deletedMuscleGroup = await muscleGroupPresets.findByIdAndDelete(id);
 
-            return deletedMuscleGroup
-        } catch (error) {
-            throw error
-        }
+      return deletedMuscleGroup;
+    } catch (error) {
+      throw error;
     }
+  }
 }
