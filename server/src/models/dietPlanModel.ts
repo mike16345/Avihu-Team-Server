@@ -24,7 +24,7 @@ export const dietPlanSchema = new Schema<IDietPlan>({
   userId: { type: String, required: true },
   meals: { type: [mealSchema], required: true },
   customInstructions: { type: String, required: false },
-  freeCalories: { type: String, required: false },
+  freeCalories: { type: Number, required: false },
   totalCalories: { type: Number, required: false },
 });
 
@@ -58,6 +58,6 @@ export const DietPlanSchemaValidation = Joi.object({
     .message("Diet Plan must contain at least one meal!")
     .required(),
   totalCalories: Joi.number().optional(),
-  freeCalories: Joi.string().optional().min(0),
+  freeCalories: Joi.number().optional().min(0),
   customInstructions: Joi.string().allow("").optional(),
 });

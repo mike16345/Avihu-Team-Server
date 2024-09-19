@@ -18,7 +18,7 @@ export class MuscleGroupService {
       return muscleGroup;
     } catch (error) {
       throw error;
-    }
+    } 
   }
 
   static async addMuscleGroup(muscleGroup: string) {
