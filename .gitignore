@@ -400,6 +400,6 @@ FodyWeavers.xsd
 
 # env
 *.local
-
+**/**/test.*
 **/**/basicLambda/*
 **/**/*.zip 
