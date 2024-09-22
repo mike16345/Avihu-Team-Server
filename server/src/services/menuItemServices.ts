@@ -7,7 +7,7 @@ export class MenuItemService {
   static async addMenuItem(data: any) {
     try {
       const newMenuItem = await fullMenuItemPresets.create(data);
-      cachedMenuItems.invalidate("all");
+      cachedMenuItems.invalidateAll();
 
       return newMenuItem;
     } catch (error) {
