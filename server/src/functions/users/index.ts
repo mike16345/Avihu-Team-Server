@@ -1,6 +1,7 @@
 import { UserController } from "../../controllers/userController";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
+import { validateUser } from "../../middleware/usersMiddleware";
 
 const BASE_PATH = "/users";
 const userApiHandlers = {
@@ -13,9 +14,13 @@ const userApiHandlers = {
   [`DELETE ${BASE_PATH}/one`]: UserController.deleteUser, // Delete user by ID
 };
 
+const userValidaters = {
+  [`POST ${BASE_PATH}`]: validateUser,
+};
+
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, userApiHandlers);
+  return await handleApiCall(event, context, userApiHandlers, userValidaters);
 };
