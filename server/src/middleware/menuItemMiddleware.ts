@@ -1,8 +1,7 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
-import { fullMenuItemPresets, menuItemShcemaValidation } from "../models/menuItemModel";
-import { StatusCode } from "../enums/StatusCode";
+import { menuItemShcemaValidation } from "../models/menuItemModel";
 import { MenuItemService } from "../services/menuItemServices";
-import { createServerErrorResponse, createValidatorResponse, validateBody } from "../utils/utils";
+import { createValidatorResponse, validateBody } from "../utils/utils";
 
 export const validateMenuItem = async (event: APIGatewayProxyEvent, context: Context) => {
   const menuItem = JSON.parse(event.body || "{}");
@@ -15,9 +14,9 @@ export const validateMenuItem = async (event: APIGatewayProxyEvent, context: Con
         return createValidatorResponse(false, "פריט כבר קיים במערכת"); // Item already exists in the system
       }
     }
-  } catch (err) {
-    createServerErrorResponse(err);
+  } catch (err: any) {
+    return createValidatorResponse(false, err.message);
   }
 
-  validateBody(event, menuItemShcemaValidation);
+  return validateBody(event, menuItemShcemaValidation);
 };
