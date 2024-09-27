@@ -1,26 +1,30 @@
-import { Request, Response, NextFunction } from "express";
 import { RecordedSetJoiSchema } from "../models/recordedSetsModel";
+import { createValidatorResponse, extractBodyFromEvent, removeNestedIds } from "../utils/utils";
+import { APIGatewayEvent } from "aws-lambda";
 
-export const validateRecordedSet = (req: Request, res: Response, next: NextFunction) => {
-  const { userId, muscleGroup, exercise, recordedSet } = req.body;
+export const validateRecordedSet = (event: APIGatewayEvent) => {
+  const { userId, muscleGroup, exercise, recordedSet } = extractBodyFromEvent(event);
+  const data = removeNestedIds(recordedSet);
+  let message = "";
 
   if (!userId) {
-    return res.status(400).json({ message: "userId is required" });
+    message = "userId is required";
   }
 
   if (!muscleGroup) {
-    return res.status(400).json({ message: "muscleGroup is required" });
+    message = "muscleGroup is required";
   }
 
   if (!exercise) {
-    return res.status(400).json({ message: "exercise is required" });
+    message = "exercise is required";
   }
 
-  const { error } = RecordedSetJoiSchema.validate(recordedSet);
-
-  if (error) {
-    console.log("error here");
-    return res.status(400).json({ message: error.message });
+  if (message) {
+    return createValidatorResponse(false, message);
   }
-  next();
+
+  const { error } = RecordedSetJoiSchema.validate(data);
+  const isValid = !error;
+
+  return createValidatorResponse(isValid, error?.message);
 };
