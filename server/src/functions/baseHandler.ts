@@ -24,6 +24,7 @@ export const handleApiCall = async (
     console.log("event", JSON.stringify(event));
 
     if (!handlerFunction) {
+      console.log(`BAD ROUTE: ${routeKey} is not a valid route!`);
       return {
         statusCode: StatusCode.BAD_GATEWAY,
         body: JSON.stringify({ message: `${routeKey} is not a valid route!` }),
