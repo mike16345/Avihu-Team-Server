@@ -2,15 +2,24 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { weighInServices } from "../services/weighInService";
 import { IWeighIn } from "../interfaces/IWeighIns";
 import { StatusCode } from "../enums/StatusCode";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  extractBodyFromEvent,
+} from "../utils/utils";
 
 class WeighInsController {
   static addWeighIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const id = event.queryStringParameters?.id || "";
-    const weighInToAdd = JSON.parse(event.body || "{}");
+    const userId = event.queryStringParameters?.id;
+    const weighInToAdd = extractBodyFromEvent(event);
+
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "userId is required.");
+    }
 
     try {
-      const weighIn = await weighInServices.addWeighIn(weighInToAdd, id);
+      const weighIn = await weighInServices.addWeighIn(weighInToAdd, userId);
 
       return createResponseWithData(StatusCode.CREATED, weighIn, "Successfully added weigh in!");
     } catch (err: any) {
@@ -33,7 +42,7 @@ class WeighInsController {
 
   static updateWeighIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const id = event.queryStringParameters?.id || "";
-    const { weight } = JSON.parse(event.body || "{}");
+    const { weight } = extractBodyFromEvent(event);
 
     try {
       const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
@@ -65,7 +74,7 @@ class WeighInsController {
   static deleteWeighInById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const weighInId = event.queryStringParameters?.weighInId || "";
+    const weighInId = event.queryStringParameters?.id || "";
 
     try {
       const response = await weighInServices.deleteWeighInById(weighInId);
