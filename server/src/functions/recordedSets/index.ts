@@ -5,7 +5,7 @@ import { validateRecordedSet } from "../../middleware/recordedSetMiddleware";
 
 const BASE_PATH = "/recordedSets";
 
-const workoutPlanApiHandlers = {
+const recordedSetsApiHandlers = {
   [`POST ${BASE_PATH}`]: RecordedSetsController.addRecordedSet, // Add new user
   [`GET ${BASE_PATH}/user`]: RecordedSetsController.getRecordedSetsByUserId, // Get weigh ins by ID
   [`GET ${BASE_PATH}/user/names`]: RecordedSetsController.getUserRecordedExerciseNamesByMuscleGroup, // Get weigh ins by ID
@@ -13,7 +13,7 @@ const workoutPlanApiHandlers = {
     RecordedSetsController.getUserRecordedMuscleGroupNames, // Get weigh ins by ID
 };
 
-const workoutPlanMiddlewares = {
+const recordedSetsMiddleware = {
   [`POST ${BASE_PATH}`]: validateRecordedSet,
 };
 
@@ -21,5 +21,5 @@ export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, workoutPlanApiHandlers);
+  return await handleApiCall(event, context, recordedSetsApiHandlers, recordedSetsMiddleware);
 };
