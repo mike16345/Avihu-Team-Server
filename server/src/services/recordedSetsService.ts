@@ -88,8 +88,7 @@ export class RecordedSetsService {
       const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
       const savedResult = await muscleGroupRecord.save();
 
-      cachedRecordedSets.invalidate(`user:${userId}:muscleGroup:${muscleGroup}`);
-      cachedRecordedSets.invalidate(`user:${userId}:exercise:${exercise}`);
+      cachedRecordedSets.invalidateAllContaining(userId);
 
       return {
         session,
@@ -99,6 +98,8 @@ export class RecordedSetsService {
       throw e;
     }
   }
+
+  static async getLastRecordedSetInfoInExercise(exercise: string, setNumber: number) {}
 
   static async getRecordedSetsByUserId({
     userId,

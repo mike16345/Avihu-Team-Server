@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { StatusCode } from "../enums/StatusCode";
 import mongoose from "mongoose";
@@ -55,6 +55,20 @@ class RecordedSetsController {
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
+  }
+
+  static async getLastRecordedSetInExercise(event: APIGatewayEvent) {
+    const exercise = event.queryStringParameters?.exercise;
+
+    if (!exercise) {
+      return createResponse(StatusCode.BAD_REQUEST, "exercise query parameter is required.");
+    }
+
+    try {
+      const response = await RecordedSetsService.getLastRecordedSetInfoInExercise(exercise, 1);
+
+      return createResponseWithData(StatusCode.OK, response);
+    } catch (err) {}
   }
 
   static async getUserRecordedExerciseNamesByMuscleGroup(

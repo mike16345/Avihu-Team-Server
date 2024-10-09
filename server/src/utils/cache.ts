@@ -37,6 +37,14 @@ export class Cache<T> {
     delete this.cache[key];
   }
 
+  invalidateAllContaining(wordToFind: string) {
+    for (const key in this.cache) {
+      if (key.includes(wordToFind)) {
+        delete this.cache[key];
+      }
+    }
+  }
+
   // Invalidate all cache entries
   invalidateAll(): void {
     this.cache = {};

@@ -15,6 +15,7 @@ export class WeighInService {
         { $push: { weighIns: { date, weight } } },
         { new: true, upsert: true }
       );
+      weighInsCache.invalidate(userId);
 
       return weighInsDoc;
     } catch (err) {
