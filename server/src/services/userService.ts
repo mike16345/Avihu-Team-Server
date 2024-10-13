@@ -59,6 +59,19 @@ class UserService {
     }
   }
 
+  static async getUserByPhone(phone) {
+    const cached = singleUsersCache.get(phone);
+
+    try {
+      const user = cached || (await User.findOne({ phone }).lean());
+      singleUsersCache.set(phone, user);
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async updateUser(data, id) {
     try {
       const user = await User.findByIdAndUpdate(id, data, { new: true });

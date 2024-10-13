@@ -20,6 +20,7 @@ const userSchema = new Schema<IUser>({
   phone: {
     type: String,
     required: true,
+    unique: true,
   },
   dietaryType: {
     type: [String],

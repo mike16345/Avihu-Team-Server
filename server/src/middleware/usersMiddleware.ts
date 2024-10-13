@@ -10,9 +10,13 @@ export const validateUser = async (
   const body = JSON.parse(event.body || "{}"); // Parse the JSON body
 
   try {
-    const existingUser = await UserService.getUserByEmail(body.email);
+    const existingEmail = await UserService.getUserByEmail(body.email);
 
-    if (existingUser) return { isValid: false, message: "כתובת מייל בשימוש!" };
+    if (existingEmail) return { isValid: false, message: "כתובת מייל בשימוש!" };
+
+    const existingPhone = await UserService.getUserByPhone(body.phone);
+
+    if (existingPhone) return { isValid: false, message: "מספר טלפון בשימוש!" };
 
     const { error } = UserSchemaValidation.validate(body);
 
