@@ -1,11 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import {
-  createResponse,
-  createResponseWithData,
-  createServerErrorResponse,
-} from "../utils/utils";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export class UserController {
   static async addUser(
@@ -62,6 +58,23 @@ export class UserController {
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with email: "${email}" not found!`);
+      }
+      return createResponseWithData(StatusCode.OK, user, "User retrieved successfully!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async getUserByPhone(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const phone = event.queryStringParameters?.phone;
+      const user = await UserService.getUserByPhone(phone || "");
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `User with email: "${phone}" not found!`);
       }
       return createResponseWithData(StatusCode.OK, user, "User retrieved successfully!");
     } catch (err: any) {
