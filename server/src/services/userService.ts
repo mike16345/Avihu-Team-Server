@@ -46,27 +46,24 @@ class UserService {
     }
   }
 
-  static async getUserByEmail(email) {
-    const cached = singleUsersCache.get(email);
+  static async getUsersByParameter(param) {
+    let searchParam = [];
+    const objectKeys = Object.keys(param);
 
-    try {
-      const user = cached || (await User.findOne({ email }).lean());
-      singleUsersCache.set(email, user);
-
-      return user;
-    } catch (error) {
-      throw error;
+    if (objectKeys.length > 1) {
+      objectKeys.forEach((key) => {
+        searchParam.push({ [key]: param[key] });
+      });
+    } else {
+      searchParam = [param];
     }
-  }
-
-  static async getUserByPhone(phone) {
-    const cached = singleUsersCache.get(phone);
 
     try {
-      const user = cached || (await User.findOne({ phone }).lean());
-      singleUsersCache.set(phone, user);
+      const users = await User.find({
+        $or: searchParam,
+      });
 
-      return user;
+      return users;
     } catch (error) {
       throw error;
     }
