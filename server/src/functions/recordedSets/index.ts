@@ -12,6 +12,7 @@ const recordedSetsApiHandlers = {
   [`GET ${BASE_PATH}/user/names/muscleGroups`]:
     RecordedSetsController.getUserRecordedMuscleGroupNames, // Get weigh ins by ID
   [`GET ${BASE_PATH}`]: RecordedSetsController.getRecordedSetsByUserId,
+  [`GET ${BASE_PATH}/user/exercise`]: RecordedSetsController.getUserRecordedSetsByExercise,
 };
 
 const recordedSetsMiddleware = {

@@ -57,6 +57,31 @@ class RecordedSetsController {
     }
   }
 
+  static async getUserRecordedSetsByExercise(event: APIGatewayProxyEvent) {
+    const userId = event.queryStringParameters?.userId || "";
+    const exercise = event.queryStringParameters?.exercise || "";
+    const muscleGroup = event.queryStringParameters?.muscleGroup || "";
+
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "userId query parameter is required.");
+    }
+
+    if (!exercise) {
+      return createResponse(StatusCode.BAD_REQUEST, "exercise query parameter is required.");
+    }
+
+    try {
+      const response = await RecordedSetsService.getUserRecordedSetsByExercise(
+        userId,
+        muscleGroup,
+        exercise
+      );
+      return createResponseWithData(StatusCode.OK, response);
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
   static async getLastRecordedSetInExercise(event: APIGatewayEvent) {
     const exercise = event.queryStringParameters?.exercise;
 

@@ -58,7 +58,6 @@ export class RecordedSetsService {
   ) {
     try {
       const objectId = new mongoose.mongo.ObjectId(userId);
-      console.log("session ", sessionId);
       const activeSession = sessionId ? await SessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
 
@@ -66,9 +65,6 @@ export class RecordedSetsService {
       initializeExerciseIfNecessary(muscleGroupRecord, exercise);
 
       const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
-      console.log("muscle group : ", muscleGroup);
-      console.log("exercise : ", exercise);
-      console.log("next set number for exercise " + nextSetNumber);
 
       recordedSet.setNumber = nextSetNumber;
       muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
@@ -76,7 +72,6 @@ export class RecordedSetsService {
 
       const plan = recordedSet.plan;
       const prevExerciseData = activeSession?.data[plan] || {};
-      console.log("exercise data", prevExerciseData);
       const sessionDetails: ISessionCreate = {
         userId,
         type: "workout",
@@ -100,6 +95,36 @@ export class RecordedSetsService {
   }
 
   static async getLastRecordedSetInfoInExercise(exercise: string, setNumber: number) {}
+
+  static async getUserRecordedSetsByExercise(
+    userId: string,
+    muscleGroup: string,
+    exercise: string
+  ) {
+    const cacheKey = `exercise:${userId}:${muscleGroup}:${exercise}`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const result = await MuscleGroupRecordedSets.findOne({
+        userId,
+        muscleGroup,
+      });
+
+      if (!result || !result.recordedSets[exercise]) {
+        return null;
+      }
+
+      cachedRecordedSets.set(cacheKey, result.recordedSets[exercise]);
+
+      return result.recordedSets[exercise];
+    } catch (err: any) {
+      throw err;
+    }
+  }
 
   static async getRecordedSetsByUserId({
     userId,
