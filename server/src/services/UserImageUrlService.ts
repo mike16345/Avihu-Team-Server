@@ -22,6 +22,7 @@ export class UserImageUrlService {
         { $push: { imageUrls: imageUrl } },
         { new: true, upsert: true }
       );
+      urlsCache.invalidate(userId);
 
       return urls;
     } catch (e: any) {
