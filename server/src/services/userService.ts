@@ -46,14 +46,24 @@ class UserService {
     }
   }
 
-  static async getUserByEmail(email) {
-    const cached = singleUsersCache.get(email);
+  static async getUsersByParameter(param) {
+    let searchParam = [];
+    const objectKeys = Object.keys(param);
+
+    if (objectKeys.length > 1) {
+      objectKeys.forEach((key) => {
+        searchParam.push({ [key]: param[key] });
+      });
+    } else {
+      searchParam = [param];
+    }
 
     try {
-      const user = cached || (await User.findOne({ email }).lean());
-      singleUsersCache.set(email, user);
+      const users = await User.find({
+        $or: searchParam,
+      });
 
-      return user;
+      return users;
     } catch (error) {
       throw error;
     }

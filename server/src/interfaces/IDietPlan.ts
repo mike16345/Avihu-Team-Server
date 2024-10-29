@@ -3,6 +3,8 @@ export interface IDietPlan {
   meals: IMeal[];
   totalCalories?: number;
   freeCalories?: number;
+  fatsPerDay?: number;
+  veggiesPerDay?: number;
   customInstructions?: string;
 }
 
@@ -25,8 +27,6 @@ export interface IDietItem {
 export interface IMeal {
   totalProtein: IDietItem;
   totalCarbs: IDietItem;
-  totalFats?: IDietItem;
-  totalVeggies?: IDietItem;
 }
 
 export interface IDietPlanPreset extends Omit<IDietPlan, "userId"> {

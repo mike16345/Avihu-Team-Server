@@ -8,11 +8,16 @@ export const validateUser = async (
   context: Context
 ): Promise<{ isValid: boolean; message?: string }> => {
   const body = JSON.parse(event.body || "{}"); // Parse the JSON body
+  const email = body.email;
+  const phone = body.phone;
 
   try {
-    const existingUser = await UserService.getUserByEmail(body.email);
+    const users = await UserService.getUsersByParameter({ email, phone });
 
-    if (existingUser) return { isValid: false, message: "כתובת מייל בשימוש!" };
+    for (const user of users) {
+      if (user.email === email) return { isValid: false, message: "כתובת מייל בשימוש!" };
+      if (user.phone === phone) return { isValid: false, message: "מספר טלפון בשימוש!" };
+    }
 
     const { error } = UserSchemaValidation.validate(body);
 

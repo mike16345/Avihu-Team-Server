@@ -16,8 +16,6 @@ export const dietItemSchema = new Schema<IDietItem>({
 export const mealSchema = new Schema<IMeal>({
   totalProtein: { type: dietItemSchema, required: true },
   totalCarbs: { type: dietItemSchema, required: true },
-  totalFats: { type: dietItemSchema, required: false },
-  totalVeggies: { type: dietItemSchema, required: false },
 });
 
 export const dietPlanSchema = new Schema<IDietPlan>({
@@ -26,6 +24,8 @@ export const dietPlanSchema = new Schema<IDietPlan>({
   customInstructions: { type: String, required: false },
   freeCalories: { type: Number, required: false },
   totalCalories: { type: Number, required: false },
+  fatsPerDay: { type: Number, required: false },
+  veggiesPerDay: { type: Number, required: false },
 });
 
 export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
@@ -46,8 +46,6 @@ export const dietItemValidationSchema = Joi.object({
 export const mealValidationSchema = Joi.object({
   totalProtein: dietItemValidationSchema.required(),
   totalCarbs: dietItemValidationSchema.required(),
-  totalFats: dietItemValidationSchema.optional(),
-  totalVeggies: dietItemValidationSchema.optional(),
 });
 
 export const DietPlanSchemaValidation = Joi.object({
@@ -59,5 +57,7 @@ export const DietPlanSchemaValidation = Joi.object({
     .required(),
   totalCalories: Joi.number().optional(),
   freeCalories: Joi.number().optional().min(0),
+  fatsPerDay: Joi.number().optional().min(0),
+  veggiesPerDay: Joi.number().optional().min(0),
   customInstructions: Joi.string().allow("").optional(),
 });
