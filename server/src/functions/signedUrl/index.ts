@@ -1,12 +1,19 @@
 import { APIGatewayEvent, Context } from "aws-lambda";
-import { S3 } from "aws-sdk";
+import S3 from "aws-sdk/clients/s3";
 import { createResponse, createResponseWithData } from "../../utils/utils";
 import { StatusCode } from "../../enums/StatusCode";
 import { API_HEADERS } from "../../constants/Constants";
 
-const s3 = new S3();
+const s3 = new S3({
+  apiVersion: "2006-03-01",
+  accessKeyId: process.env.ACCESS_KEY,
+  secretAccessKey: process.env.SECRET_KEY,
+  region: process.env.REGION,
+  signatureVersion: "v4",
+});
+
 const ONE_MIN = 60;
-const URL_TTL = ONE_MIN * 5;
+const URL_TTL = ONE_MIN * 10;
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
   const bucketName = process.env.AWS_BUCKET_NAME;
@@ -22,6 +29,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     Expires: URL_TTL,
     ContentType: "image/jpeg",
   };
+  console.log("event", JSON.stringify(event));
 
   if (!methodToAllow) {
     return {
@@ -29,12 +37,16 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
       headers: API_HEADERS,
     };
   }
+  try {
+    console.log("method to allow ", methodToAllow);
+    console.log("params", JSON.stringify(params));
+    const signedUrl = s3.getSignedUrl(methodToAllow, params);
+    console.log("Signed URL:", JSON.stringify(signedUrl));
 
-  console.log("event", JSON.stringify(event));
-
-  const signedUrl = s3.getSignedUrl(methodToAllow, params);
-
-  return { ...createResponseWithData(StatusCode.OK, signedUrl), headers: API_HEADERS };
+    return { ...createResponseWithData(StatusCode.OK, signedUrl), headers: API_HEADERS };
+  } catch (e: any) {
+    console.log("Error retrieving signed url:", JSON.stringify(e));
+  }
 };
 
 function getMethodToAllow(httpMethod: string) {
