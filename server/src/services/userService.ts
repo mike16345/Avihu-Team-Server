@@ -114,13 +114,9 @@ class UserService {
     }
   }
 
-  static async patchImagesUploadedStatus(id) {
+  static async patchImagesUploadedStatus(id, status) {
     try {
-      const user = await User.findByIdAndUpdate(
-        id,
-        { imagesUploaded: !imagsUploaded },
-        { new: true }
-      );
+      const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
       if (user) {
         cachedUsers.invalidateAll();
         singleUsersCache.set(id, user);

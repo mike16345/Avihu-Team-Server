@@ -100,8 +100,9 @@ export class UserController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     try {
-      const id = event.queryStringParameters?.id;
-      const user = await UserService.patchImagesUploadedStatus(id || "");
+      const id = event.queryStringParameters?.userId;
+      const status = event.queryStringParameters?.status;
+      const user = await UserService.patchImagesUploadedStatus(id || "", status);
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }
