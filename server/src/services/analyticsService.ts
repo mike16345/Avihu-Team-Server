@@ -1,5 +1,4 @@
 import { Model } from "mongoose";
-import { CheckInModel } from "../models/checkInModel";
 import { DietPlan } from "../models/dietPlanModel";
 import { User } from "../models/userModel";
 import { WorkoutPlan } from "../models/workoutPlanModel";
@@ -16,7 +15,7 @@ export class AnalyticsService {
     }
 
     try {
-      const allUsers = await CheckInModel.find({ isChecked: false });
+      const allUsers = await User.find({ isChecked: false });
       const users = [];
 
       for (const u of allUsers) {
@@ -43,59 +42,9 @@ export class AnalyticsService {
     }
   }
 
-  static async createNewCheckIn(email: string) {
-    try {
-      const user = await User.findOne({ email: email });
-      if (!user) {
-        return null;
-      }
-
-      const newCheckIn = await CheckInModel.create({
-        _id: user._id,
-        remindIn: user.remindIn,
-        lastUpdatedAt: new Date(),
-      });
-
-      checkInCache.invalidate(String(user._id)); // Invalidate user cache
-      checkInCache.invalidate("all"); // Invalidate check-in cache
-
-      return newCheckIn;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async updateCheckIn(id: string) {
-    try {
-      const user = await User.findById(id);
-      const checkIn = await CheckInModel.findById(id);
-
-      if (!user || !checkIn) return null;
-
-      if (user.remindIn !== checkIn.remindIn) {
-        checkIn.remindIn = user.remindIn;
-
-        await CheckInModel.findByIdAndUpdate(checkIn._id, {
-          remindIn: user.remindIn,
-        });
-
-        checkInCache.invalidate(id); // Invalidate specific check-in cache
-        checkInCache.invalidate("all"); // Invalidate check-in cache
-      }
-
-      return checkIn;
-    } catch (error) {
-      throw error;
-    }
-  }
-
   static async checkOffUser(id: string) {
     try {
-      const updatedCheckIn = await CheckInModel.findByIdAndUpdate(
-        id,
-        { isChecked: true },
-        { new: true }
-      );
+      const updatedCheckIn = await User.findByIdAndUpdate(id, { isChecked: true }, { new: true });
 
       checkInCache.invalidate(id); // Invalidate specific check-in cache
       checkInCache.invalidate("all"); // Invalidate check-in cache

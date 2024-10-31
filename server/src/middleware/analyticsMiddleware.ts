@@ -1,17 +1,15 @@
-import { CheckInModel } from "../models/checkInModel";
-import { Request, Response, NextFunction } from "express";
+import { APIGatewayEvent } from "aws-lambda";
+import { User } from "../models/userModel";
+import { createValidatorResponse } from "../utils/utils";
 
-export const scheduleUserChecks = (req: Request, res: Response, next: NextFunction) => {
-  CheckInModel.find().then((users) => {
+export const scheduleUserChecks = (event: APIGatewayEvent) => {
+  User.find().then((users) => {
     users.forEach((user) => {
-      const oneThousand = 1000;
-      const lastUpdatedAt = user.lastUpdatedAt.getTime();
-      const remindInMillieSeconds = user.remindIn * oneThousand;
-      const remindAt = lastUpdatedAt + remindInMillieSeconds;
-
-      if (Date.now() > remindAt) {
+      if (Date.now() > user.checkInAt) {
+        const oneThousand = 1000;
+        const remindInMillieSeconds = user.remindIn * oneThousand;
         user.isChecked = false;
-        user.lastUpdatedAt = new Date();
+        user.checkInAt = Date.now() + remindInMillieSeconds;
 
         user
           .save()
@@ -19,10 +17,10 @@ export const scheduleUserChecks = (req: Request, res: Response, next: NextFuncti
             console.log(`User ${user._id} isChecked updated to false and lastUpdatedAt updated.`);
           })
           .catch((err) => {
-            console.error(`Error updating user ${user._id}:`, err);
+            return createValidatorResponse(false, `Error updating user ${user._id}:${err}`);
           });
       }
     });
-    next();
   });
+  return createValidatorResponse(true);
 };

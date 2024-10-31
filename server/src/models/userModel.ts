@@ -46,6 +46,15 @@ const userSchema = new Schema<IUser>({
     type: Number,
     required: true,
   },
+  checkInAt: {
+    type: Number,
+    required: true,
+  },
+  isChecked: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
 });
 
 export const User = model("users", userSchema);
@@ -60,4 +69,6 @@ export const UserSchemaValidation = Joi.object({
   dateFinished: Joi.date(),
   planType: Joi.string(),
   remindIn: Joi.number().min(259200).max(2678400).required(),
+  checkInAt: Joi.number(),
+  isChecked: Joi.boolean(),
 });
