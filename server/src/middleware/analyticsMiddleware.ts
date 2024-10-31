@@ -2,25 +2,21 @@ import { APIGatewayEvent } from "aws-lambda";
 import { User } from "../models/userModel";
 import { createValidatorResponse } from "../utils/utils";
 
-export const scheduleUserChecks = (event: APIGatewayEvent) => {
-  User.find().then((users) => {
-    users.forEach((user) => {
+export const scheduleUserChecks = async (event: APIGatewayEvent) => {
+  try {
+    const users = await User.find();
+    for (const user of users) {
       if (Date.now() > user.checkInAt) {
         const oneThousand = 1000;
         const remindInMillieSeconds = user.remindIn * oneThousand;
-        user.isChecked = false;
         user.checkInAt = Date.now() + remindInMillieSeconds;
+        user.isChecked = false;
 
-        user
-          .save()
-          .then(() => {
-            console.log(`User ${user._id} isChecked updated to false and lastUpdatedAt updated.`);
-          })
-          .catch((err) => {
-            return createValidatorResponse(false, `Error updating user ${user._id}:${err}`);
-          });
+        await User.findByIdAndUpdate(user._id, user);
       }
-    });
-  });
+    }
+  } catch (err) {
+    createValidatorResponse(false, `Error updating users: ${err}`);
+  }
   return createValidatorResponse(true);
 };

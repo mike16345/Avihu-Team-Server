@@ -15,28 +15,17 @@ export class AnalyticsService {
     }
 
     try {
-      const allUsers = await User.find({ isChecked: false });
-      const users = [];
+      const allUsers = await User.find({ isChecked: false }).select(`firstName lastName isChecked`);
 
       for (const u of allUsers) {
-        const user =
-          userCache.get(u._id.toString()) ||
-          (await User.findById(u._id).select(`firstName lastName`));
-
         // Cache the user details
-        if (user) {
-          userCache.set(u._id.toString(), user);
-          users.push({
-            isChecked: u.isChecked,
-            _id: u._id,
-            firstName: user?.firstName,
-            lastName: user?.lastName,
-          });
+        if (u) {
+          userCache.set(u._id.toString());
         }
       }
 
-      checkInCache.set("all", users); // Cache the result
-      return users;
+      checkInCache.set("all", allUsers); // Cache the result
+      return allUsers;
     } catch (error) {
       throw error;
     }
