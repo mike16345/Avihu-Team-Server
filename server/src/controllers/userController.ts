@@ -102,7 +102,8 @@ export class UserController {
     try {
       const id = event.queryStringParameters?.userId;
       const status = event.queryStringParameters?.status;
-      const user = await UserService.patchImagesUploadedStatus(id || "", status);
+      const user = await UserService.updateImagesUploadedstatus(id || "", status);
+
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }

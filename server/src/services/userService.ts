@@ -114,7 +114,7 @@ class UserService {
     }
   }
 
-  static async patchImagesUploadedStatus(id, status) {
+  static async updateImagesUploadedstatus(id, status) {
     try {
       const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
       if (user) {
