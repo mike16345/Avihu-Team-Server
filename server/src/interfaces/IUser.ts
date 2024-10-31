@@ -14,4 +14,5 @@ export interface IUser {
   remindIn: number;
   checkInAt: number;
   isChecked: boolean;
+  imagesUploaded: boolean;
 }

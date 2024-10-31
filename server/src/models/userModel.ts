@@ -55,6 +55,10 @@ const userSchema = new Schema<IUser>({
     default: false,
     required: true,
   },
+  imagesUploaded: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export const User = model("users", userSchema);
@@ -71,4 +75,5 @@ export const UserSchemaValidation = Joi.object({
   remindIn: Joi.number().min(259200).max(2678400).required(),
   checkInAt: Joi.number(),
   isChecked: Joi.boolean(),
+  imagesUploaded: Joi.boolean(),
 });
