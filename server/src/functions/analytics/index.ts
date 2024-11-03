@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import { AnalyticsController } from "../../controllers/analyticsController";
+import { scheduleUserChecks } from "../../middleware/analyticsMiddleware";
 
 const BASE_PATH = "/analytics";
 
@@ -11,9 +12,14 @@ const analyticsApiHandlers = {
   [`GET ${BASE_PATH}/users/expiring`]: AnalyticsController.getUsersFinishingThisMonth,
 };
 
+const analyticsApiMiddleware = {
+  [`GET ${BASE_PATH}/checkIns`]: scheduleUserChecks,
+  [`PATCH ${BASE_PATH}/checkIns/one`]: scheduleUserChecks,
+};
+
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, analyticsApiHandlers);
+  return await handleApiCall(event, context, analyticsApiHandlers, analyticsApiMiddleware);
 };

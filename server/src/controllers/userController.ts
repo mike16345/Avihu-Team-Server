@@ -95,4 +95,22 @@ export class UserController {
       return createServerErrorResponse(err);
     }
   }
+  static async updateImagesUploadedstatus(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const id = event.queryStringParameters?.userId;
+      const status = event.queryStringParameters?.status;
+      const user = await UserService.updateImagesUploadedstatus(id || "", status);
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, user, "Status updated successfully!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
 }

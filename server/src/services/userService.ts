@@ -113,6 +113,20 @@ class UserService {
       throw error;
     }
   }
+
+  static async updateImagesUploadedstatus(id, status) {
+    try {
+      const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export default UserService;
