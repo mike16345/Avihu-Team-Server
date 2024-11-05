@@ -12,4 +12,7 @@ export interface IUser {
   dateFinished: Date;
   planType: string;
   remindIn: number;
+  checkInAt: number;
+  isChecked: boolean;
+  imagesUploaded: boolean;
 }

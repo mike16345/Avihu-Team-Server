@@ -20,8 +20,9 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
   const httpMethod = event.httpMethod;
   const methodToAllow = getMethodToAllow(httpMethod);
   const imageName = event.queryStringParameters?.imageName;
-  const clientName = event.queryStringParameters?.name;
-  const objectKey = `images/${clientName}/${imageName}`;
+  const clientId = event.queryStringParameters?.userId;
+  const date = event.queryStringParameters?.date;
+  const objectKey = `images/${clientId}/${date}/${imageName}`;
 
   const params = {
     Bucket: bucketName,
@@ -30,6 +31,9 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     ContentType: "image/jpeg",
   };
   console.log("event", JSON.stringify(event));
+
+  console.log(`bucket`, process.env.AWS_BUCKET_NAME);
+  console.log(`params`, params);
 
   if (!methodToAllow) {
     return {
