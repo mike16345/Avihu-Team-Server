@@ -114,6 +114,21 @@ class UserService {
     }
   }
 
+  static async updateUserField(id, fieldName, fieldValue) {
+    try {
+      const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
+
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async updateImagesUploadedstatus(id, status) {
     try {
       const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });

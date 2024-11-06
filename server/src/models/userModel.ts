@@ -30,6 +30,11 @@ const userSchema = new Schema<IUser>({
     type: String,
     required: false,
   },
+  hasAccess: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   dateJoined: {
     type: Date,
     default: Date.now,
@@ -75,5 +80,6 @@ export const UserSchemaValidation = Joi.object({
   remindIn: Joi.number().min(259200).max(2678400).required(),
   checkInAt: Joi.number(),
   isChecked: Joi.boolean(),
+  hasAccess:Joi.boolean(),
   imagesUploaded: Joi.boolean(),
 });

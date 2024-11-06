@@ -1,7 +1,6 @@
-import { ObjectId } from "mongodb";
-
+import mongoose from "mongoose";
 export interface IUser {
-  _id: ObjectId;
+  _id: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
   email: string;
@@ -15,4 +14,5 @@ export interface IUser {
   checkInAt: number;
   isChecked: boolean;
   imagesUploaded: boolean;
+  hasAccess: boolean;
 }

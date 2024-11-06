@@ -65,3 +65,7 @@ export const validateBody = (event: APIGatewayEvent, validator: Joi.AnySchema<an
 export const extractBodyFromEvent = (event: APIGatewayEvent) => {
   return JSON.parse(event.body || "{}");
 };
+
+export const extractQueryFromEvent = (event: APIGatewayEvent) => {
+  return event.queryStringParameters || {};
+};

@@ -1,7 +1,13 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+} from "../utils/utils";
 
 export class UserController {
   static async addUser(
@@ -74,6 +80,27 @@ export class UserController {
       const users = await UserService.updateManyUsers(JSON.parse(event.body || "{}"));
 
       return createResponseWithData(StatusCode.OK, users, "Users updated successfully!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async updateUserField(event: APIGatewayEvent, context: Context) {
+    const body = extractBodyFromEvent(event);
+    const { userId } = extractQueryFromEvent(event);
+
+    if (!userId || !body) {
+      return createResponse(StatusCode.BAD_REQUEST, "Missing userId or body");
+    }
+
+    try {
+      const user = await UserService.updateUserField(userId, body.fieldName, body.value);
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${userId}" not found!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, user, "User updated successfully!");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
