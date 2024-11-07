@@ -80,6 +80,6 @@ export const UserSchemaValidation = Joi.object({
   remindIn: Joi.number().min(259200).max(2678400).required(),
   checkInAt: Joi.number(),
   isChecked: Joi.boolean(),
-  hasAccess:Joi.boolean(),
+  hasAccess: Joi.boolean(),
   imagesUploaded: Joi.boolean(),
 });

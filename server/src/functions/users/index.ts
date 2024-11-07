@@ -11,7 +11,7 @@ const userApiHandlers = {
   [`PUT ${BASE_PATH}/bulk`]: UserController.updateManyUsers, // Update users (bulk)
   [`POST ${BASE_PATH}`]: UserController.addUser, // Add new user
   [`DELETE ${BASE_PATH}/one`]: UserController.deleteUser, // Delete user by ID
-  [`PATCH ${BASE_PATH}/one`]: UserController.updateImagesUploadedstatus, // Delete user by ID
+  [`PUT ${BASE_PATH}/one/field`]: UserController.updateUserField,
 };
 
 const userValidaters = {

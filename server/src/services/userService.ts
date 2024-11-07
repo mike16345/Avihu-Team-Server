@@ -116,6 +116,7 @@ class UserService {
 
   static async updateUserField(id, fieldName, fieldValue) {
     try {
+      
       const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
 
       if (user) {

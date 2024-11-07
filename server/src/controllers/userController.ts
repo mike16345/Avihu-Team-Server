@@ -7,6 +7,7 @@ import {
   createServerErrorResponse,
   extractBodyFromEvent,
   extractQueryFromEvent,
+  isKeyInObject,
 } from "../utils/utils";
 
 export class UserController {
