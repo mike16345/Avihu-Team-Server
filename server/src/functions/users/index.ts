@@ -12,6 +12,9 @@ const userApiHandlers = {
   [`POST ${BASE_PATH}`]: UserController.addUser, // Add new user
   [`DELETE ${BASE_PATH}/one`]: UserController.deleteUser, // Delete user by ID
   [`PUT ${BASE_PATH}/one/field`]: UserController.updateUserField,
+  [`GET ${BASE_PATH}/user/email`]: UserController.checkUsersAccess,
+  [`PUT ${BASE_PATH}/user/register`]: UserController.register,
+  [`POST ${BASE_PATH}/user/login`]: UserController.logIn,
 };
 
 const userValidaters = {

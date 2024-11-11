@@ -8,6 +8,7 @@ import {
   extractBodyFromEvent,
   extractQueryFromEvent,
 } from "../utils/utils";
+import bcrypt from "bcryptjs";
 
 export class UserController {
   static async addUser(
@@ -136,6 +137,69 @@ export class UserController {
       }
 
       return createResponseWithData(StatusCode.OK, user, "Status updated successfully!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async checkUsersAccess(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const email = event.queryStringParameters?.email;
+
+    try {
+      const user = (await UserService.getUsersByParameter({ email })).pop();
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
+      }
+
+      if (!user.hasAccess) {
+        return createResponse(StatusCode.UNAUTHORIZED, `אין גישה לכתובת המייל`);
+      }
+
+      return createResponseWithData(StatusCode.OK, user, "פעולה בוצעה בהצלחה!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async register(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const { email, password } = JSON.parse(event.body || "{}");
+
+      const hashedPassword = await bcrypt.hash(password || "", 10);
+
+      const user = await UserService.register(email, hashedPassword);
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, user, "סיסמה נשמרה במערכת!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async logIn(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const { email, password } = JSON.parse(event.body || "{}");
+
+      const user = (await UserService.getUsersByParameter(email)).pop();
+
+      if (!user || (await !bcrypt.compare(password || ``, user.password))) {
+        return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
+      }
+
+      return createResponseWithData(StatusCode.OK, user, "התחברות בוצעה בהצלחה!");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
