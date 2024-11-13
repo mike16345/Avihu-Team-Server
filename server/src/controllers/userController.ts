@@ -9,6 +9,8 @@ import {
   extractQueryFromEvent,
 } from "../utils/utils";
 import bcrypt from "bcryptjs";
+import SessionService from "../services/sessionService";
+import { ISessionCreate } from "../models/sessionModel";
 
 export class UserController {
   static async addUser(
@@ -123,6 +125,7 @@ export class UserController {
       return createServerErrorResponse(err);
     }
   }
+
   static async updateImagesUploadedstatus(
     event: APIGatewayProxyEvent,
     context: Context
@@ -192,16 +195,38 @@ export class UserController {
   ): Promise<APIGatewayProxyResult> {
     try {
       const { email, password } = JSON.parse(event.body || "{}");
+      const users = await UserService.getUsersByParameter({ email });
+      const user = users.pop();
 
-      const user = (await UserService.getUsersByParameter(email)).pop();
-
+    console.log("users", users);
       if (!user || (await !bcrypt.compare(password || ``, user.password))) {
         return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
       }
+      const sessionData: ISessionCreate = {
+        userId: user._id.toString(),
+        data: { user },
+        type: "login",
+      };
+      const session = await SessionService.startSession(sessionData);
 
-      return createResponseWithData(StatusCode.OK, user, "התחברות בוצעה בהצלחה!");
+      return createResponseWithData(StatusCode.OK, session, "התחברות בוצעה בהצלחה!");
     } catch (err: any) {
       return createServerErrorResponse(err);
+    }
+  }
+
+  static async checkUserSessionToken(event: APIGatewayEvent, context: Context) {
+    try {
+      const { token } = extractBodyFromEvent(event);
+      const session = await SessionService.getSessionById(token._id);
+
+      await SessionService.refreshSession(token._id);
+
+      return createResponseWithData(!!session ? StatusCode.OK : StatusCode.UNAUTHORIZED, {
+        isValid: !!session,
+      });
+    } catch (error) {
+      return createServerErrorResponse(error);
     }
   }
 }
