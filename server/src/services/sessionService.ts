@@ -7,7 +7,8 @@ export default class SessionService {
   static async startSession(session: ISessionCreate) {
     try {
       const sessionDoc = await Session.create(session);
-      sessionCache.invalidateAll(); // Invalidate cache when a new session is created
+      sessionCache.invalidateAll();
+
       return sessionDoc;
     } catch (e) {
       throw e;
@@ -21,7 +22,8 @@ export default class SessionService {
         { updatedAt: new Date() },
         { new: true }
       );
-      sessionCache.invalidate(sessionId); // Invalidate the specific session cache
+      sessionCache.invalidate(sessionId);
+      
       return updatedSession;
     } catch (e) {
       throw e;
@@ -71,7 +73,7 @@ export default class SessionService {
     try {
       const sessions = await Session.find({ type });
       sessionCache.set(cacheKey, sessions); // Cache the sessions by type
-      
+
       return sessions;
     } catch (e) {
       throw e;

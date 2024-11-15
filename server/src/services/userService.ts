@@ -50,13 +50,9 @@ class UserService {
     let searchParam = [];
     const objectKeys = Object.keys(param);
 
-    if (objectKeys.length > 1) {
-      objectKeys.forEach((key) => {
-        searchParam.push({ [key]: param[key] });
-      });
-    } else {
-      searchParam = [param];
-    }
+    objectKeys.forEach((key) => {
+      searchParam.push({ [key]: param[key] });
+    });
 
     try {
       const users = await User.find({
@@ -114,12 +110,41 @@ class UserService {
     }
   }
 
+  static async updateUserField(id, fieldName, fieldValue) {
+    try {
+      const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
+
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async updateImagesUploadedstatus(id, status) {
     try {
       const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
       if (user) {
         cachedUsers.invalidateAll();
         singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async register(email, password) {
+    try {
+      const user = await User.findOneAndUpdate({ email }, { password }, { new: true });
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(email, user);
       }
 
       return user;
