@@ -198,8 +198,8 @@ export class UserController {
       const users = await UserService.getUsersByParameter({ email });
       const user = users.pop();
 
-    console.log("users", users);
-      if (!user || (await !bcrypt.compare(password || ``, user.password))) {
+      console.log("users", users);
+      if (!user || !(await bcrypt.compare(password || ``, user.password))) {
         return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
       }
       const sessionData: ISessionCreate = {
