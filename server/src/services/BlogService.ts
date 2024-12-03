@@ -4,6 +4,7 @@ export class BlogService {
   static async getAllPosts() {
     try {
       const allPosts = await BlogModel.find();
+
       return allPosts;
     } catch (error) {
       throw error;

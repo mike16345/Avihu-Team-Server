@@ -8,6 +8,9 @@ import {
   extractQueryFromEvent,
 } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
+import paginate, { PaginationResult } from "../utils/pagination";
+import { BlogModel } from "../models/blogsModel";
+import { IBlog } from "../interfaces/IBlog";
 
 export class BlogController {
   static async getAllPosts(event: APIGatewayEvent) {
@@ -49,6 +52,27 @@ export class BlogController {
       return createResponseWithData(StatusCode.CREATED, createdPost, "Post created successfully.");
     } catch (err: any) {
       return createServerErrorResponse(err);
+    }
+  }
+
+  static async getPaginatedPosts(event: APIGatewayEvent) {
+    try {
+      const { _limit, _page } = extractQueryFromEvent(event);
+
+      if (!_limit || !_page) {
+        return createResponse(StatusCode.BAD_REQUEST, "Limit and page are required.");
+      }
+
+      const paginationResults = await paginate<IBlog[]>({
+        model: BlogModel,
+        limit: Number(_limit),
+        page: Number(_page),
+        sort: { date: -1 },
+      });
+
+      return createResponseWithData(StatusCode.OK, paginationResults);
+    } catch (error: any) {
+      return createServerErrorResponse(error);
     }
   }
 
