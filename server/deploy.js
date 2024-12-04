@@ -6,15 +6,39 @@ const path = require("path");
 
 dotenv.config({ path: "./.env.local" });
 
-const lambdaFolder = "./src/functions";
+const args = process.argv.slice(2);
 
+// Parse the arguments
+const envArg = args.find((arg) => arg.startsWith("env="));
+
+if (!envArg) {
+  console.error(
+    "Please provide an environment using the 'env=' argument\nUsage: npm run deploy -- env='your-env' \nOptions:\n1. signedUrl\n2. api\n3. otp"
+  );
+  process.exit(1);
+}
+
+const env = envArg.split("=")[1];
+
+const lambdaFolder = "./src/functions";
 const DB_NAME = `DB_NAME=${process.env.DB_NAME}`;
 const DB_USER = `DB_USERNAME=${process.env.DB_USERNAME}`;
 const DB_PASSWORD = `DB_PASSWORD=${process.env.DB_PASSWORD}`;
 const DB_CLUSTER = `DB_CLUSTER=${process.env.DB_CLUSTER}`;
+const AWS_BUCKET = `AWS_BUCKET=${process.env.AWS_BUCKET}`;
+const EMAIL = `EMAIL=${process.env.EMAIL}`;
+const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 
 // Convert environment variables string to AWS CLI format
 const envVars = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
+const otpEnv = `${EMAIL},${APP_PASSWORD},` + envVars;
+const signedUrlEnv = `${AWS_BUCKET}`;
+
+const envMap = {
+  signedUrl: signedUrlEnv,
+  api: envVars,
+  otp: otpEnv,
+};
 
 // Function to recursively get all Lambda handlers (files) from the root folder and subfolders
 function getLambdaHandlers(folder) {
@@ -81,7 +105,7 @@ async function deployLambda() {
   const selectedHandlerPath = path.join(lambdaFolder, selectedHandler);
 
   const command = `lambda-build upload ${selectedFunction} -e ${selectedHandlerPath} -r il-central-1`;
-  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${selectedFunction} --timeout 10 --environment Variables="{${envVars}}" --region il-central-1`;
+  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${selectedFunction} --timeout 10 --environment Variables="{${envMap[env]}}" --region il-central-1`;
 
   try {
     console.log(`Updating environment variables with command: ${updateEnvCommand}`);
