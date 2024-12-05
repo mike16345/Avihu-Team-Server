@@ -1,7 +1,23 @@
-import Session, { ISessionCreate, SessionType } from "../models/sessionModel";
+import Session, { ISession, ISessionCreate, SessionType } from "../models/sessionModel";
 import { Cache } from "../utils/cache";
 
 const sessionCache = new Cache<any>();
+
+const isSessionExpired = (session: ISession): boolean => {
+  const now = new Date().getTime();
+
+  if (session.type === "login") {
+    const loginExpiration = session.updatedAt.getTime() + 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+
+    return now > loginExpiration;
+  } else if (session.type === "workout") {
+    const workoutExpiration = session.updatedAt.getTime() + 2 * 60 * 60 * 1000; // 2 hours in ms
+
+    return now > workoutExpiration;
+  }
+
+  return false;
+};
 
 export default class SessionService {
   static async startSession(session: ISessionCreate) {
@@ -23,7 +39,7 @@ export default class SessionService {
         { new: true }
       );
       sessionCache.invalidate(sessionId);
-      
+
       return updatedSession;
     } catch (e) {
       throw e;
@@ -31,16 +47,17 @@ export default class SessionService {
   }
 
   static async getSessionById(sessionId: string) {
-    const cachedSession = sessionCache.get(sessionId);
-    if (cachedSession) {
-      return cachedSession;
-    }
-
     try {
-      const session = await Session.findById(sessionId);
-      if (session) {
-        sessionCache.set(sessionId, session); // Cache the session after fetching it
+      const session = sessionCache.get(sessionId) || (await Session.findById(sessionId));
+
+      if (!session) return null;
+      
+      if (isSessionExpired(session)) {
+        await Session.deleteOne(session._id);
+        return null;
       }
+      sessionCache.set(sessionId, session);
+
       return session;
     } catch (err) {
       throw err;
@@ -56,7 +73,8 @@ export default class SessionService {
 
     try {
       const sessions = await Session.find({ userId });
-      sessionCache.set(cacheKey, sessions); // Cache the user's sessions
+
+      sessionCache.set(cacheKey, sessions);
       return sessions;
     } catch (e) {
       throw e;
@@ -72,7 +90,7 @@ export default class SessionService {
 
     try {
       const sessions = await Session.find({ type });
-      sessionCache.set(cacheKey, sessions); // Cache the sessions by type
+      sessionCache.set(cacheKey, sessions);
 
       return sessions;
     } catch (e) {

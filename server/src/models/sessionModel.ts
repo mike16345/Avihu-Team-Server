@@ -1,9 +1,9 @@
 import { Schema, model, Document } from "mongoose";
-import { MINIMUM_WORKOUT_SESSION_TIMEOUT, ONE_MINUTE } from "../constants/Constants";
+import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 export type SessionType = "login" | "workout" | string;
 
-interface ISession extends Document {
+export interface ISession extends Document {
   userId: string;
   type: SessionType;
   data?: any; // Additional session-specific data
@@ -21,10 +21,7 @@ const sessionSchema = new Schema<ISession>({
   updatedAt: { type: Date, default: Date.now },
 });
 
-sessionSchema.index(
-  { updatedAt: 1 },
-  { expireAfterSeconds: MINIMUM_WORKOUT_SESSION_TIMEOUT * ONE_MINUTE }
-);
+sessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: ONE_WEEK_IN_SECONDS });
 
 const Session = model<ISession>("Session", sessionSchema);
 
