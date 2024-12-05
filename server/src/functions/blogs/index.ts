@@ -8,7 +8,6 @@ const BASE_PATH = "/blogs";
 const blogApiHandlers = {
   [`GET ${BASE_PATH}`]: BlogController.getAllPosts,
   [`GET ${BASE_PATH}/paginate`]: BlogController.getPaginatedPosts,
-
   [`PUT ${BASE_PATH}/users`]: BlogController.updatePost,
   [`POST ${BASE_PATH}`]: BlogController.createPost,
   [`GET ${BASE_PATH}/one`]: BlogController.getPostById,

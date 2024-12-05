@@ -1,19 +1,13 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Password } from "../models/passwordModel";
-import UserService from "./userService";
 
-const saltRounds = 8;
+const saltRounds = 10;
 
 class PasswordsService {
-  static async hashPassword(email: string, password: string) {
+  static async hashPassword(userId: string, password: string) {
     try {
-      const user = await UserService.getUserByEmail({ email });
       const encryptedPassword = await bcrypt.hash(password, saltRounds);
-
-      if (!user) {
-        return null;
-      }
-      const encrypted = await Password.create({ userId: user._id, hash: encryptedPassword });
+      const encrypted = await Password.create({ userId, hash: encryptedPassword });
 
       return encrypted;
     } catch (e: any) {
@@ -21,10 +15,20 @@ class PasswordsService {
     }
   }
 
-  static async comparePasswords(email: string, providedPassword: string) {
+  static async updatePassword(userId: string, newPassword: string) {
     try {
-      const user = await UserService.getUserByEmail({ email });
-      const hashedPassword = await Password.findOne({ userId: user?._id });
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      await Password.findOneAndUpdate({ userId }, { hash: hashedPassword });
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
+  static async comparePasswords(userId: string, providedPassword: string) {
+    try {
+      const hashedPassword = await Password.findOne({ userId });
+
       if (!hashedPassword) {
         return null;
       }

@@ -26,10 +26,7 @@ const userSchema = new Schema<IUser>({
     type: [String],
     required: true,
   },
-  password: {
-    type: String,
-    required: false,
-  },
+
   hasAccess: {
     type: Boolean,
     required: false,
@@ -72,7 +69,6 @@ export const UserSchemaValidation = Joi.object({
   firstName: Joi.string().min(2).max(25),
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),
-  password: Joi.string().optional(),
   phone: Joi.string().pattern(/^0[0-9]{9}$/),
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),

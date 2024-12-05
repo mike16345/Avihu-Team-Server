@@ -6,7 +6,6 @@ export interface IUser {
   email: string;
   phone: string;
   dietaryType: string[];
-  password: string;
   dateJoined: Date;
   dateFinished: Date;
   planType: string;

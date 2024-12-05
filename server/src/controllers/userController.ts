@@ -8,9 +8,9 @@ import {
   extractBodyFromEvent,
   extractQueryFromEvent,
 } from "../utils/utils";
-import bcrypt from "bcryptjs";
 import SessionService from "../services/sessionService";
 import { ISessionCreate } from "../models/sessionModel";
+import PasswordsService from "../services/PasswordsService";
 
 export class UserController {
   static async addUser(
@@ -173,15 +173,14 @@ export class UserController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     try {
-      const { email, password } = JSON.parse(event.body || "{}");
-
-      const hashedPassword = await bcrypt.hash(password || "", 10);
-
-      const user = await UserService.register(email, hashedPassword);
+      const { email, password } = extractBodyFromEvent(event);
+      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
       }
+
+      await PasswordsService.hashPassword(user._id.toString(), password);
 
       return createResponseWithData(StatusCode.OK, user, "סיסמה נשמרה במערכת!");
     } catch (err: any) {
@@ -195,11 +194,12 @@ export class UserController {
   ): Promise<APIGatewayProxyResult> {
     try {
       const { email, password } = JSON.parse(event.body || "{}");
-      const users = await UserService.getUsersByParameter({ email });
-      const user = users.pop();
+      const user = (await UserService.getUsersByParameter({ email })).at(0);
 
-      console.log("users", users);
-      if (!user || !(await bcrypt.compare(password || ``, user.password))) {
+      const isSamePassword =
+        user && (await PasswordsService.comparePasswords(user._id.toString(), password));
+
+      if (!user || !isSamePassword) {
         return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
       }
       const sessionData: ISessionCreate = {
