@@ -26,13 +26,16 @@ const DB_USER = `DB_USERNAME=${process.env.DB_USERNAME}`;
 const DB_PASSWORD = `DB_PASSWORD=${process.env.DB_PASSWORD}`;
 const DB_CLUSTER = `DB_CLUSTER=${process.env.DB_CLUSTER}`;
 const AWS_BUCKET = `AWS_BUCKET=${process.env.AWS_BUCKET}`;
+const AWS_REGION = `REGION=${process.env.REGION}`;
 const EMAIL = `EMAIL=${process.env.EMAIL}`;
 const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
+const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
+const ACCESS_SECRET = `SECRET_KEY=${process.SECRET_KEY}`;
 
 // Convert environment variables string to AWS CLI format
 const envVars = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
 const otpEnv = `${EMAIL},${APP_PASSWORD},` + envVars;
-const signedUrlEnv = `${AWS_BUCKET}`;
+const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
 
 const envMap = {
   signedUrl: signedUrlEnv,

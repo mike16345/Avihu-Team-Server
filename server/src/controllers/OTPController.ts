@@ -47,7 +47,7 @@ export class OTPController {
           body: JSON.stringify({ message: "Email is required" }),
         };
       }
-      const user = (await UserService.getUsersByParameter({ email })).at(0);
+      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");
