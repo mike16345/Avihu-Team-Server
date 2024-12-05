@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { handleApiCall } from "../baseHandler";
 import PasswordsController from "../../controllers/passwordsController";
 
-const BASE_PATH = "/password";
+const BASE_PATH = "/passwords";
 
 const otpApiHandlers = {
   [`POST ${BASE_PATH}`]: PasswordsController.hashPassword,

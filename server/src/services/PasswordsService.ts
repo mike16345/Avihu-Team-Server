@@ -4,6 +4,14 @@ import { Password } from "../models/passwordModel";
 const saltRounds = 10;
 
 class PasswordsService {
+  // find password by user id
+  static async findPasswordByUserId(userId: string) {
+    try {
+      return await Password.findOne({ userId });
+    } catch (err: any) {
+      throw err;
+    }
+  }
   static async hashPassword(userId: string, password: string) {
     try {
       const encryptedPassword = await bcrypt.hash(password, saltRounds);
@@ -19,7 +27,7 @@ class PasswordsService {
     try {
       const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-      await Password.findOneAndUpdate({ userId }, { hash: hashedPassword });
+      return await Password.findOneAndUpdate({ userId }, { hash: hashedPassword });
     } catch (err: any) {
       throw err;
     }

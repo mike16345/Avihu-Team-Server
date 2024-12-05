@@ -161,8 +161,9 @@ export class UserController {
       if (!user.hasAccess) {
         return createResponse(StatusCode.UNAUTHORIZED, `אין גישה לכתובת המייל`);
       }
+      const hasPassword = PasswordsService.findPasswordByUserId(user._id.toString());
 
-      return createResponseWithData(StatusCode.OK, user, "פעולה בוצעה בהצלחה!");
+      return createResponseWithData(StatusCode.OK, { user, hasPassword }, "פעולה בוצעה בהצלחה!");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }

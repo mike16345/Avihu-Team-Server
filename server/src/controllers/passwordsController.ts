@@ -30,7 +30,9 @@ class PasswordsController {
     }
   }
 
-  static async updatePassword(email: string, password: string) {
+  static async updatePassword(event: APIGatewayEvent) {
+    const { email, password } = extractBodyFromEvent(event);
+
     try {
       const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
       if (!user) {
