@@ -1,6 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
+import { ISession } from "../models/sessionModel";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -68,4 +69,35 @@ export const extractBodyFromEvent = (event: APIGatewayEvent) => {
 
 export const extractQueryFromEvent = (event: APIGatewayEvent) => {
   return event.queryStringParameters || {};
+};
+
+export const generateOTP = (length: number = 6) => {
+  const digits = "0123456789";
+  let otp = "";
+
+  for (let i = 0; i < length; i++) {
+    otp += digits[Math.floor(Math.random() * digits.length)];
+  }
+
+  return otp;
+};
+
+export const isSessionExpired = (
+  session: ISession,
+  expiresAfter: number,
+  field: keyof ISession = "createdAt"
+) => {
+  const now = new Date().getTime();
+  const workoutExpiration = new Date(session[field]).getTime() + expiresAfter;
+
+  return now > workoutExpiration;
+};
+
+export const generateUUID = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+
+    return v.toString(16);
+  });
 };

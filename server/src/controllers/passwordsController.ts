@@ -5,9 +5,12 @@ import {
   createResponseWithData,
   createServerErrorResponse,
   extractBodyFromEvent,
+  isSessionExpired,
 } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
+import SessionService from "../services/sessionService";
+import { ONE_MINUTE_IN_MILLISECONDS, ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 class PasswordsController {
   static async hashPassword(event: APIGatewayEvent) {
@@ -31,14 +34,30 @@ class PasswordsController {
   }
 
   static async updatePassword(event: APIGatewayEvent) {
-    const { email, password } = extractBodyFromEvent(event);
+    const { email, password, sessionId } = extractBodyFromEvent(event);
+
+    if (!sessionId) {
+      return createResponse(StatusCode.UNAUTHORIZED, "");
+    }
+
+    const session = await SessionService.getSessionById(sessionId);
+
+    if (!session) {
+      return createResponse(StatusCode.UNAUTHORIZED, "");
+    }
+
+    if (isSessionExpired(session, ONE_MINUTE_IN_MILLISECONDS * 10)) {
+      return createResponse(StatusCode.UNAUTHORIZED, "OTP is expired");
+    }
 
     try {
       const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
+
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with email ${email} does not exist`);
       }
       await PasswordsService.updatePassword(user._id.toString(), password);
+      await SessionService.endSession(sessionId);
 
       return createResponse(StatusCode.OK, `Password updated successfully`);
     } catch (error: any) {
@@ -47,13 +66,15 @@ class PasswordsController {
   }
 
   static async comparePasswords(event: APIGatewayEvent) {
-    const { email, password } = JSON.parse(event.body || "{}");
+    const { email, password } = extractBodyFromEvent(event);
+
     if (!email || !password) {
       return createResponse(StatusCode.BAD_REQUEST, "Missing email or password");
     }
 
     try {
       const match = await PasswordsService.comparePasswords(email, password);
+      
       if (!match) {
         return createResponse(
           StatusCode.UNAUTHORIZED,

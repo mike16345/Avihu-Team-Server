@@ -3,7 +3,7 @@ import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 export type SessionType = "login" | "workout" | string;
 
-export interface ISession extends Document {
+export interface ISession {
   userId: string;
   type: SessionType;
   data?: any; // Additional session-specific data
