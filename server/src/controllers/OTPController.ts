@@ -48,7 +48,6 @@ export class OTPController {
         };
       }
       const user = (await UserService.getUsersByParameter({ email })).at(0);
-      console.log(`User with mail ${email}:`, user);
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");
@@ -62,7 +61,7 @@ export class OTPController {
 
       await otpService.sendOTPEmail(email, otp);
 
-      return createResponseWithData(StatusCode.OK, otp, "OTP sent successfully");
+      return createResponseWithData(StatusCode.OK, undefined, "OTP sent successfully");
     } catch (error) {
       return createServerErrorResponse(error);
     }
