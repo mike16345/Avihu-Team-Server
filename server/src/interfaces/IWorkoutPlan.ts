@@ -19,6 +19,7 @@ export interface IDetailedWorkoutPlan {
 
 export interface IFullWorkoutPlan {
   userId: string;
+  tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];
 }
 
