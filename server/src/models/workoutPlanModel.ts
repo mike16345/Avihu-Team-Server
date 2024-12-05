@@ -81,6 +81,9 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
     type: String,
     required: true,
   },
+  tips: {
+    type: [String],
+  },
   workoutPlans: {
     type: [workoutPlanSchema],
     validate: {
@@ -116,6 +119,7 @@ export const WorkoutPlanSchemaValidation = Joi.object({
 });
 
 export const FullWorkoutPlanSchemaValidation = Joi.object({
+  tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });
 

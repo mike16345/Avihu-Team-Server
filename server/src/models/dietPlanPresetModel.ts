@@ -8,7 +8,7 @@ export const dietPlanSchema = new Schema<IDietPlanPreset>({
   meals: { type: [mealSchema], required: true },
   totalCalories: { type: Number, required: false },
   freeCalories: { type: Number, required: false },
-  customInstructions: { type: String, required: false },
+  customInstructions: { type: [String], required: false },
 });
 
 export const DietPlanPresetsModel = model<IDietPlanPreset>("dietPlanPresets", dietPlanSchema);
@@ -18,5 +18,5 @@ export const DietPlanPresetSchemaValidation = Joi.object({
   meals: Joi.array().items(mealValidationSchema).min(1).required(),
   totalCalories: Joi.number().optional(),
   freeCalories: Joi.number().optional().min(0),
-  customInstructions: Joi.string().allow("").optional(),
+  customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
 });
