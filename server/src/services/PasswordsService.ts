@@ -12,7 +12,7 @@ class PasswordsService {
       throw err;
     }
   }
-  
+
   static async hashPassword(userId: string, password: string) {
     try {
       const encryptedPassword = await bcrypt.hash(password, saltRounds);
