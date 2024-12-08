@@ -1,3 +1,4 @@
+
 import { Request, Response, NextFunction } from "express";
 import { WeighInSchemaValidation } from "../models/weighInModel";
 import { StatusCode } from "../enums/StatusCode";
