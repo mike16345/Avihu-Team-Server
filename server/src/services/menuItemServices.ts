@@ -17,12 +17,11 @@ export class MenuItemService {
     }
   }
 
-  static async getMenuItems(foodGroup: string, dietaryRestrictions = {}) {
+  static async getMenuItems(foodGroup: string) {
     const cached = cachedMenuItems.get(foodGroup);
 
     try {
-      const menuItems =
-        cached || (await fullMenuItemPresets.find({ foodGroup: foodGroup }, dietaryRestrictions));
+      const menuItems = cached || (await fullMenuItemPresets.find({ foodGroup: foodGroup }));
       cachedMenuItems.set(foodGroup, menuItems);
 
       return menuItems;

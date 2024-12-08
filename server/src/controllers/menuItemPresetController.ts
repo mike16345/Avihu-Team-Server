@@ -27,10 +27,10 @@ export class MenuItemPresetController {
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> {
-    const { foodGroup, dietaryRestrictions } = event.queryStringParameters || {};
+    const { foodGroup } = event.queryStringParameters || {};
 
     try {
-      const menuItems = await MenuItemService.getMenuItems(foodGroup || "", dietaryRestrictions);
+      const menuItems = await MenuItemService.getMenuItems(foodGroup || "");
 
       if (!menuItems) {
         return createResponse(
