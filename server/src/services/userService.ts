@@ -1,10 +1,19 @@
-import { CheckInModel } from "../models/checkInModel";
+//@ts-nocheck
+import { DataBrew } from "aws-sdk";
 import { User } from "../models/userModel";
+import { Cache } from "../utils/cache";
+import connect, { conn } from "../db/connect";
+import { deleteUserFromAllCollections } from "../utils/utils";
+import mongoose from "mongoose";
 
-export class UserService {
-  static async createUser(data: any) {
+let cachedUsers = new Cache<IUser[]>();
+let singleUsersCache = new Cache<IUser>();
+
+class UserService {
+  static async createUser(data) {
     try {
       const newUser = await User.create(data);
+      cachedUsers.invalidateAll();
 
       return newUser;
     } catch (error) {
@@ -13,8 +22,11 @@ export class UserService {
   }
 
   static async getUsers() {
+    const cached = cachedUsers.get("all");
+
     try {
-      const users = await User.find({}).lean();
+      const users = cached || (await User.find());
+      cachedUsers.set("all", users);
 
       return users;
     } catch (error) {
@@ -22,9 +34,11 @@ export class UserService {
     }
   }
 
-  static async getUser(id: string) {
+  static async getUser(id) {
+    const cached = singleUsersCache.get(id);
     try {
-      const user = await User.findById({ _id: id }).lean();
+      const user = cached || (await User.findById(id).lean());
+      singleUsersCache.set(id, user);
 
       return user;
     } catch (error) {
@@ -32,24 +46,32 @@ export class UserService {
     }
   }
 
-  static async getUserByEmail(email: string) {
-    try {
-      const user = await User.findOne({ email }).lean();
+  static async getUsersByParameter(param) {
+    let searchParam = [];
+    const objectKeys = Object.keys(param);
 
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  }
+    objectKeys.forEach((key) => {
+      searchParam.push({ [key]: param[key] });
+    });
 
-  static async updateUser(data: any, id?: string) {
     try {
-      const user = await User.findByIdAndUpdate({ _id: id }, data, {
-        new: true,
+      const users = await User.find({
+        $or: searchParam,
       });
 
-      if (!user) {
-        return "User not available";
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateUser(data, id) {
+    try {
+      const user = await User.findByIdAndUpdate(id, data, { new: true });
+
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.invalidate(id);
       }
 
       return user;
@@ -58,13 +80,15 @@ export class UserService {
     }
   }
 
-  static async updateManyUsers(data: any[]) {
+  static async updateManyUsers(data) {
     try {
       const updatedUsers = await Promise.all(
         data.map(async (user) => {
-          return await UserService.updateUser(user);
+          return await UserService.updateUser(user, user._id);
         })
       );
+      singleUsersCache.invalidateAll();
+      cachedUsers.invalidateAll();
 
       return updatedUsers;
     } catch (error) {
@@ -72,11 +96,55 @@ export class UserService {
     }
   }
 
-  static async deleteUser(id: string) {
+  static async deleteUser(id) {
     try {
       const user = await User.findByIdAndDelete(id);
-      if (!user) {
-        return "User not available!";
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.invalidate(id);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateUserField(id, fieldName, fieldValue) {
+    try {
+      const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
+
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateImagesUploadedstatus(id, status) {
+    try {
+      const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(id, user);
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async register(email, password) {
+    try {
+      const user = await User.findOneAndUpdate({ email }, { password }, { new: true });
+      if (user) {
+        cachedUsers.invalidateAll();
+        singleUsersCache.set(email, user);
       }
 
       return user;
@@ -85,3 +153,5 @@ export class UserService {
     }
   }
 }
+
+export default UserService;

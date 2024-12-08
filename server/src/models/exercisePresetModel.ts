@@ -1,26 +1,25 @@
 import Joi, { required } from "joi";
 import { model, Schema } from "mongoose";
 
-
 export const exercisePresetSchema = new Schema({
   name: {
     type: String,
     required: true,
-    minlength: 1
+    minlength: 1,
   },
   linkToVideo: {
     type: String,
     required: true,
-    minlength: 27
+    minlength: 27,
   },
-  tipsFromTrainer: {
+  tipFromTrainer: {
     type: String,
-    minlength: 1
+    minlength: 1,
   },
   muscleGroup: {
     type: String,
     required: true,
-    minlength: 1
+    minlength: 1,
   },
 });
 

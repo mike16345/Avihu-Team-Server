@@ -1,14 +1,33 @@
-import { Request, Response, NextFunction } from "express";
 import { UserSchemaValidation } from "../models/userModel";
-import { StatusCode } from "../enums/StatusCode";
+import { APIGatewayProxyEvent } from "aws-lambda";
+import { Context } from "aws-sdk/clients/autoscaling";
+import UserService from "../services/userService";
 
-export const validateUser=(req:Request,res:Response,next:NextFunction)=>{
-    
-      const { error} = UserSchemaValidation.validate(req.body);
+export const validateUser = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<{ isValid: boolean; message?: string }> => {
+  const body = JSON.parse(event.body || "{}"); // Parse the JSON body
+  const email = body.email;
+  const phone = body.phone;
 
-      if (error) {
-        return res.status(StatusCode.BAD_REQUEST).send(error.message);
-      }
+  try {
+    const users = await UserService.getUsersByParameter({ email, phone });
 
-      next()
-}
+    for (const user of users) {
+      if (user.email === email) return { isValid: false, message: "כתובת מייל בשימוש!" };
+      if (user.phone === phone) return { isValid: false, message: "מספר טלפון בשימוש!" };
+    }
+
+    const { error } = UserSchemaValidation.validate(body);
+
+    if (error) {
+      return { isValid: false, message: error.message }; // Return error message if validation fails
+    }
+
+    // If validation is successful
+    return { isValid: true, message: "Validation successful" };
+  } catch (err: any) {
+    return { isValid: false, message: err.message };
+  }
+};

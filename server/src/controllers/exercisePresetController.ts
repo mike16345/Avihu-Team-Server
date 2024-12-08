@@ -1,84 +1,145 @@
-import { Request, Response } from "express";
-import { exercisePresetServices } from "../services/exercisePresetService";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { ExercisePresetService } from "../services/exercisePresetService";
 import { StatusCode } from "../enums/StatusCode";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
-class ExercisePresetController {
-  addExercise = async (req: Request, res: Response) => {
-    const exercise = req.body;
-
-    try {
-      const excercisePreset = await exercisePresetServices.addExercise(exercise);
-
-      res.status(StatusCode.CREATED).send(excercisePreset);
-    } catch (error) {
-      res.status(StatusCode.BAD_REQUEST).send(error);
-    }
-  };
-
-  getExercises = async (req: Request, res: Response) => {
-    try {
-      const allExercises = await exercisePresetServices.getExercises();
-
-      res.status(StatusCode.OK).send(allExercises);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send(error);
-    }
-  };
-
-  getExercisesByMusceGroup = async (req: Request, res: Response) => {
-    const { muscleGroup } = req.params;
+export class ExercisePresetController {
+  static async addExercise(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const exercise = JSON.parse(event.body || "{}");
 
     try {
-      const muscleGroupExercises = await exercisePresetServices.getExercisesByMuscleGroup(
-        muscleGroup
+      const newExercise = await ExercisePresetService.addExercise(exercise);
+      return createResponseWithData(
+        StatusCode.CREATED,
+        newExercise,
+        "Exercise added successfully!"
       );
-
-      res.status(StatusCode.OK).send(muscleGroupExercises);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send(error);
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
-  };
+  }
 
-  getExerciseById = async (req: Request, res: Response) => {
-    const { id } = req.params;
-
+  static async getExercises(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const exercise = await exercisePresetServices.getExerciseById(id);
+      const allExercises = await ExercisePresetService.getExercises();
 
-      res.status(StatusCode.OK).send(exercise);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send(error);
-    }
-  };
-
-  deleteExercise = async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    try {
-      const exercise = await exercisePresetServices.deleteExercise(id);
-
-      res.status(StatusCode.OK).send(exercise);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send(error);
-    }
-  };
-
-  updateExercise = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const newExercise = req.body;
-
-    try {
-      const exercise = await exercisePresetServices.updateExercise(id, newExercise);
-
-      if (!exercise) {
-        return res.status(StatusCode.BAD_REQUEST);
+      if (!allExercises || allExercises.length === 0) {
+        return createResponse(StatusCode.NOT_FOUND, "No exercises found!");
       }
 
-      res.status(StatusCode.OK).send(exercise);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send(error);
+      return createResponseWithData(
+        StatusCode.OK,
+        allExercises,
+        "Exercises retrieved successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
     }
-  };
-}
+  }
 
-export const exercisePresetController = new ExercisePresetController();
+  static async getExercisesByMuscleGroup(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { muscleGroup } = event.queryStringParameters || {};
+
+    try {
+      const muscleGroupExercises = await ExercisePresetService.getExercisesByMuscleGroup(
+        muscleGroup || ""
+      );
+
+      if (!muscleGroupExercises || muscleGroupExercises.length === 0) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `No exercises found for muscle group: ${muscleGroup}`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        muscleGroupExercises,
+        "Exercises by muscle group retrieved successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
+
+  static async getExerciseById(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { id } = event.queryStringParameters || {};
+
+    try {
+      const exercise = await ExercisePresetService.getExerciseById(id || "");
+
+      if (!exercise) {
+        return createResponse(StatusCode.NOT_FOUND, `Exercise not found with ID: ${id}`);
+      }
+
+      return createResponseWithData(StatusCode.OK, exercise, "Exercise retrieved successfully!");
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
+
+  static async deleteExercise(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { id } = event.queryStringParameters || {};
+
+    try {
+      const deletedExercise = await ExercisePresetService.deleteExercise(id || "");
+
+      if (!deletedExercise) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find exercise with ID: ${id} to delete!`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        deletedExercise,
+        "Exercise deleted successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
+
+  static async updateExercise(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const newExercise = JSON.parse(event.body || "{}");
+    const { id } = event.queryStringParameters || {};
+
+    try {
+      const updatedExercise = await ExercisePresetService.updateExercise(id || "", newExercise);
+
+      if (!updatedExercise) {
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          `Could not find exercise with ID: ${id} to update!`
+        );
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedExercise,
+        "Exercise updated successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
+}

@@ -17,7 +17,7 @@ export const setSchema: Schema<ISet> = new Schema({
   maxReps: {
     type: Number,
     required: false,
-    min: 1,
+    min: 0,
   },
 });
 
@@ -38,7 +38,6 @@ export const workoutSchema: Schema<IWorkout> = new Schema({
   tipFromTrainer: {
     type: String,
     required: false,
-    default: "",
   },
 });
 
@@ -80,6 +79,10 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
+    required: true,
+  },
+  tips: {
+    type: [String],
   },
   workoutPlans: {
     type: [workoutPlanSchema],
@@ -95,14 +98,14 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
 
 export const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
-  maxReps: Joi.number().min(1).optional(),
+  maxReps: Joi.number().allow(0).greater(Joi.ref("minReps")).optional(),
 });
 
 export const workoutValidationSchema = Joi.object({
   name: Joi.string().required(),
   sets: Joi.array().items(setValidationSchema).required(),
   linkToVideo: Joi.string().optional(),
-  tipFromTrainer: Joi.string().optional(),
+  tipFromTrainer: Joi.string().allow("").optional(),
 });
 
 export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
@@ -116,6 +119,7 @@ export const WorkoutPlanSchemaValidation = Joi.object({
 });
 
 export const FullWorkoutPlanSchemaValidation = Joi.object({
+  tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });
 

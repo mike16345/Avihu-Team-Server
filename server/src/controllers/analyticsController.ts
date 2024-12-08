@@ -1,69 +1,56 @@
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
-import { CheckInModel } from "../models/checkInModel";
-import { User } from "../models/userModel";
 import { AnalyticsService } from "../services/analyticsService";
-import { Request, Response } from "express";
+import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
 
 export class AnalyticsController {
-  static async getAllCheckInUsers(req: Request, res: Response) {
+  static async getAllCheckInUsers(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
       const allCheckInUsers = await AnalyticsService.getAllCheckInUsers();
 
-      res.send(allCheckInUsers);
-    } catch (error) {
-      res.status(StatusCode.NOT_FOUND).send({ message: error });
+      return createResponseWithData(StatusCode.OK, allCheckInUsers);
+    } catch (error: any) {
+      return createServerErrorResponse(error);
     }
   }
 
-  static async createCheckIn(req: Request, res: Response) {
-    const { email } = req.body;
+  static async checkOffUser(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const id = event.queryStringParameters?.id || "";
 
     try {
-      const newCheckIn = await AnalyticsService.createNewCheckIn(email);
-
-      if (!newCheckIn) {
-        return res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .send({ message: `error creating new check in` });
-      }
-
-      res.status(StatusCode.OK);
-    } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
-    }
-  }
-
-  static async updateCheckIn(req: Request, res: Response) {
-    const { id } = req.params;
-
-    try {
-      const updatedCheckIn = await AnalyticsService.updateCheckIn(id);
-
-      if (!updatedCheckIn) {
-        return res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .send({ message: `error updating check in` });
-      }
-
-      res.status(StatusCode.OK);
-    } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: error });
-    }
-  }
-
-  static async checkOffUser(req: Request, res: Response) {
-    const { id } = req.params;
-
-    try {
-      const checkedUser = await AnalyticsService.checkOffuser(id);
+      const checkedUser = await AnalyticsService.checkOffUser(id);
 
       if (!checkedUser) {
-        return res.status(StatusCode.NOT_FOUND).send({ message: `user not found` });
+        return createResponse(StatusCode.NOT_FOUND, "User not found");
       }
 
-      res.send(checkedUser);
+      return createResponseWithData(StatusCode.OK, checkedUser);
+    } catch (error: any) {
+      return createServerErrorResponse(error);
+    }
+  }
+
+  static async getUsersWithNoPlans(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const collection = event.queryStringParameters?.collection || "";
+
+    try {
+      const users = await AnalyticsService.getUsersWithoutPlans(collection);
+
+      return createResponseWithData(StatusCode.OK, users);
+    } catch (error: any) {
+      return createServerErrorResponse(error);
+    }
+  }
+
+  static async getUsersFinishingThisMonth(
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const users = await AnalyticsService.getUsersFinishingThisMonth();
+
+      return createResponseWithData(StatusCode.OK, users);
     } catch (error) {
-      res.status(StatusCode.BAD_REQUEST).send({ message: error });
+      return createServerErrorResponse(error);
     }
   }
 }

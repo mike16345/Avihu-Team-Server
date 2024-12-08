@@ -1,13 +1,14 @@
-import { ObjectId } from "mongodb";
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISessionCreate } from "../models/sessionModel";
+import mongoose from "mongoose";
+import { Cache } from "../utils/cache";
 
-const getCurrentDate = () => new Date().toISOString().split("T")[0];
+const cachedRecordedSets = new Cache<any>();
 
-const findOrCreateMuscleGroupRecord = async (userId: ObjectId, muscleGroup: string) => {
+const findOrCreateMuscleGroupRecord = async (userId: any, muscleGroup: string) => {
   let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({ userId, muscleGroup });
   if (!muscleGroupRecord) {
     muscleGroupRecord = new MuscleGroupRecordedSets({
@@ -29,14 +30,11 @@ const initializeExerciseIfNecessary = (
 };
 
 const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
-  console.log("active session", activeSession);
   if (!activeSession) return 1;
 
   return (
     (activeSession.data[planName] && activeSession.data[planName][exercise]?.setNumber) + 1 || 1
   );
-
-  return 1;
 };
 
 const createOrUpdateSession = async (
@@ -59,19 +57,14 @@ export class RecordedSetsService {
     recordedSet: IRecordedSet
   ) {
     try {
-      const objectId = new ObjectId(userId);
-      const currentDate = getCurrentDate();
-      console.log("session ", sessionId);
-      const activeSession = await SessionService.getSessionById(sessionId);
+      const objectId = new mongoose.mongo.ObjectId(userId);
+      const activeSession = sessionId ? await SessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
 
       const muscleGroupRecord = await findOrCreateMuscleGroupRecord(objectId, muscleGroup);
       initializeExerciseIfNecessary(muscleGroupRecord, exercise);
 
       const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
-      console.log("muscle group : ", muscleGroup);
-      console.log("exercise : ", exercise);
-      console.log("next set number for exercise " + nextSetNumber);
 
       recordedSet.setNumber = nextSetNumber;
       muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
@@ -79,7 +72,6 @@ export class RecordedSetsService {
 
       const plan = recordedSet.plan;
       const prevExerciseData = activeSession?.data[plan] || {};
-      console.log("exercise data", prevExerciseData);
       const sessionDetails: ISessionCreate = {
         userId,
         type: "workout",
@@ -91,6 +83,8 @@ export class RecordedSetsService {
       const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
       const savedResult = await muscleGroupRecord.save();
 
+      cachedRecordedSets.invalidateAllContaining(userId);
+
       return {
         session,
         recordedSet: savedResult,
@@ -100,11 +94,53 @@ export class RecordedSetsService {
     }
   }
 
+  static async getLastRecordedSetInfoInExercise(exercise: string, setNumber: number) {}
+
+  static async getUserRecordedSetsByExercise(
+    userId: string,
+    muscleGroup: string,
+    exercise: string
+  ) {
+    const cacheKey = `exercise:${userId}:${muscleGroup}:${exercise}`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const result = await MuscleGroupRecordedSets.findOne({
+        userId,
+        muscleGroup,
+      });
+
+      if (!result || !result.recordedSets[exercise]) {
+        return null;
+      }
+
+      cachedRecordedSets.set(cacheKey, result.recordedSets[exercise]);
+
+      return result.recordedSets[exercise];
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
   static async getRecordedSetsByUserId({
     userId,
     muscleGroup,
     exercise,
   }: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${userId}:${muscleGroup ? `muscleGroup:${muscleGroup}` : ""}${
+      exercise ? `:exercise:${exercise}` : ""
+    }`;
+    const cached = cachedRecordedSets.get(cacheKey);
+    console.log("cache key: " + cacheKey);
+    if (cached) {
+      console.log("returning cached data", cached);
+      return cached;
+    }
+
     try {
       const query: any = { userId };
 
@@ -118,18 +154,30 @@ export class RecordedSetsService {
         return "No records found for user!";
       }
 
+      cachedRecordedSets.set(cacheKey, muscleGroupRecords);
       if (!exercise) return muscleGroupRecords;
 
-      return (
-        muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
-        "No exercises found for: " + exercise
-      );
+      const result = exercise
+        ? muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
+          `No exercises found for: ${exercise}`
+        : muscleGroupRecords;
+
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }
   }
 
   static async getUserRecordedExerciseNamesByMuscleGroup(query: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${query.userId}:muscleGroup:${query.muscleGroup}:exerciseNames`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     try {
       const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
 
@@ -137,13 +185,23 @@ export class RecordedSetsService {
         return muscleGroupRecords;
       }
 
-      return Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
+      const result = Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }
   }
 
   static async getUserRecordedMuscleGroupNames(query: Partial<RecordedSetsQueryParams>) {
+    const cacheKey = `user:${query.userId}:muscleGroupNames`;
+    const cached = cachedRecordedSets.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     try {
       const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
 
@@ -151,9 +209,12 @@ export class RecordedSetsService {
         return muscleGroupRecords;
       }
 
-      return (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
+      const result = (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
         (muscleGroup) => muscleGroup.muscleGroup
       );
+      cachedRecordedSets.set(cacheKey, result);
+
+      return result;
     } catch (err: any) {
       throw err;
     }

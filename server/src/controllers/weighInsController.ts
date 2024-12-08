@@ -1,119 +1,126 @@
-import { Request, Response } from "express";
-import { WeighInSchemaValidation } from "../models/weighInModel";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { weighInServices } from "../services/weighInService";
 import { IWeighIn } from "../interfaces/IWeighIns";
-import { UpdateResult } from "mongodb";
 import { StatusCode } from "../enums/StatusCode";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  extractBodyFromEvent,
+} from "../utils/utils";
 
 class WeighInsController {
-  addWeighIn = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const weighInToAdd = req.body;
+  static addWeighIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const userId = event.queryStringParameters?.id;
+    const weighInToAdd = extractBodyFromEvent(event);
+
+    if (!userId) {
+      return createResponse(StatusCode.BAD_REQUEST, "userId is required.");
+    }
 
     try {
-      const weighIn = await weighInServices.addWeighIn(weighInToAdd, id);
+      const weighIn = await weighInServices.addWeighIn(weighInToAdd, userId);
 
-      res.status(StatusCode.CREATED).json(weighIn);
+      return createResponseWithData(StatusCode.CREATED, weighIn, "Successfully added weigh in!");
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  addManyWeighIns = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const weighIns = req.body.weighIns as IWeighIn[];
+  static addManyWeighIns = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
+    const weighIns = JSON.parse(event.body || "{}").weighIns as IWeighIn[];
 
     try {
       const result = await weighInServices.addManyWeighIns(weighIns, id);
 
-      res.status(StatusCode.CREATED).send(result);
+      return createResponseWithData(StatusCode.CREATED, result, "Successfully added weigh ins!");
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  updateWeighIn = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const { weight } = req.body;
+  static updateWeighIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
+    const { weight } = extractBodyFromEvent(event);
 
     try {
       const updatedWeighIn = await weighInServices.updateWeighIn(id, weight);
 
       if (!updatedWeighIn) {
-        return res.status(StatusCode.NOT_FOUND).send({ message: "Weigh in not found!" });
+        return createResponse(StatusCode.NOT_FOUND, "Weigh in not found!");
       }
 
-      res.status(StatusCode.OK).json(updatedWeighIn);
-    } catch (err) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err });
+      return createResponseWithData(StatusCode.OK, updatedWeighIn, "Successfully updated weigh in");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  deleteUserWeighIns = async (req: Request, res: Response) => {
+  static deleteUserWeighIns = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
+
     try {
-      const id = req.params.id;
       const response = await weighInServices.deleteUserWeighIns(id);
 
-      return res.status(StatusCode.OK).json(response);
+      return createResponseWithData(StatusCode.OK, response, "Deleted user weigh ins");
     } catch (err) {
-      return res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ message: "There was an error deleting weigh ins." });
+      return createServerErrorResponse(err);
     }
   };
 
-  deleteWeighInById = async (req: Request, res: Response) => {
-    const { weighInId } = req.params;
+  static deleteWeighInById = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const weighInId = event.queryStringParameters?.id || "";
 
     try {
       const response = await weighInServices.deleteWeighInById(weighInId);
 
       if (!response) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .send({ message: "Did not find weigh in to delete." });
+        return createResponse(StatusCode.NOT_FOUND, "Did not find weigh in to delete.");
       }
 
-      res.status(StatusCode.OK).send(response);
+      return createResponseWithData(StatusCode.OK, response, "Deleted weigh in!");
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  getWeighInsByUserId = async (req: Request, res: Response) => {
-    const { id } = req.params;
+  static getWeighInsByUserId = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id;
 
     try {
-      const weighIns = await weighInServices.getWeighInsByUserId(id as string);
-
-      if (!weighIns) {
-        return res
-          .status(StatusCode.NOT_FOUND)
-          .json({ message: "No weigh ins found for this user." });
+      const weighIns = (await weighInServices.getWeighInsByUserId(id as string)) || [];
+      if (!weighIns.length) {
+        return createResponseWithData(
+          StatusCode.NOT_FOUND,
+          weighIns,
+          "No weigh ins found for this user."
+        );
       }
 
-      return res.status(StatusCode.OK).json(weighIns);
-    } catch (err) {
-      return res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred while requesting the weigh-ins." });
+      return createResponseWithData(StatusCode.OK, weighIns, "Successfully retrieved weigh ins!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
     }
   };
 
-  getWeighInsById = async (req: Request, res: Response) => {
-    const { id } = req.params;
+  static getWeighInsById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
 
     try {
       const weighIns = await weighInServices.getWeighInsById(id);
 
-      return res.status(StatusCode.OK).json(weighIns);
+      return createResponseWithData(StatusCode.OK, weighIns, "Successfully retrieved weigh ins");
     } catch (err) {
-      return res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred while requesting the weigh-ins." });
+      return createServerErrorResponse(err);
     }
   };
 }
 
-export const weighInsController = new WeighInsController();
-1;
+export default WeighInsController;

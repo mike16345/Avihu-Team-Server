@@ -1,100 +1,233 @@
-import { UserService } from "../services/userService";
-import { NextFunction, Request, Response } from "express";
-import { UserSchemaValidation } from "../models/userModel";
+import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
+import UserService from "../services/userService";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+} from "../utils/utils";
+import SessionService from "../services/sessionService";
+import { ISessionCreate } from "../models/sessionModel";
+import PasswordsService from "../services/PasswordsService";
 
 export class UserController {
-  static async addUser(req: Request, res: Response, next: NextFunction) {
+  static async addUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const user = await UserService.createUser(req.body);
+      const user = await UserService.createUser(JSON.parse(event.body || "{}"));
 
-      res.status(StatusCode.CREATED).send(user);
-
-      next();
+      return createResponseWithData(StatusCode.CREATED, user, "User  created successfully!");
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getUsers(req: Request, res: Response) {
+  static async getUsers(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
       const users = await UserService.getUsers();
-      res.status(StatusCode.OK).send(users);
+
+      return createResponseWithData(StatusCode.OK, users, "Users retrieved succesfully!");
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getUser(req: Request, res: Response) {
+  static async getUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = req.params.id;
-      const user = await UserService.getUser(id);
+      const id = event.queryStringParameters?.userId;
+      const user = await UserService.getUser(id || "");
 
       if (!user) {
-        return res.status(StatusCode.NOT_FOUND).send("User not found");
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }
 
-      res.status(StatusCode.OK).send(user);
+      return createResponseWithData(StatusCode.OK, user, "User retrieved successfully!");
     } catch (err: any) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async getUserByEmail(req: Request, res: Response) {
+  static async updateUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const email = req.params.email;
-      const user = await UserService.getUserByEmail(email);
+      const id = event.queryStringParameters?.id;
+      const user = await UserService.updateUser(JSON.parse(event.body || "{}"), id || "");
 
       if (!user) {
-        return res.status(StatusCode.NOT_FOUND).send("User not found");
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }
 
-      res.status(StatusCode.OK).send(user);
+      return createResponseWithData(StatusCode.OK, user, "User updated successfully!");
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async updateUser(req: Request, res: Response, next: NextFunction) {
+  static async updateManyUsers(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = req.params.id;
+      const users = await UserService.updateManyUsers(JSON.parse(event.body || "{}"));
 
-      const user = await UserService.updateUser(req.body, id);
+      return createResponseWithData(StatusCode.OK, users, "Users updated successfully!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async updateUserField(event: APIGatewayEvent, context: Context) {
+    const body = extractBodyFromEvent(event);
+    const { userId } = extractQueryFromEvent(event);
+
+    if (!userId || !body) {
+      return createResponse(StatusCode.BAD_REQUEST, "Missing userId or body");
+    }
+
+    try {
+      const user = await UserService.updateUserField(userId, body.fieldName, body.value);
 
       if (!user) {
-        return res.status(StatusCode.NOT_FOUND).send("User not found");
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${userId}" not found!`);
       }
 
-      res.status(StatusCode.OK).send(user);
-
-      next();
+      return createResponseWithData(StatusCode.OK, user, "User updated successfully!");
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async updateManyUsers(req: Request, res: Response) {
+  static async deleteUser(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const users = await UserService.updateManyUsers(req.body);
+      const id = event.queryStringParameters?.id;
+      const user = await UserService.deleteUser(id || "");
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
+      }
 
-      res.status(StatusCode.OK).send(users);
+      return createResponseWithData(StatusCode.OK, user, "User deleted successfully!");
     } catch (err: any) {
-      res.status(StatusCode.BAD_REQUEST).send({ message: err });
+      return createServerErrorResponse(err);
     }
   }
 
-  static async deleteUser(req: Request, res: Response) {
+  static async updateImagesUploadedstatus(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
     try {
-      const id = req.params.id;
-      const user = await UserService.deleteUser(id);
+      const id = event.queryStringParameters?.userId;
+      const status = event.queryStringParameters?.status;
+      const user = await UserService.updateImagesUploadedstatus(id || "", status);
 
       if (!user) {
-        return res.status(StatusCode.NOT_FOUND).send("User not found");
+        return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }
 
-      res.status(StatusCode.OK).send(user);
+      return createResponseWithData(StatusCode.OK, user, "Status updated successfully!");
     } catch (err: any) {
-      res.status(StatusCode.NOT_FOUND).send({ message: err });
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async checkUsersAccess(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const email = event.queryStringParameters?.email;
+
+    try {
+      const user = (await UserService.getUsersByParameter({ email })).pop();
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
+      }
+
+      if (!user.hasAccess) {
+        return createResponse(StatusCode.UNAUTHORIZED, `אין גישה לכתובת המייל`);
+      }
+      const hasPassword = await PasswordsService.findPasswordByUserId(user._id.toString());
+
+      return createResponseWithData(StatusCode.OK, { user, hasPassword }, "פעולה בוצעה בהצלחה!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async register(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const { email, password } = extractBodyFromEvent(event);
+      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
+
+      if (!user) {
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
+      }
+
+      await PasswordsService.hashPassword(user._id.toString(), password);
+
+      return createResponseWithData(StatusCode.OK, user, "סיסמה נשמרה במערכת!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async logIn(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    try {
+      const { email, password } = JSON.parse(event.body || "{}");
+      const user = (await UserService.getUsersByParameter({ email })).at(0);
+
+      const isSamePassword =
+        user && (await PasswordsService.comparePasswords(user._id.toString(), password));
+
+      if (!user || !isSamePassword) {
+        return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
+      }
+      const sessionData: ISessionCreate = {
+        userId: user._id.toString(),
+        data: { user },
+        type: "login",
+      };
+      const session = await SessionService.startSession(sessionData);
+
+      return createResponseWithData(StatusCode.OK, session, "התחברות בוצעה בהצלחה!");
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
+
+  static async checkUserSessionToken(event: APIGatewayEvent, context: Context) {
+    try {
+      const { token } = extractBodyFromEvent(event);
+      const session = await SessionService.getSessionById(token._id);
+
+      await SessionService.refreshSession(token._id);
+
+      return createResponseWithData(!!session ? StatusCode.OK : StatusCode.UNAUTHORIZED, {
+        isValid: !!session,
+      });
+    } catch (error) {
+      return createServerErrorResponse(error);
     }
   }
 }

@@ -1,24 +1,44 @@
-import { Request, Response } from "express";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanPresetsService } from "../services/dietPlanPresetsService";
 import { StatusCode } from "../enums/StatusCode";
-import { removeNestedIds } from "../utils/utils";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  removeNestedIds,
+} from "../utils/utils";
 
-export class DietPlanPresetController {
-  static addDietPlanPreset = async (req: Request, res: Response) => {
-    const dietPlanPreset = req.body;
+class DietPlanPresetController {
+  static addDietPlanPreset = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const dietPlanPreset = JSON.parse(event.body || "{}");
+
+    if (!dietPlanPreset) {
+      return createResponse(StatusCode.BAD_REQUEST, "Diet Plan Preset data is required.");
+    }
 
     try {
       const dietPlanPresetResult = await DietPlanPresetsService.addDietPlanPreset(dietPlanPreset);
-
-      return res.status(StatusCode.CREATED).send(dietPlanPresetResult);
+      return createResponseWithData(
+        StatusCode.CREATED,
+        dietPlanPresetResult,
+        "Successfully added diet plan preset!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  static updateDietPlanPreset = async (req: Request, res: Response) => {
-    const dietPlanPresetId = req.params.id;
-    const newDietPlanPreset = removeNestedIds(req.body);
+  static updateDietPlanPreset = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const dietPlanPresetId = event.queryStringParameters?.id || "";
+    const newDietPlanPreset = removeNestedIds(JSON.parse(event.body || "{}"));
+
+    if (!dietPlanPresetId) {
+      return createResponse(StatusCode.BAD_REQUEST, "Diet Plan Preset ID is required.");
+    }
 
     try {
       const updatedDietPlanPreset = await DietPlanPresetsService.updateDietPlanPreset(
@@ -26,53 +46,90 @@ export class DietPlanPresetController {
         newDietPlanPreset
       );
 
-      return res.status(StatusCode.OK).send(updatedDietPlanPreset);
+      if (!updatedDietPlanPreset) {
+        return createResponse(StatusCode.NOT_FOUND, "Diet Plan Preset not found!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        updatedDietPlanPreset,
+        "Successfully updated diet plan preset!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  static deleteDietPlanPreset = async (req: Request, res: Response) => {
-    const id = req.params.id;
+  static deleteDietPlanPreset = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id || "";
+
+    if (!id) {
+      return createResponse(StatusCode.BAD_REQUEST, "Diet Plan Preset ID is required.");
+    }
 
     try {
       const response = await DietPlanPresetsService.deleteDietPlanPreset(id);
 
-      if (typeof response == "string") {
-        return res.status(StatusCode.NOT_FOUND).send({ message: response });
+      if (typeof response === "string") {
+        return createResponse(StatusCode.NOT_FOUND, response);
       }
 
-      return res.status(StatusCode.OK).send(response);
+      return createResponseWithData(
+        StatusCode.OK,
+        response,
+        "Successfully deleted diet plan preset!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  static getDietPlanPresets = async (req: Request, res: Response) => {
+  static getDietPlanPresets = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
     try {
       const dietPlanPresets = await DietPlanPresetsService.getAllDietPlanPresets();
 
-      res.status(StatusCode.OK).send(dietPlanPresets);
+      return createResponseWithData(
+        StatusCode.OK,
+        dietPlanPresets,
+        "Successfully retrieved diet plan presets!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 
-  static getDietPlanPresetById = async (req: Request, res: Response) => {
-    const dietPlanPresetId = req.params.id;
+  static getDietPlanPresetById = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const dietPlanPresetId = event.queryStringParameters?.id || "";
 
-    if (!dietPlanPresetId || typeof dietPlanPresetId !== "string") {
-      return res
-        .status(StatusCode.BAD_REQUEST)
-        .send({ message: "Diet Plan ID is required and should be a string." });
+    if (!dietPlanPresetId) {
+      return createResponse(
+        StatusCode.BAD_REQUEST,
+        "Diet Plan Preset ID is required and should be a string."
+      );
     }
 
     try {
       const dietPlanPreset = await DietPlanPresetsService.getDietPlanPresetById(dietPlanPresetId);
 
-      return res.status(StatusCode.OK).send(dietPlanPreset);
+      if (!dietPlanPreset) {
+        return createResponse(StatusCode.NOT_FOUND, "Diet Plan Preset not found!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        dietPlanPreset,
+        "Successfully retrieved diet plan preset!"
+      );
     } catch (err: any) {
-      return res.status(StatusCode.INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return createServerErrorResponse(err);
     }
   };
 }
+
+export default DietPlanPresetController;

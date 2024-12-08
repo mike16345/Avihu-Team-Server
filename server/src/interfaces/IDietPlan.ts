@@ -1,27 +1,32 @@
-import { ObjectId } from "mongodb";
-
 export interface IDietPlan {
   userId: string;
   meals: IMeal[];
   totalCalories?: number;
+  freeCalories?: number;
+  fatsPerDay?: number;
+  veggiesPerDay?: number;
+  customInstructions?: string[];
 }
 
 export interface ICustomItemInstructions {
-  item: string;
-  quantity: number;
+  name: string;
+  dietaryType: string[];
+  foodGroup: string;
+  oneServing: {
+    grams: number;
+    spoons: number;
+  };
 }
 
 export interface IDietItem {
   quantity: number;
   unit: DietItemUnit;
-  customInstructions?: ICustomItemInstructions[];
+  customItems?: ICustomItemInstructions[];
 }
 
 export interface IMeal {
   totalProtein: IDietItem;
   totalCarbs: IDietItem;
-  totalFats?: IDietItem;
-  totalVeggies?: IDietItem;
 }
 
 export interface IDietPlanPreset extends Omit<IDietPlan, "userId"> {
