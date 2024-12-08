@@ -28,9 +28,16 @@ export class MenuItemPresetController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     const { foodGroup } = event.queryStringParameters || {};
+    const { "dietaryRestrictions[]": dietaryRestrictions } =
+      event.multiValueQueryStringParameters || {};
+
+    const dietaryRestrictionsArray = dietaryRestrictions ? dietaryRestrictions : null;
 
     try {
-      const menuItems = await MenuItemService.getMenuItems(foodGroup || "");
+      const menuItems = await MenuItemService.getMenuItems(
+        foodGroup || "",
+        dietaryRestrictionsArray
+      );
 
       if (!menuItems) {
         return createResponse(
