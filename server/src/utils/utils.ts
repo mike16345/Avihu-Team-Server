@@ -101,3 +101,9 @@ export const generateUUID = () => {
     return v.toString(16);
   });
 };
+
+export const returnStringVal = (arr: any[]) => {
+  let returnStr = ``;
+  arr.forEach((item) => (returnStr += item.toString()));
+  return returnStr;
+};

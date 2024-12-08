@@ -1,5 +1,6 @@
 import { fullMenuItemPresets } from "../models/menuItemModel";
 import { Cache } from "../utils/cache";
+import { returnStringVal } from "../utils/utils";
 
 let cachedMenuItems = new Cache<any>();
 
@@ -18,7 +19,8 @@ export class MenuItemService {
   }
 
   static async getMenuItems(foodGroup: string, dietaryRestrictions: string[] | null) {
-    const cached = cachedMenuItems.get(foodGroup);
+    const strValForCaching = dietaryRestrictions ? returnStringVal(dietaryRestrictions) : ``;
+    const cached = cachedMenuItems.get(foodGroup + strValForCaching);
 
     try {
       const menuItems =
@@ -27,7 +29,7 @@ export class MenuItemService {
           foodGroup: foodGroup,
           ...(dietaryRestrictions ? { dietaryType: { $in: dietaryRestrictions } } : {}),
         }));
-      cachedMenuItems.set(foodGroup, menuItems);
+      cachedMenuItems.set(foodGroup + strValForCaching, menuItems);
 
       return menuItems;
     } catch (error) {

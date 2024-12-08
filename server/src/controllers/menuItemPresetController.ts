@@ -31,7 +31,9 @@ export class MenuItemPresetController {
     const { "dietaryRestrictions[]": dietaryRestrictions } =
       event.multiValueQueryStringParameters || {};
 
-    const dietaryRestrictionsArray = dietaryRestrictions ? dietaryRestrictions : null;
+    const dietaryRestrictionsArray = dietaryRestrictions
+      ? dietaryRestrictions.map((str) => decodeURIComponent(str))
+      : null;
 
     try {
       const menuItems = await MenuItemService.getMenuItems(
