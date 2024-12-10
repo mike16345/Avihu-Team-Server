@@ -30,7 +30,7 @@ const AWS_REGION = `REGION=${process.env.REGION}`;
 const EMAIL = `EMAIL=${process.env.EMAIL}`;
 const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
-const ACCESS_SECRET = `SECRET_KEY=${process.SECRET_KEY}`;
+const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 
 // Convert environment variables string to AWS CLI format
 const envVars = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;

@@ -14,11 +14,13 @@ export class BlogService {
   static async getPostById(id: string) {
     try {
       const post = await BlogModel.findById(id);
+      
       return post;
     } catch (error) {
       throw error;
     }
   }
+
   static async createPost(newPost: any) {
     try {
       const createdPost = await BlogModel.create(newPost);

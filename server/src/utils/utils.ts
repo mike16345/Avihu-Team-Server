@@ -2,6 +2,7 @@ import { APIGatewayEvent } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
 import { ISession } from "../models/sessionModel";
+import { API_HEADERS } from "../constants/Constants";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -9,6 +10,8 @@ export const removeNestedIds: any = (doc: any) => {
   } else if (doc !== null && typeof doc === "object") {
     const newDoc = { ...doc };
     delete newDoc._id;
+    delete newDoc.__v;
+
     for (const key in newDoc) {
       if (newDoc.hasOwnProperty(key)) {
         newDoc[key] = removeNestedIds(newDoc[key]);
@@ -44,6 +47,7 @@ export const createServerErrorResponse = (err: any) => {
     body: JSON.stringify({
       message: err?.message || err,
     }),
+    headers: API_HEADERS,
   };
 };
 

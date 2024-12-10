@@ -8,7 +8,7 @@ const BASE_PATH = "/blogs";
 const blogApiHandlers = {
   [`GET ${BASE_PATH}`]: BlogController.getAllPosts,
   [`GET ${BASE_PATH}/paginate`]: BlogController.getPaginatedPosts,
-  [`PUT ${BASE_PATH}/users`]: BlogController.updatePost,
+  [`PUT ${BASE_PATH}/one`]: BlogController.updatePost,
   [`POST ${BASE_PATH}`]: BlogController.createPost,
   [`GET ${BASE_PATH}/one`]: BlogController.getPostById,
   [`DELETE ${BASE_PATH}/one`]: BlogController.deletePost,
@@ -16,7 +16,7 @@ const blogApiHandlers = {
 
 const blogApiMiddleware = {
   [`POST ${BASE_PATH}`]: validateBlogPost,
-  [`PUT ${BASE_PATH}/users`]: validateBlogPost,
+  [`PUT ${BASE_PATH}/one`]: validateBlogPost,
 };
 
 export const handler = async (

@@ -16,7 +16,7 @@ const ONE_MIN = 60;
 const URL_TTL = ONE_MIN * 10;
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
-  const bucketName = process.env.AWS_BUCKET_NAME;
+  const bucketName = process.env.AWS_BUCKET;
   const httpMethod = event.httpMethod;
   const methodToAllow = getMethodToAllow(httpMethod);
   const imageName = event.queryStringParameters?.imageName;

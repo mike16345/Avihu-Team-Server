@@ -30,5 +30,6 @@ export const BlogModel = model("blogs", blogSchema);
 export const blogPostSchemaValidator = Joi.object({
   title: Joi.string().required(),
   content: Joi.string().required(),
-  imageUrl: Joi.string(),
+  imageUrl: Joi.string().allow(""),
+  date: Joi.date(),
 });
