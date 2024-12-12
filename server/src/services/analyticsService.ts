@@ -54,16 +54,12 @@ export class AnalyticsService {
       return null;
     }
 
-    const cached = checkInCache.get(`${collection}/users/plans`);
-
-    if (cached) return cached;
     try {
       const users = await User.find({}, { firstName: 1, lastName: 1 });
       const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
       const usersWithPlanSet = new Set(usersWithPlans.map((user) => user.userId.toString()));
       const usersWithoutPlan = users.filter((user) => !usersWithPlanSet.has(user._id.toString()));
 
-      checkInCache.set(`${collection}/users/plans`, usersWithoutPlan);
       return usersWithoutPlan;
     } catch (error) {
       throw error;
