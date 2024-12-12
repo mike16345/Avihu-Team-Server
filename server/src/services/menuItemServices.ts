@@ -8,9 +8,8 @@ export class MenuItemService {
   static async addMenuItem(data: any) {
     try {
       const newMenuItem = await fullMenuItemPresets.create(data);
-
-      cachedMenuItems.invalidate(`all`);
-      cachedMenuItems.invalidate(data.foodGroup);
+      cachedMenuItems.invalidateAllContaining(data.foodGroup);
+      cachedMenuItems.invalidate("all");
 
       return newMenuItem;
     } catch (error) {
@@ -20,16 +19,15 @@ export class MenuItemService {
 
   static async getMenuItems(foodGroup: string, dietaryRestrictions: string[] | null) {
     const strValForCaching = dietaryRestrictions ? returnStringVal(dietaryRestrictions) : ``;
-    const cached = cachedMenuItems.get(foodGroup + strValForCaching);
+    const cacheKey = foodGroup + strValForCaching;
+    const cached = cachedMenuItems.get(cacheKey);
+    const query = dietaryRestrictions ? { dietaryType: { $in: dietaryRestrictions } } : {};
 
+    console.log("key", cacheKey);
+    console.log("cached", cached);
     try {
-      const menuItems =
-        cached ||
-        (await fullMenuItemPresets.find({
-          foodGroup: foodGroup,
-          ...(dietaryRestrictions ? { dietaryType: { $in: dietaryRestrictions } } : {}),
-        }));
-      cachedMenuItems.set(foodGroup + strValForCaching, menuItems);
+      const menuItems = cached || (await fullMenuItemPresets.find({ foodGroup, ...query }));
+      cachedMenuItems.set(cacheKey, menuItems);
 
       return menuItems;
     } catch (error) {
