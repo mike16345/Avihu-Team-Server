@@ -27,10 +27,10 @@ export class ExercisePresetController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     try {
-      const allExercises = await ExercisePresetService.getExercises();
+      let allExercises = await ExercisePresetService.getExercises();
 
       if (!allExercises || allExercises.length === 0) {
-        return createResponse(StatusCode.NOT_FOUND, "No exercises found!");
+        allExercises = [];
       }
 
       return createResponseWithData(
