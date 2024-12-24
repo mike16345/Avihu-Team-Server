@@ -2,6 +2,7 @@ import { UserController } from "../../controllers/userController";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import { validateUser } from "../../middleware/usersMiddleware";
+import { scheduleUserChecks } from "../../middleware/analyticsMiddleware";
 
 const BASE_PATH = "/users";
 const userApiHandlers = {
@@ -20,6 +21,7 @@ const userApiHandlers = {
 
 const userValidaters = {
   [`POST ${BASE_PATH}`]: validateUser,
+  [`PUT ${BASE_PATH}/one/field`]: scheduleUserChecks,
 };
 
 export const handler = async (
