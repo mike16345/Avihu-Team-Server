@@ -116,6 +116,7 @@ export class UserController {
     try {
       const id = event.queryStringParameters?.id;
       const user = await UserService.deleteUser(id || "");
+      
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }

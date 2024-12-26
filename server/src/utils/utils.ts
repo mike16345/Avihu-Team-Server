@@ -3,6 +3,12 @@ import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
 import { ISession } from "../models/sessionModel";
 import { API_HEADERS } from "../constants/Constants";
+import { DietPlanServices } from "../services/dietPlanService";
+import { RecordedSetsService } from "../services/recordedSetsService";
+import { weighInServices } from "../services/weighInService";
+import { UserImageUrlService } from "../services/UserImageUrlService";
+import PasswordsService from "../services/PasswordsService";
+import { workoutPlanService } from "../services/workoutPlanService";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -110,4 +116,17 @@ export const returnStringVal = (arr: any[]) => {
   let returnStr = ``;
   arr.forEach((item) => (returnStr += item.toString()));
   return returnStr;
+};
+
+export const deleteUserDataFromAllCollections = async (userId: string) => {
+  try {
+    await DietPlanServices.deleteDietPlanByUserId(userId);
+    await RecordedSetsService.deleteUserRecordedSets(userId);
+    await weighInServices.deleteUserWeighIns(userId);
+    await UserImageUrlService.deleteUserImageUrls(userId);
+    await PasswordsService.deletePasswordByUserId(userId);
+    await workoutPlanService.deleteWorkoutPlanByUserId(userId);
+  } catch (err: any) {
+    console.error(`Error deleting user data: ${err.message}`);
+  }
 };

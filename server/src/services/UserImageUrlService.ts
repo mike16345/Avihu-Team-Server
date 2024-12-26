@@ -29,4 +29,13 @@ export class UserImageUrlService {
       throw e;
     }
   }
+
+  static async deleteUserImageUrls(userId: string) {
+    try {
+      await UserImageUrlsModel.deleteOne({ userId });
+      urlsCache.invalidate(userId);
+    } catch (e: any) {
+      throw e;
+    }
+  }
 }

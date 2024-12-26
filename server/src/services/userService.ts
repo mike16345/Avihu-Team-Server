@@ -3,8 +3,8 @@ import { DataBrew } from "aws-sdk";
 import { User } from "../models/userModel";
 import { Cache } from "../utils/cache";
 import connect, { conn } from "../db/connect";
-import { deleteUserFromAllCollections } from "../utils/utils";
 import mongoose from "mongoose";
+import { deleteUserDataFromAllCollections } from "../utils/utils";
 
 let cachedUsers = new Cache<IUser[]>();
 let singleUsersCache = new Cache<IUser>();
@@ -102,6 +102,7 @@ class UserService {
       if (user) {
         cachedUsers.invalidateAll();
         singleUsersCache.invalidate(id);
+        await deleteUserDataFromAllCollections(id);
       }
 
       return user;

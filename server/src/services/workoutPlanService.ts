@@ -67,6 +67,18 @@ export class WorkoutPlanService {
     }
   }
 
+  async deleteWorkoutPlanByUserId(userId: string) {
+    try {
+      const deletedWorkoutPlan = await WorkoutPlan.deleteMany({ userId });
+      allWorkoutPlansCache.invalidateAll();
+      workoutPlansCache.invalidateAll();
+
+      return deletedWorkoutPlan;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async updateWorkoutPlan(id: string, updatedData: any) {
     try {
       const updatedWorkoutPlan = await WorkoutPlan.findByIdAndUpdate(id, updatedData, {

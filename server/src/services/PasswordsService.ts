@@ -49,6 +49,14 @@ class PasswordsService {
       throw err;
     }
   }
+
+  static async deletePasswordByUserId(userId: string) {
+    try {
+      return await Password.findOneAndDelete({ userId });
+    } catch (err: any) {
+      throw err;
+    }
+  }
 }
 
 export default PasswordsService;

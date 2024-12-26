@@ -219,4 +219,13 @@ export class RecordedSetsService {
       throw err;
     }
   }
+
+  static async deleteUserRecordedSets(userId: string) {
+    try {
+      await MuscleGroupRecordedSets.deleteMany({ userId });
+      cachedRecordedSets.invalidateAllContaining(userId);
+    } catch (err: any) {
+      throw err;
+    }
+  }
 }
