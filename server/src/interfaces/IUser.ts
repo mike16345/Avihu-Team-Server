@@ -14,4 +14,5 @@ export interface IUser {
   isChecked: boolean;
   imagesUploaded: boolean;
   hasAccess: boolean;
+  isAdmin: boolean;
 }

@@ -116,7 +116,7 @@ export class UserController {
     try {
       const id = event.queryStringParameters?.id;
       const user = await UserService.deleteUser(id || "");
-      
+
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `User with id: "${id}" not found!`);
       }
@@ -195,7 +195,7 @@ export class UserController {
     context: Context
   ): Promise<APIGatewayProxyResult> {
     try {
-      const { email, password } = JSON.parse(event.body || "{}");
+      const { email, password, isAdminApp } = JSON.parse(event.body || "{}");
       const user = (await UserService.getUsersByParameter({ email })).at(0);
 
       const isSamePassword =
@@ -204,6 +204,11 @@ export class UserController {
       if (!user || !isSamePassword) {
         return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);
       }
+
+      if (isAdminApp && !user.isAdmin) {
+        return createResponse(StatusCode.FORBIDDEN, "אין הרשאה להתחבר כמנהל!");
+      }
+
       const sessionData: ISessionCreate = {
         userId: user._id.toString(),
         data: { user },
