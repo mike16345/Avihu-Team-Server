@@ -119,14 +119,10 @@ export const returnStringVal = (arr: any[]) => {
 };
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
-  try {
-    await DietPlanServices.deleteDietPlanByUserId(userId);
-    await RecordedSetsService.deleteUserRecordedSets(userId);
-    await weighInServices.deleteUserWeighIns(userId);
-    await UserImageUrlService.deleteUserImageUrls(userId);
-    await PasswordsService.deletePasswordByUserId(userId);
-    await workoutPlanService.deleteWorkoutPlanByUserId(userId);
-  } catch (err: any) {
-    console.error(`Error deleting user data: ${err.message}`);
-  }
+  await DietPlanServices.deleteDietPlanByUserId(userId).catch((err) => console.log(err));
+  await RecordedSetsService.deleteUserRecordedSets(userId).catch((err) => console.log(err));
+  await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
+  await UserImageUrlService.deleteUserImageUrls(userId).catch((err) => console.log(err));
+  await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
+  await workoutPlanService.deleteWorkoutPlanByUserId(userId).catch((err) => console.log(err));
 };

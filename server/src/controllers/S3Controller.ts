@@ -39,8 +39,7 @@ export class S3Controller {
   static handleDeleteManyPhotos = async (event: APIGatewayProxyEvent) => {
     const { photoIds } = extractBodyFromEvent(event);
 
-    console.log("photos", photoIds);
-    if (!photoIds || photoIds.length === 0) {
+    if (!photoIds) {
       return createResponse(StatusCode.BAD_REQUEST, "Missing required query parameter: photoIds");
     }
 

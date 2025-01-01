@@ -13,11 +13,7 @@ export class UserImageUrlController {
     const { userId } = event.queryStringParameters || {};
 
     try {
-      const urls = await UserImageUrlService.getUserImageUrls(userId || "");
-
-      if (!urls) {
-        return createResponse(StatusCode.NOT_FOUND, "User not found");
-      }
+      const urls = (await UserImageUrlService.getUserImageUrls(userId || "")) || [];
 
       return createResponseWithData(StatusCode.OK, urls);
     } catch (err: any) {
