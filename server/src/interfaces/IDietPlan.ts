@@ -1,3 +1,5 @@
+import { ObjectId } from "mongoose";
+
 export interface IDietPlan {
   userId: string;
   meals: IMeal[];
@@ -21,7 +23,7 @@ export interface ICustomItemInstructions {
 export interface IDietItem {
   quantity: number;
   unit: DietItemUnit;
-  customItems?: ICustomItemInstructions[];
+  customItems?: ObjectId[];
 }
 
 export interface IMeal {

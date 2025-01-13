@@ -117,6 +117,7 @@ class DietPlanController {
 
   static getDietPlanById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const dietPlanId = event.queryStringParameters?.id || "";
+    const populate = event.queryStringParameters?.populate;
 
     if (!dietPlanId) {
       return createResponse(
@@ -126,7 +127,7 @@ class DietPlanController {
     }
 
     try {
-      const dietPlan = await DietPlanServices.getDietPlanById(dietPlanId);
+      const dietPlan = await DietPlanServices.getDietPlanById(dietPlanId, !!populate);
 
       if (!dietPlan) return createResponse(StatusCode.NOT_FOUND, "Diet Plan not found!");
 
@@ -139,14 +140,15 @@ class DietPlanController {
   static getDietPlanByUserId = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const userId = event.queryStringParameters?.userId || "";
+    const userId = event.queryStringParameters?.userId;
+    const populate = event.queryStringParameters?.populate;
 
     if (!userId) {
       return createResponse(StatusCode.BAD_REQUEST, "User ID is required and should be a string.");
     }
 
     try {
-      const dietPlan = await DietPlanServices.getDietPlanByUserId(userId);
+      const dietPlan = await DietPlanServices.getDietPlanByUserId(userId, !!populate);
 
       if (!dietPlan)
         return createResponse(

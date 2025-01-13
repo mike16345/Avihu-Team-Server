@@ -1,7 +1,37 @@
 import { DietPlan } from "../models/dietPlanModel";
+import { fullMenuItemPresets } from "../models/menuItemModel";
 import { Cache } from "../utils/cache";
 
 let cachedDietPlans = new Cache<any>();
+const getDietPlan = async (filter: { _id?: string; userId?: string }, populate: boolean = true) => {
+  if (!filter._id && !filter.userId) throw new Error("Missing required id or userId parameter");
+
+  const cacheKey = filter._id || filter.userId;
+  const cached = cachedDietPlans.get(cacheKey! + populate.valueOf());
+
+  try {
+    const query = DietPlan.findOne(filter).select({ _id: false, __v: false });
+
+    if (populate) {
+      query
+        .populate({
+          path: "meals.totalProtein.customItems",
+          model: fullMenuItemPresets,
+        })
+        .populate({
+          path: "meals.totalCarbs.customItems",
+          model: fullMenuItemPresets,
+        });
+    }
+
+    const dietPlan = cached || (await query.lean());
+    cachedDietPlans.set(cacheKey!, dietPlan);
+
+    return dietPlan;
+  } catch (err: any) {
+    throw err;
+  }
+};
 
 export class DietPlanService {
   async addDietPlan(data: any) {
@@ -28,29 +58,19 @@ export class DietPlanService {
     }
   }
 
-  async getDietPlanById(planId: string) {
-    const cached = cachedDietPlans.get(planId);
+  async getDietPlanById(planId: string, populate: boolean = true) {
     try {
-      const dietPlan =
-        cached || (await DietPlan.findById(planId).select({ _id: false, __v: false }).lean());
-      cachedDietPlans.set(planId, dietPlan);
-
-      return dietPlan;
-    } catch (err: any) {
-      throw err;
+      return getDietPlan({ _id: planId }, populate);
+    } catch (error) {
+      throw error;
     }
   }
 
-  async getDietPlanByUserId(userId: string) {
-    const cached = cachedDietPlans.get(userId);
+  async getDietPlanByUserId(userId: string, populate: boolean = true) {
     try {
-      const dietPlan =
-        cached || (await DietPlan.findOne({ userId }).select({ _id: false, __v: false }).lean());
-      cachedDietPlans.set(userId, dietPlan);
-
-      return dietPlan;
-    } catch (err: any) {
-      throw err;
+      return getDietPlan({ userId }, populate);
+    } catch (error) {
+      throw error;
     }
   }
 
