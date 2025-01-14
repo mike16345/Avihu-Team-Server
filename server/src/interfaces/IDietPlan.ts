@@ -24,6 +24,7 @@ export interface IDietItem {
   quantity: number;
   unit: DietItemUnit;
   customItems?: ObjectId[];
+  extraItems?: string[];
 }
 
 export interface IMeal {

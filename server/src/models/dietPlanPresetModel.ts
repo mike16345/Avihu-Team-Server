@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IDietPlan, IDietPlanPreset } from "../interfaces/IDietPlan";
+import { IDietPlanPreset } from "../interfaces/IDietPlan";
 import { mealSchema, mealValidationSchema } from "./dietPlanModel";
 import Joi from "joi";
 
