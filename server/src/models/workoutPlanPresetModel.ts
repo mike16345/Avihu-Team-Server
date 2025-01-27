@@ -28,7 +28,7 @@ export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
 export const WorkoutPlanPreset = model("workoutPlanPresets", workoutPlanPresetSchema);
 
 export const WorkoutPlanPresetSchemaValidation = Joi.object({
-  name: Joi.string().min(1).max(25).required(),
+  name: Joi.string().min(1).required(),
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
 });
