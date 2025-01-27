@@ -226,11 +226,17 @@ export class UserController {
     try {
       const { token } = extractBodyFromEvent(event);
       const session = await SessionService.getSessionById(token._id);
+      const userId = token.data.user._id;
+      const user = await UserService.getUser(userId);
 
       await SessionService.refreshSession(token._id);
+      if (!user.hasAccess) {
+        await SessionService.endSession(token._id);
+      }
 
       return createResponseWithData(!!session ? StatusCode.OK : StatusCode.UNAUTHORIZED, {
         isValid: !!session,
+        hasAccess: user.hasAccess,
       });
     } catch (error) {
       return createServerErrorResponse(error);
