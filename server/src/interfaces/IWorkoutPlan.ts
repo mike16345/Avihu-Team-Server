@@ -8,6 +8,7 @@ export interface IMuscleGroupWorkoutPlan {
 export interface IWorkout {
   tipFromTrainer?: string;
   linkToVideo?: string;
+  exerciseMethod?: string;
   name: string;
   sets: ISet[];
 }
