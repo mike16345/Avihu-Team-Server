@@ -80,6 +80,41 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
   },
 });
 
+// Simple Cardio Schema
+export const simpleCardioSchema = new Schema({
+  minsPerWeek: { type: Number, required: true },
+  timesPerWeek: { type: Number, required: true },
+  minsPerWorkout: { type: Number },
+  tips: { type: String },
+});
+
+// Cardio Workout Schema
+export const cardioWorkoutSchema = new Schema({
+  name: { type: String, required: true },
+  warmUpAmount: { type: Number },
+  distance: { type: Number, required: true },
+  cardioExercise: { type: String, required: true },
+  tips: { type: String },
+});
+
+// Cardio Week Schema
+export const cardioWeekSchema = new Schema({
+  week: { type: String, required: true },
+  workouts: { type: [cardioWorkoutSchema], required: true },
+});
+
+// Complex Cardio Schema
+export const complexCardioSchema = new Schema({
+  weeks: { type: [cardioWeekSchema], required: true },
+  tips: { type: String },
+});
+
+// Cardio Plan Schema (Supports Simple or Complex)
+export const cardioPlanSchema = new Schema({
+  type: { type: String, enum: ["simple", "complex"], required: true },
+  plan: { type: Schema.Types.Mixed, required: true }, // Either Simple or Complex
+});
+
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
@@ -96,6 +131,10 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
       },
       message: "Workout plans array cannot be empty",
     },
+    required: true,
+  },
+  cardio: {
+    type: cardioPlanSchema,
     required: true,
   },
 });
@@ -118,6 +157,42 @@ export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
   exercises: Joi.array().items(workoutValidationSchema).min(1).required(),
 });
 
+export const simpleCardioValidationSchema = Joi.object({
+  minsPerWeek: Joi.number().min(1).required(),
+  timesPerWeek: Joi.number().min(1).required(),
+  minsPerWorkout: Joi.number().min(1),
+  tips: Joi.string().allow(""),
+});
+
+export const cardioWorkoutValidationSchema = Joi.object({
+  name: Joi.string().required(),
+  warmUpAmount: Joi.number().min(0),
+  distance: Joi.number().min(0).required(),
+  cardioExercise: Joi.string().required(),
+  tips: Joi.string().allow(""),
+});
+
+export const cardioWeekValidationSchema = Joi.object({
+  week: Joi.string().required(),
+  workouts: Joi.array().items(cardioWorkoutValidationSchema).min(1).required(),
+});
+
+export const complexCardioValidationSchema = Joi.object({
+  weeks: Joi.array().items(cardioWeekValidationSchema).min(1).required(),
+  tips: Joi.string().allow(""),
+});
+
+export const cardioPlanValidationSchema = Joi.object({
+  type: Joi.string().valid("simple", "complex").required(),
+  plan: Joi.alternatives().conditional("type", {
+    switch: [
+      { is: "simple", then: simpleCardioValidationSchema },
+      { is: "complex", then: complexCardioValidationSchema },
+    ],
+    otherwise: Joi.forbidden(),
+  }),
+});
+
 export const WorkoutPlanSchemaValidation = Joi.object({
   planName: Joi.string().min(1).max(25).required(),
   muscleGroups: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
@@ -126,6 +201,7 @@ export const WorkoutPlanSchemaValidation = Joi.object({
 export const FullWorkoutPlanSchemaValidation = Joi.object({
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
+  cardio: cardioPlanValidationSchema.required(),
 });
 
 export const WorkoutPlan = model<IFullWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);
