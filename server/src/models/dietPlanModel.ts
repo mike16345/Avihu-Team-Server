@@ -4,7 +4,6 @@ import Joi from "joi";
 
 export const dietItemSchema = new Schema<IDietItem>({
   quantity: { type: Number, required: true },
-  unit: { type: String, enum: ["grams", "spoons"], required: true },
   customItems: [{ type: Schema.Types.ObjectId, ref: "menuItems", required: false }],
   extraItems: { type: [String], required: false },
 });
@@ -28,7 +27,6 @@ export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
 
 export const dietItemValidationSchema = Joi.object({
   quantity: Joi.number().required(),
-  unit: Joi.string().valid("grams", "spoons").required(),
   customItems: Joi.array().items(Joi.string()).optional(),
   extraItems: Joi.array().items(Joi.string()).optional(),
 });
