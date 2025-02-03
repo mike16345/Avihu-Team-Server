@@ -22,7 +22,6 @@ export interface ICustomItemInstructions {
 
 export interface IDietItem {
   quantity: number;
-  unit: DietItemUnit;
   customItems?: ObjectId[];
   extraItems?: string[];
 }

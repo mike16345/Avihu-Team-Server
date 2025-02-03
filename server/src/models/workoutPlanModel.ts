@@ -39,6 +39,10 @@ export const workoutSchema: Schema<IWorkout> = new Schema({
     type: String,
     required: false,
   },
+  exerciseMethod: {
+    type: String,
+    minlength: 1,
+  },
 });
 
 export const muscleGroupWorkoutPlanSchema: Schema<IMuscleGroupWorkoutPlan> = new Schema({
@@ -106,6 +110,7 @@ export const workoutValidationSchema = Joi.object({
   sets: Joi.array().items(setValidationSchema).required(),
   linkToVideo: Joi.string().optional(),
   tipFromTrainer: Joi.string().allow("").optional(),
+  exerciseMethod: Joi.string().min(1).optional().allow(""),
 });
 
 export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
