@@ -22,6 +22,36 @@ export interface IFullWorkoutPlan {
   userId: string;
   tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];
+  cardio: ICardioPlan;
+}
+
+export interface ICardioPlan {
+  type: `simple` | `complex`;
+  plan: IComplexCardioType | ISimpleCardioType;
+}
+
+export interface ISimpleCardioType {
+  minsPerWeek: number;
+  timesPerWeek: number;
+  minsPerWorkout?: number;
+  tips?: string;
+}
+
+export interface ICardioWorkout {
+  name: string;
+  warmUpAmount?: number;
+  distance: number;
+  cardioExercise: string;
+  tips?: string;
+}
+
+export interface ICardioWeek {
+  week: string;
+  workouts: ICardioWorkout[];
+}
+export interface IComplexCardioType {
+  weeks: ICardioWeek[];
+  tips?: string;
 }
 
 export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
