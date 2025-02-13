@@ -17,6 +17,7 @@ import {
 } from "./workoutPlans";
 import { StatusCode } from "../../enums/StatusCode";
 import { API_HEADERS } from "../../constants/Constants";
+import { EXERCISE_METHODS_BASE_PATH, exerciseMethodsApiHandlers } from "./exerciseMethods";
 
 export const BASE_PATH = "/presets";
 
@@ -24,6 +25,7 @@ const routeToPresetMap: Record<string, Record<string, Function>> = {
   [DIET_PLANS_BASE_PATH]: dietPlanPresetApiHandlers,
   [EXERCISES_BASE_PATH]: exercisePresetApiHandlers,
   [WORKOUT_BASE_PATH]: workoutPlanPresetApiHandlers,
+  [EXERCISE_METHODS_BASE_PATH]: exerciseMethodsApiHandlers,
 };
 
 const presetMiddleWareMap: Record<string, Record<string, Function>> = {

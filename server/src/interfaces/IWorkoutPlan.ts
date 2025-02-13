@@ -57,3 +57,8 @@ export interface IComplexCardioType {
 export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
 }
+
+export interface IExerciseMethod{
+  title:string,
+  description:string
+}
