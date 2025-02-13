@@ -30,6 +30,18 @@ export class ExerciseMethodService {
     } 
   }
 
+  static async getexErciseMethodByName(name: string) {
+    const cached= singleExerciseMethodCache.get(name)
+    try {
+      const exerciseMethod = cached||((await exerciseMethods.find({title:name})).pop());
+      singleExerciseMethodCache.set(name,exerciseMethod)
+
+      return exerciseMethod;
+    } catch (error) {
+      throw error;
+    } 
+  }
+
   static async addExerciseMethod(exerciseMethod: IExerciseMethod) {
     try {
       const newExerciseMethod = await exerciseMethods.create(exerciseMethod);

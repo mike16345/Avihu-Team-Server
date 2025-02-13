@@ -47,6 +47,28 @@ export default class ExerciseMethodController {
       return createServerErrorResponse(error.message);
     }
   }
+  static async getExerciseMethodByName(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { name } = event.queryStringParameters || {};
+
+    try {
+      const exerciseMethod = await ExerciseMethodService.getexErciseMethodByName(name || "");
+
+      if (!exerciseMethod) {
+        return createResponse(StatusCode.NOT_FOUND, "Exercise method not found!");
+      }
+
+      return createResponseWithData(
+        StatusCode.OK,
+        exerciseMethod,
+        "Exercise method retrieved successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
 
   static async addManyExerciseMethod(
     event: APIGatewayProxyEvent,
