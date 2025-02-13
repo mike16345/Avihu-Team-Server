@@ -26,7 +26,7 @@ export const dietPlanSchema = new Schema<IDietPlan>({
 export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
 
 export const dietItemValidationSchema = Joi.object({
-  quantity: Joi.number().required().message("כמות חייב להיות מספר"),
+  quantity: Joi.number().required(),
   customItems: Joi.array().items(Joi.string()).optional(),
   extraItems: Joi.array().items(Joi.string()).optional(),
 });
