@@ -54,10 +54,10 @@ export default class ExerciseMethodController {
     const { name } = event.queryStringParameters || {};
 
     try {
-      const exerciseMethod = await ExerciseMethodService.getexErciseMethodByName(name || "");
+      const exerciseMethod = await ExerciseMethodService.getExerciseMethodByName(name || "");
 
       if (!exerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "Exercise method not found!");
+        return createResponse(StatusCode.NOT_FOUND, `לא נמצאה שיטת אימון בשם ${name}`);
       }
 
       return createResponseWithData(
@@ -77,10 +77,12 @@ export default class ExerciseMethodController {
     const exerciseMethods = JSON.parse(event.body || "{}");
 
     try {
-      const newExerciseMethods = await ExerciseMethodService.addManyExerciseMethods(exerciseMethods);
+      const newExerciseMethods = await ExerciseMethodService.addManyExerciseMethods(
+        exerciseMethods
+      );
 
       if (!newExerciseMethods) {
-        return createResponse(StatusCode.BAD_REQUEST, "Failed to add exercise methods!");
+        return createResponse(StatusCode.BAD_REQUEST, "לא הצלחנו ליצור את שיטות האימון!");
       }
 
       return createResponseWithData(
@@ -102,7 +104,7 @@ export default class ExerciseMethodController {
       const newExerciseMethod = await ExerciseMethodService.addExerciseMethod(exerciseMethod);
 
       if (!newExerciseMethod) {
-        return createResponse(StatusCode.BAD_REQUEST, "Failed to add exercise method!");
+        return createResponse(StatusCode.BAD_REQUEST, "לא הצלחנו ליצור את שיטת האימון!");
       }
 
       return createResponseWithData(
@@ -123,10 +125,13 @@ export default class ExerciseMethodController {
     const { id } = event.queryStringParameters || {};
 
     try {
-      const updatedExerciseMethod = await ExerciseMethodService.editExerciseMethod(exerciseMethod, id || "");
+      const updatedExerciseMethod = await ExerciseMethodService.editExerciseMethod(
+        exerciseMethod,
+        id || ""
+      );
 
       if (!updatedExerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "Exercise method not found or failed to update!");
+        return createResponse(StatusCode.NOT_FOUND, "שיטת אימון לא נמצאה ");
       }
 
       return createResponseWithData(
@@ -149,7 +154,7 @@ export default class ExerciseMethodController {
       const deletedExerciseMethod = await ExerciseMethodService.deleteExerciseMethod(id || "");
 
       if (!deletedExerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "Exercise method not found or failed to delete!");
+        return createResponse(StatusCode.NOT_FOUND, "שיטת אימון לא נמצאה ");
       }
 
       return createResponseWithData(

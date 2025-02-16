@@ -7,10 +7,12 @@ let singleExerciseMethodCache = new Cache<IExerciseMethod>();
 
 export class ExerciseMethodService {
   static async getAllExerciseMethods() {
-    const cached= cachedExerciseMethods.get(`all`)
+    const cached = cachedExerciseMethods.get(`all`);
+
     try {
-      const allExerciseMethods = cached ||(await exerciseMethods.find());
-      cachedExerciseMethods.set(`all`,allExerciseMethods)
+      const allExerciseMethods = cached || (await exerciseMethods.find());
+
+      cachedExerciseMethods.set(`all`, allExerciseMethods);
 
       return allExerciseMethods;
     } catch (error) {
@@ -19,33 +21,38 @@ export class ExerciseMethodService {
   }
 
   static async getexErciseMethodById(id: string) {
-    const cached= singleExerciseMethodCache.get(id)
+    const cached = singleExerciseMethodCache.get(id);
+
     try {
-      const exerciseMethod = cached||(await exerciseMethods.findById(id));
-      singleExerciseMethodCache.set(id,exerciseMethod)
+      const exerciseMethod = cached || (await exerciseMethods.findById(id));
+
+      singleExerciseMethodCache.set(id, exerciseMethod);
 
       return exerciseMethod;
     } catch (error) {
       throw error;
-    } 
+    }
   }
 
-  static async getexErciseMethodByName(name: string) {
-    const cached= singleExerciseMethodCache.get(name)
+  static async getExerciseMethodByName(name: string) {
+    const cached = singleExerciseMethodCache.get(name);
+
     try {
-      const exerciseMethod = cached||((await exerciseMethods.find({title:name})).pop());
-      singleExerciseMethodCache.set(name,exerciseMethod)
+      const exerciseMethod = cached || (await exerciseMethods.find({ title: name })).pop();
+
+      singleExerciseMethodCache.set(name, exerciseMethod);
 
       return exerciseMethod;
     } catch (error) {
       throw error;
-    } 
+    }
   }
 
   static async addExerciseMethod(exerciseMethod: IExerciseMethod) {
     try {
       const newExerciseMethod = await exerciseMethods.create(exerciseMethod);
-      cachedExerciseMethods.invalidateAll()
+
+      cachedExerciseMethods.invalidateAll();
 
       return newExerciseMethod;
     } catch (error) {
@@ -60,7 +67,7 @@ export class ExerciseMethodService {
         })
       );
 
-      cachedExerciseMethods.invalidateAll()
+      cachedExerciseMethods.invalidateAll();
 
       return newExrciseMethods;
     } catch (error) {
@@ -74,9 +81,9 @@ export class ExerciseMethodService {
         new: true,
       });
 
-      if (newExerciseMethod){
-        cachedExerciseMethods.invalidateAll()
-        singleExerciseMethodCache.invalidate(id)
+      if (newExerciseMethod) {
+        cachedExerciseMethods.invalidateAll();
+        singleExerciseMethodCache.invalidate(id);
       }
 
       return newExerciseMethod;
@@ -89,9 +96,9 @@ export class ExerciseMethodService {
     try {
       const deletedExerciseMethod = await exerciseMethods.findByIdAndDelete(id);
 
-      if (deletedExerciseMethod){
-        cachedExerciseMethods.invalidateAll()
-        singleExerciseMethodCache.invalidate(id)
+      if (deletedExerciseMethod) {
+        cachedExerciseMethods.invalidateAll();
+        singleExerciseMethodCache.invalidate(id);
       }
 
       return deletedExerciseMethod;
