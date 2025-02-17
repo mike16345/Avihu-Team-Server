@@ -92,7 +92,7 @@ export const simpleCardioSchema = new Schema({
 export const cardioWorkoutSchema = new Schema({
   name: { type: String, required: true },
   warmUpAmount: { type: Number },
-  distance: { type: Number, required: true,min:1 },
+  distance: { type: String, required: true },
   cardioExercise: { type: String, required: true },
   tips: { type: String },
 });
@@ -167,7 +167,7 @@ export const simpleCardioValidationSchema = Joi.object({
 export const cardioWorkoutValidationSchema = Joi.object({
   name: Joi.string().required(),
   warmUpAmount: Joi.number().min(0),
-  distance: Joi.number().min(1).required(),
+  distance: Joi.string().required(),
   cardioExercise: Joi.string().required(),
   tips: Joi.string().allow(""),
 });
