@@ -40,7 +40,7 @@ export interface ISimpleCardioType {
 export interface ICardioWorkout {
   name: string;
   warmUpAmount?: number;
-  distance: number;
+  distance: string;
   cardioExercise: string;
   tips?: string;
 }
@@ -58,7 +58,7 @@ export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
 }
 
-export interface IExerciseMethod{
-  title:string,
-  description:string
+export interface IExerciseMethod {
+  title: string;
+  description: string;
 }
