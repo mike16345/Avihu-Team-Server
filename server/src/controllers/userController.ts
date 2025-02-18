@@ -153,7 +153,7 @@ export class UserController {
     const email = event.queryStringParameters?.email;
 
     try {
-      const user = (await UserService.getUsersByParameter({ email })).pop();
+      const user = (await UserService.getUsersByParameter({ email: email?.toLowerCase() })).pop();
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
@@ -180,6 +180,10 @@ export class UserController {
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא!`);
+      }
+
+      if (!user.hasAccess) {
+        return createResponse(StatusCode.FORBIDDEN, `אין גישה לכתובת המייל`);
       }
 
       await PasswordsService.hashPassword(user._id.toString(), password);

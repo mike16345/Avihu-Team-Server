@@ -6,7 +6,8 @@
     "dev": "nodemon",
     "start": "ts-node -T ./src/app.ts",
     "test": "jest",
-    "deploy": "node deploy.js"
+    "deploy": "node deploy.js",
+    "deploy-all-lambdas": "node deployAllLambdas.js"
   },
   "keywords": [],
   "author": "",
