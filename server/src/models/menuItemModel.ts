@@ -14,6 +14,10 @@ export const oneServingShcema = new Schema({
     type: Number,
     min: 1,
   },
+  units: {
+    type: Number,
+    min: 1,
+  },
   cups: {
     type: Number,
     min: 1,
@@ -54,6 +58,7 @@ export const oneServingShcemaValidation = Joi.object({
   cups: Joi.number().min(1),
   scoops: Joi.number().min(1),
   teaSpoons: Joi.number().min(1),
+  units: Joi.number().min(1),
 });
 
 export const menuItemShcemaValidation = Joi.object({
