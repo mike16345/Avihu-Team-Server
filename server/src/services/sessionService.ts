@@ -48,10 +48,10 @@ export default class SessionService {
 
   static async getSessionById(sessionId: string) {
     try {
-      const session = sessionCache.get(sessionId) || (await Session.findById(sessionId));
+      const session = await Session.findById(sessionId);
 
       if (!session) return null;
-      
+
       if (isSessionExpired(session)) {
         await Session.deleteOne(session._id);
         return null;
@@ -111,7 +111,7 @@ export default class SessionService {
 
       if (result) {
         sessionCache.invalidate(sessionId); // Invalidate cache for the updated session
-        sessionCache.invalidateAll(); // Optionally invalidate all sessions cache
+          sessionCache.invalidateAll(); // Optionally invalidate all sessions 
       }
 
       return result;
