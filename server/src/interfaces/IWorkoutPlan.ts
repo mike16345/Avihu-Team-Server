@@ -43,6 +43,7 @@ export interface ICardioWorkout {
   distance: string;
   cardioExercise: string;
   tips?: string;
+  exerciseMethod?: string;
 }
 
 export interface ICardioWeek {
