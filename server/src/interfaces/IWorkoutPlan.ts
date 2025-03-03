@@ -63,3 +63,7 @@ export interface IExerciseMethod {
   title: string;
   description: string;
 }
+
+export interface ICardioWorkout {
+  name: string;
+}
