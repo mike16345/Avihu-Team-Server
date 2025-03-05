@@ -43,7 +43,6 @@ export interface ICardioWorkout {
   distance: string;
   cardioExercise: string;
   tips?: string;
-  exerciseMethod?: string;
 }
 
 export interface ICardioWeek {
@@ -62,4 +61,8 @@ export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
 export interface IExerciseMethod {
   title: string;
   description: string;
+}
+
+export interface ICardioWorkout {
+  name: string;
 }
