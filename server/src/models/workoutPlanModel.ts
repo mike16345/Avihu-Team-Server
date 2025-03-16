@@ -194,7 +194,7 @@ export const cardioPlanValidationSchema = Joi.object({
 });
 
 export const WorkoutPlanSchemaValidation = Joi.object({
-  planName: Joi.string().min(1).max(25).required(),
+  planName: Joi.string().min(1).max(75).required(),
   muscleGroups: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });
 
