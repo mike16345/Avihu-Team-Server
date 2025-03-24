@@ -200,7 +200,7 @@ export class UserController {
   ): Promise<APIGatewayProxyResult> {
     try {
       const { email, password, isAdminApp } = JSON.parse(event.body || "{}");
-      const user = (await UserService.getUsersByParameter({ email })).at(0);
+      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
 
       const isSamePassword =
         user && (await PasswordsService.comparePasswords(user._id.toString(), password));
