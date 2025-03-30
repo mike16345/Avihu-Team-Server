@@ -19,15 +19,17 @@ const cache = new Cache();
 export class OTPController {
   static async confirmOtp(event: APIGatewayProxyEvent) {
     try {
-      const { email } = extractBodyFromEvent(event);
+      const { email, otp } = extractBodyFromEvent(event);
       const cacheKey = `otp:${email}`;
-      const otp = cache.get(cacheKey);
+      const cachedOtp = cache.get(cacheKey);
 
       if (!otp) {
         return createResponse(StatusCode.NOT_FOUND, "OTP not found or expired");
       }
+      console.log("Recieved OTP:", otp);
+      console.log("Cached OTP:", cachedOtp);
 
-      const isValidOtp = otp === extractBodyFromEvent(event).otp;
+      const isValidOtp = String(cachedOtp) === String(otp);
 
       if (!isValidOtp) {
         return createResponse(StatusCode.NOT_ACCEPTABLE, "Invalid OTP");
@@ -66,7 +68,7 @@ export class OTPController {
       const otp = generateOTP();
       const cacheKey = `otp:${email}`;
 
-      cache.set(cacheKey, otp, { expireAfter: ONE_MINUTE_IN_MILLISECONDS * 2 });
+      cache.set(cacheKey, otp, { expireAfter: ONE_MINUTE_IN_MILLISECONDS * 5 });
 
       await otpService.sendOTPEmail(email, otp);
 
