@@ -1,3 +1,5 @@
+import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
+import { MongoCode } from "../enums/MongoCode";
 import { WorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 import { Cache } from "../utils/cache";
 
@@ -8,8 +10,13 @@ export class WorkoutPlanPresetService {
     try {
       const workoutPlanDoc = await WorkoutPlanPreset.create(data);
       workoutPlanCache.invalidateAll();
+
       return workoutPlanDoc;
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.code == MongoCode.DUPLICATE_KEY) {
+        throw new Error(DUPLICATE_PRESET_ERROR);
+      }
+
       throw err;
     }
   }
@@ -28,7 +35,10 @@ export class WorkoutPlanPresetService {
       workoutPlanCache.invalidate("all");
 
       return result;
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.code == MongoCode.DUPLICATE_KEY) {
+        throw new Error(DUPLICATE_PRESET_ERROR);
+      }
       throw err;
     }
   }

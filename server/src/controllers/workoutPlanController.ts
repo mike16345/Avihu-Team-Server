@@ -72,7 +72,6 @@ class WorkoutPlanController {
         );
       }
 
-      console.log("returning response");
       return createResponseWithData(
         StatusCode.OK,
         updatedWorkoutPlan,

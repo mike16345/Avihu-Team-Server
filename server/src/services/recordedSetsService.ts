@@ -135,9 +135,7 @@ export class RecordedSetsService {
       exercise ? `:exercise:${exercise}` : ""
     }`;
     const cached = cachedRecordedSets.get(cacheKey);
-    console.log("cache key: " + cacheKey);
     if (cached) {
-      console.log("returning cached data", cached);
       return cached;
     }
 

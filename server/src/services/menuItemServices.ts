@@ -23,8 +23,6 @@ export class MenuItemService {
     const cached = cachedMenuItems.get(cacheKey);
     const query = dietaryRestrictions ? { dietaryType: { $in: dietaryRestrictions } } : {};
 
-    console.log("key", cacheKey);
-    console.log("cached", cached);
     try {
       const menuItems = cached || (await fullMenuItemPresets.find({ foodGroup, ...query }));
       cachedMenuItems.set(cacheKey, menuItems);

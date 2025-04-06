@@ -1,3 +1,5 @@
+import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
+import { MongoCode } from "../enums/MongoCode";
 import { IDietPlanPreset } from "../interfaces/IDietPlan";
 import { DietPlanPresetsModel } from "../models/dietPlanPresetModel";
 import { Cache } from "../utils/cache";
@@ -12,6 +14,9 @@ export class DietPlanPresetsService {
 
       return newDietPlanPreset;
     } catch (err: any) {
+      if (err?.code == MongoCode.DUPLICATE_KEY) {
+        throw new Error(DUPLICATE_PRESET_ERROR);
+      }
       throw err;
     }
   }
@@ -64,6 +69,9 @@ export class DietPlanPresetsService {
 
       return updatedDietPlanPreset;
     } catch (err: any) {
+      if (err?.code == MongoCode.DUPLICATE_KEY) {
+        throw new Error(DUPLICATE_PRESET_ERROR);
+      }
       throw err;
     }
   }
