@@ -23,11 +23,12 @@ export class OTPController {
       const cacheKey = `otp:${email}`;
       const cachedOtp = cache.get(cacheKey);
 
-      if (!otp) {
-        return createResponse(StatusCode.NOT_FOUND, "OTP not found or expired");
-      }
       console.log("Recieved OTP:", otp);
       console.log("Cached OTP:", cachedOtp);
+
+      if (!cachedOtp) {
+        return createResponse(StatusCode.NOT_FOUND, "OTP not found or expired");
+      }
 
       const isValidOtp = String(cachedOtp) === String(otp);
 

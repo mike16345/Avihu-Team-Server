@@ -25,6 +25,7 @@ export class Cache<T> {
 
     // Check if the cache entry has expired
     if (cacheEntry.expiresAt && Date.now() > cacheEntry.expiresAt) {
+      console.log("Cache expired returning null");
       delete this.cache[key];
       return null;
     }

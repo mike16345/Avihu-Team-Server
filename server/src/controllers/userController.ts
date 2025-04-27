@@ -238,7 +238,7 @@ export class UserController {
         await SessionService.endSession(token._id);
       }
 
-      return createResponseWithData(!!session ? StatusCode.OK : StatusCode.UNAUTHORIZED, {
+      return createResponseWithData(StatusCode.OK, {
         isValid: !!session,
         hasAccess: user.hasAccess,
       });
