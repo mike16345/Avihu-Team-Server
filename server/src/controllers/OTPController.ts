@@ -20,7 +20,7 @@ export class OTPController {
   static async confirmOtp(event: APIGatewayProxyEvent) {
     try {
       const { email, otp } = extractBodyFromEvent(event);
-      const cacheKey = `otp:${email}`;
+      const cacheKey = `otp:${email.toLowerCase()}`;
       const cachedOtp = cache.get(cacheKey);
 
       console.log("Recieved OTP:", otp);
@@ -67,7 +67,7 @@ export class OTPController {
 
       const otpService = new OTPService();
       const otp = generateOTP();
-      const cacheKey = `otp:${email}`;
+      const cacheKey = `otp:${email.toLowerCase()}`;
 
       cache.set(cacheKey, otp, { expireAfter: ONE_MINUTE_IN_MILLISECONDS * 5 });
 
