@@ -69,11 +69,13 @@ const userSchema = new Schema<IUser>({
 
 export const User = model("users", userSchema);
 
+const phoneRegex = /^\+?[0-9\s\-().]{7,20}$/;
+
 export const UserSchemaValidation = Joi.object({
   firstName: Joi.string().min(2).max(25),
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),
-  phone: Joi.string().pattern(/^0[0-9]{9}$/),
+  phone: Joi.string().pattern(phoneRegex),
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),
