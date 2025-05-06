@@ -74,7 +74,7 @@ class PasswordsController {
 
     try {
       const match = await PasswordsService.comparePasswords(email, password);
-      
+
       if (!match) {
         return createResponse(
           StatusCode.UNAUTHORIZED,

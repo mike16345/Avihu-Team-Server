@@ -19,8 +19,13 @@ export class UserController {
   ): Promise<APIGatewayProxyResult> {
     try {
       const user = await UserService.createUser(JSON.parse(event.body || "{}"));
+      
+      if (user) {
+        const phoneNumber = user.phone.replace(/\D/g, "");
+        await PasswordsService.hashPassword(user._id.toString(), phoneNumber);
+      }
 
-      return createResponseWithData(StatusCode.CREATED, user, "User  created successfully!");
+      return createResponseWithData(StatusCode.CREATED, user, "User created successfully!");
     } catch (err: any) {
       return createServerErrorResponse(err);
     }
@@ -186,7 +191,7 @@ export class UserController {
         return createResponse(StatusCode.FORBIDDEN, `אין גישה לכתובת המייל`);
       }
 
-      await PasswordsService.hashPassword(user._id.toString(), password);
+      await PasswordsService.updatePassword(user._id.toString(), password);
 
       return createResponseWithData(StatusCode.OK, user, "סיסמה נשמרה במערכת!");
     } catch (err: any) {
@@ -204,6 +209,14 @@ export class UserController {
 
       const isSamePassword =
         user && (await PasswordsService.comparePasswords(user._id.toString(), password));
+
+      if (!user) {
+        console.log("User NOT found!", user);
+      }
+
+      if (!isSamePassword) {
+        console.log("Password does not match!");
+      }
 
       if (!user || !isSamePassword) {
         return createResponse(StatusCode.NOT_FOUND, `מייל או סיסמא שגויים!`);

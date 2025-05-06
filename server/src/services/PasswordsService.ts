@@ -16,7 +16,7 @@ class PasswordsService {
   static async hashPassword(userId: string, password: string) {
     try {
       const encryptedPassword = await bcrypt.hash(password, saltRounds);
-      const encrypted = await Password.create({ userId, hash: encryptedPassword });
+      const encrypted = await Password.findOneAndUpdate({ userId, hash: encryptedPassword });
 
       return encrypted;
     } catch (e: any) {
@@ -28,7 +28,11 @@ class PasswordsService {
     try {
       const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-      return await Password.findOneAndUpdate({ userId }, { hash: hashedPassword });
+      return await Password.findOneAndUpdate(
+        { userId },
+        { hash: hashedPassword },
+        { upsert: true, new: true } // upsert creates if not found
+      );
     } catch (err: any) {
       throw err;
     }
