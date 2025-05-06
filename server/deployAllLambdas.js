@@ -20,7 +20,7 @@ const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 // Convert environment variables string to AWS CLI format
 const envVars = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
 const otpEnv = `${EMAIL},${APP_PASSWORD},` + envVars;
-const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;  
+const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
 
 const envMap = {
   signedUrl: signedUrlEnv,
@@ -34,7 +34,7 @@ const lambdaFunctionsMap = {
   RecordedSets: { path: "recordedSets/index.ts", envToUse: "api" },
   Analytics: { path: "analytics/index.ts", envToUse: "api" },
   UserImageUrls: { path: "UserImageUrls/index.ts", envToUse: "api" },
-  Users: { path: "users/index.ts", envToUse: "api" },
+  Users: { path: "users/index.ts", envToUse: "otp" },
   WorkoutPlans: { path: "workoutPlans/index.ts", envToUse: "api" },
   Presets: { path: "presets/index.ts", envToUse: "api" },
   muscleGroups: { path: "muscleGroups/index.ts", envToUse: "api" },

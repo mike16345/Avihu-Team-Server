@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { OTPService } from "../services/OTPService";
+import { EmailService } from "../services/EmailService";
 import {
   createResponse,
   createResponseWithData,
@@ -65,13 +65,26 @@ export class OTPController {
         return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");
       }
 
-      const otpService = new OTPService();
+      const otpService = new EmailService();
       const otp = generateOTP();
       const cacheKey = `otp:${email.toLowerCase()}`;
 
       cache.set(cacheKey, otp, { expireAfter: ONE_MINUTE_IN_MILLISECONDS * 5 });
-
-      await otpService.sendOTPEmail(email, otp);
+      const mailOptions = {
+        to: email,
+        subject: "קוד אימות - AvihuTeam",
+        text: `קוד האימות שלך הוא: ${otp}`,
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #f3f4f6; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #2c3e50;">שלום!</h2>
+            <p style="font-size: 16px; color: #333;">קוד האימות שלך הוא:</p>
+            <p style="font-size: 24px; font-weight: bold; color: #1d4ed8; margin: 15px 0;">${otp}</p>
+            <p style="font-size: 14px; color: #666;">הקוד תקף למספר דקות בלבד. נא לא לשתף אותו עם אף אחד.</p>
+            <p style="font-size: 16px; margin-top: 20px;">בהצלחה,<br/>צוות AvihuTeam</p>
+          </div>
+        `,
+      };
+      await otpService.sendEmail(mailOptions);
 
       return createResponseWithData(StatusCode.OK, undefined, "OTP sent successfully");
     } catch (error) {
