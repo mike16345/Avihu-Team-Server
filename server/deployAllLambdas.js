@@ -1,4 +1,4 @@
-const { execSync } = require("child_process");
+const { deploy } = require("./deploy");
 const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
@@ -6,27 +6,6 @@ const path = require("path");
 dotenv.config({ path: "./.env.local" });
 
 const lambdaFolder = "./src/functions";
-const DB_NAME = `DB_NAME=${process.env.DB_NAME}`;
-const DB_USER = `DB_USERNAME=${process.env.DB_USERNAME}`;
-const DB_PASSWORD = `DB_PASSWORD=${process.env.DB_PASSWORD}`;
-const DB_CLUSTER = `DB_CLUSTER=${process.env.DB_CLUSTER}`;
-const AWS_BUCKET = `AWS_BUCKET=${process.env.AWS_BUCKET}`;
-const AWS_REGION = `REGION=${process.env.REGION}`;
-const EMAIL = `EMAIL=${process.env.EMAIL}`;
-const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
-const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
-const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
-
-// Convert environment variables string to AWS CLI format
-const envVars = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
-const otpEnv = `${EMAIL},${APP_PASSWORD},` + envVars;
-const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
-
-const envMap = {
-  signedUrl: signedUrlEnv,
-  api: envVars,
-  otp: otpEnv,
-};
 
 const lambdaFunctionsMap = {
   Blogs: { path: "blogs/index.ts", envToUse: "api" },
@@ -48,7 +27,6 @@ const lambdaFunctionsMap = {
 };
 
 async function deployAllLambdas() {
-  // Loop through the lambda map and deploy each one
   for (const [functionName, { path: handlerPath, envToUse }] of Object.entries(
     lambdaFunctionsMap
   )) {
@@ -59,19 +37,10 @@ async function deployAllLambdas() {
       continue; // Skip this lambda if handler file doesn't exist
     }
 
-    const command = `lambda-build upload ${functionName} -e ${selectedHandlerPath} -r il-central-1`;
-    const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout 10 --environment Variables="{${envMap[envToUse]}}" --region il-central-1`;
-
     try {
-      console.log(
-        `Updating environment variables for ${functionName} with command: ${updateEnvCommand}`
-      );
-      execSync(updateEnvCommand);
-
-      console.log(`Deploying Lambda function ${functionName} using command: ${command}`);
-      execSync(command, { stdio: "inherit" });
-    } catch (error) {
-      console.error(`Deployment of ${functionName} failed:`, error.message);
+      deploy({ functionName, handlerPath: selectedHandlerPath }, envToUse);
+    } catch (e) {
+      console.log("Error deploying Lambda: ", e.message);
     }
   }
 

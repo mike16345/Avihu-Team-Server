@@ -11,14 +11,6 @@ const args = process.argv.slice(2);
 const envArg = args.find((arg) => arg.startsWith("env="));
 const promote = args.includes("promote");
 
-if (!envArg) {
-  console.error(
-    "Please provide an environment using the 'env=' argument\nUsage: npm run deploy -- env='your-env' [--promote]\nOptions:\n1. signedUrl\n2. api\n3. otp"
-  );
-  process.exit(1);
-}
-
-const env = envArg.split("=")[1];
 const REGION = "il-central-1";
 const lambdaFolder = "./src/functions";
 
@@ -34,10 +26,12 @@ const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
 const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 
+const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
+const apiEnv = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
 const envMap = {
-  signedUrl: `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`,
-  api: `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`,
-  otp: `${EMAIL},${APP_PASSWORD},${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`,
+  signedUrl: signedUrlEnv,
+  api: apiEnv,
+  otp: `${EMAIL},${APP_PASSWORD},${apiEnv}`,
 };
 
 // Get all index.ts/js files in subfolders
@@ -71,33 +65,28 @@ function getLambdaFunctions() {
   }
 }
 
-function aliasExists(functionName, aliasName) {
+function deploy({ functionName, handlerPath }, envKey = null) {
+  const envToUse = envKey || envArg.split("=")[1];
+  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout 10 --environment Variables="{${envMap[envToUse]}}" --region ${REGION}`;
+  const uploadCommand = `lambda-build upload ${functionName} -e ${handlerPath} -r ${REGION}`;
+
   try {
-    execSync(
-      `aws lambda get-alias --function-name ${functionName} --name ${aliasName} --region ${REGION}`,
-      { stdio: "ignore" }
-    );
-    return true;
+    console.log(`Updating environment with ${envToUse} env variables...`);
+    execSync(updateEnvCommand);
+
+    console.log(`Uploading code with lambda-build...`);
+    execSync(uploadCommand, { stdio: "inherit" });
+
+    setupAliases(functionName, promote);
+
+    console.log("✅ Deployment complete.");
   } catch (error) {
-    return false;
+    console.error("❌ Deployment failed:", error.message);
+    process.exit(1);
   }
 }
 
-function updateOrCreateAlias(functionName, aliasName, version) {
-  if (aliasExists(functionName, aliasName)) {
-    console.log(`Updating alias '${aliasName}' to version ${version}...`);
-    execSync(
-      `aws lambda update-alias --function-name ${functionName} --name ${aliasName} --function-version ${version} --region ${REGION}`
-    );
-  } else {
-    console.log(`Creating alias '${aliasName}' to version ${version}...`);
-    execSync(
-      `aws lambda create-alias --function-name ${functionName} --name ${aliasName} --function-version ${version} --region ${REGION}`
-    );
-  }
-}
-
-async function deployLambda() {
+async function promptAndDeployLambda() {
   const lambdaHandlers = getLambdaHandlers(lambdaFolder);
   if (lambdaHandlers.length === 0) {
     console.error("No Lambda handlers found in the folder.");
@@ -125,23 +114,17 @@ async function deployLambda() {
   ]);
 
   const selectedHandlerPath = path.join(lambdaFolder, selectedHandler);
-  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${selectedFunction} --timeout 10 --environment Variables="{${envMap[env]}}" --region ${REGION}`;
-  const uploadCommand = `lambda-build upload ${selectedFunction} -e ${selectedHandlerPath} -r ${REGION}`;
-
-  try {
-    console.log(`Updating environment variables...`);
-    execSync(updateEnvCommand);
-
-    console.log(`Uploading code with lambda-build...`);
-    execSync(uploadCommand, { stdio: "inherit" });
-
-    setupAliases(selectedFunction, promote);
-
-    console.log("✅ Deployment complete.");
-  } catch (error) {
-    console.error("❌ Deployment failed:", error.message);
-    process.exit(1);
-  }
+  deploy({ functionName: selectedFunction, handlerPath: selectedHandlerPath });
 }
 
-deployLambda();
+if (require.main === module) {
+  if (!envArg) {
+    console.error(
+      "Please provide an environment using the 'env=' argument\nUsage: npm run deploy -- env='your-env' [--promote]\nOptions:\n1. signedUrl\n2. api\n3. otp"
+    );
+    process.exit(1);
+  }
+  promptAndDeployLambda();
+}
+
+module.exports = { deploy };
