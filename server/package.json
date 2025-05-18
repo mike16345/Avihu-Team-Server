@@ -6,6 +6,8 @@
     "dev": "nodemon",
     "start": "ts-node -T ./src/app.ts",
     "test": "jest",
+    "create-lambda": "node ./scripts/createLambda.js",
+    "configure-api-gateway": "node ./scripts/configureApiGateway.js",
     "deploy": "node deploy.js",
     "deploy-all-lambdas": "node deployAllLambdas.js"
   },
