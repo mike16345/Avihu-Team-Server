@@ -32,47 +32,6 @@ function run(command) {
   return execSync(command, { encoding: "utf-8" }).trim();
 }
 
-function createResource(apiId, parentResourceId, path) {
-  console.log(`📁 Creating resource "${path}"...`);
-  return run(
-    `aws apigateway create-resource --rest-api-id ${apiId} --parent-id ${parentResourceId} --path-part ${path} --query id --output text`
-  );
-}
-
-function setupAuthorization(apiId, resourceId, authorizerId) {
-  console.log("🔐 Setting up lambda authorization...");
-  run(
-    `aws apigateway put-method --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --authorization-type CUSTOM --authorizer-id ${authorizerId}`
-  );
-}
-
-function setupIntegration(apiId, resourceId, functionName) {
-  console.log("🔗 Setting up integration with stage variable for alias...");
-  const uri = `arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${functionName}:\${stageVariables.lambdaAlias}/invocations`;
-
-  run(
-    `aws apigateway put-integration --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --type AWS_PROXY --integration-http-method POST --uri "${uri}"`
-  );
-}
-
-function addLambdaPermission(apiId, resourceId, resourcePath, functionName, alias) {
-  const statementId = `apigateway-${apiId}-${resourceId}-${alias}`;
-  const sourceArn = `arn:aws:execute-api:${AWS_REGION}:${AWS_ACCOUNT_ID}:${apiId}/*/ANY/${resourcePath}`;
-
-  console.log(`🛡️  Granting permission for alias "${alias}"...`);
-  try {
-    run(
-      `aws lambda add-permission --function-name ${functionName}:${alias} --statement-id ${statementId} --action lambda:InvokeFunction --principal apigateway.amazonaws.com --source-arn ${sourceArn}`
-    );
-  } catch (err) {
-    if (err.message.includes("already exists")) {
-      console.log(`⚠️ Permission "${statementId}" already exists. Skipping.`);
-    } else {
-      throw err;
-    }
-  }
-}
-
 function enableCors(apiId, resourceId) {
   const mockIntegrationCmd =
     `aws apigateway put-integration ` +
@@ -122,6 +81,51 @@ function enableCors(apiId, resourceId) {
   console.log("✅ CORS enabled");
 }
 
+function createResource(apiId, parentResourceId, path) {
+  console.log(`📁 Creating resource "${path}"...`);
+  return run(
+    `aws apigateway create-resource --rest-api-id ${apiId} --parent-id ${parentResourceId} --path-part ${path} --query id --output text`
+  );
+}
+
+function setupAuthorization(apiId, resourceId, authorizerId) {
+  console.log("🔐 Setting up lambda authorization...");
+  run(
+    `aws apigateway put-method --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --authorization-type CUSTOM --authorizer-id ${authorizerId}`
+  );
+}
+
+function setupIntegration(apiId, resourceId, functionName) {
+  console.log("🔗 Setting up integration with stage variable for alias...");
+  const uri = `arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${functionName}:\${stageVariables.lambdaAlias}/invocations`;
+
+  run(
+    `aws apigateway put-integration --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --type AWS_PROXY --integration-http-method POST --uri "${uri}"`
+  );
+}
+
+function addLambdaPermission(apiId, resourceId, resourcePath, functionName, alias) {
+  const statementId = `apigateway-${apiId}-${resourceId}-${alias}`;
+
+  // Normalize resourcePath: replace {proxy+} with * for correct wildcard match
+  const normalizedPath = resourcePath === "{proxy+}" ? "*" : resourcePath;
+
+  const sourceArn = `arn:aws:execute-api:${AWS_REGION}:${AWS_ACCOUNT_ID}:${apiId}/*/ANY/${normalizedPath}`;
+
+  console.log(`🛡️  Granting permission for alias "${alias}" on path "${resourcePath}"...`);
+  try {
+    run(
+      `aws lambda add-permission --function-name ${functionName}:${alias} --statement-id ${statementId} --action lambda:InvokeFunction --principal apigateway.amazonaws.com --source-arn ${sourceArn}`
+    );
+  } catch (err) {
+    if (err.message.includes("already exists")) {
+      console.log(`⚠️ Permission "${statementId}" already exists. Skipping.`);
+    } else {
+      throw err;
+    }
+  }
+}
+
 async function createProxyResource(apiId, parentId) {
   const proxyPath = "{proxy+}";
   console.log(`📁 Creating greedy path "/${proxyPath}"...`);
@@ -164,7 +168,7 @@ async function configureGateway() {
   }
 
   let newResourceId = "";
-  
+
   try {
     newResourceId = createResource(apiId, parentResourceId, resourcePath);
     console.log(`✅ Created resource "${resourcePath}" with ID ${newResourceId}`);
@@ -197,3 +201,7 @@ async function configureGateway() {
 }
 
 configureGateway();
+
+module.exports = {
+  addLambdaPermission,
+};
