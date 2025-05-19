@@ -1,9 +1,11 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { LessonGroupService } from "../services/LessonGroupService";
 import {
+  createResponse,
   createResponseWithData,
   createServerErrorResponse,
   extractBodyFromEvent,
+  extractQueryFromEvent,
 } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
@@ -33,7 +35,11 @@ export class LessonGroupsController {
   }
 
   static async deleteLessonGroup(event: APIGatewayEvent) {
-    const { id } = extractBodyFromEvent(event);
+    const { id } = extractQueryFromEvent(event);
+
+    if (!id) {
+      return createResponse(StatusCode.BAD_REQUEST, '"id" is required!');
+    }
 
     try {
       const lessonGroup = await LessonGroupService.deleteLessonGroup(id);
@@ -55,10 +61,13 @@ export class LessonGroupsController {
   }
 
   static async getLessonGroupById(event: APIGatewayEvent) {
-    const { id } = extractBodyFromEvent(event);
+    const { id } = extractQueryFromEvent(event);
 
+    if (!id) {
+      return createResponse(StatusCode.BAD_REQUEST, '"id" is required!');
+    }
     try {
-    const lessonGroup = await LessonGroupService.getLessonGroupById(id);
+      const lessonGroup = await LessonGroupService.getLessonGroupById(id);
 
       return createResponseWithData(StatusCode.OK, lessonGroup);
     } catch (e) {
