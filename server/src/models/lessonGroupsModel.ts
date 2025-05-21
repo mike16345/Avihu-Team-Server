@@ -2,11 +2,11 @@ import joi from "joi";
 import { model, Schema } from "mongoose";
 
 interface ILessonGroup {
-  group: string;
+  name: string;
 }
 
 const LessonSchema = new Schema<ILessonGroup>({
-  group: {
+  name: {
     type: String,
     required: true,
     unique: true,
@@ -16,7 +16,7 @@ const LessonSchema = new Schema<ILessonGroup>({
 const LessonGroup = model("lessonGroups", LessonSchema);
 
 const lessonGroupJoiSchema = joi.object({
-  group: joi.string().min(1).max(75),
+  name: joi.string().min(1).max(75),
 });
 
 export { LessonGroup, lessonGroupJoiSchema };

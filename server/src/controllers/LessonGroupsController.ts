@@ -11,10 +11,10 @@ import { StatusCode } from "../enums/StatusCode";
 
 export class LessonGroupsController {
   static async addLessonGroup(event: APIGatewayEvent) {
-    const { group } = extractBodyFromEvent(event);
+    const { name } = extractBodyFromEvent(event);
 
     try {
-      const lessonGroup = await LessonGroupService.addLessonGroup(group);
+      const lessonGroup = await LessonGroupService.addLessonGroup(name);
 
       return createResponseWithData(StatusCode.CREATED, lessonGroup);
     } catch (e) {
@@ -23,10 +23,10 @@ export class LessonGroupsController {
   }
 
   static async updateLessonGroup(event: APIGatewayEvent) {
-    const { id, group } = extractBodyFromEvent(event);
+    const { id, name } = extractBodyFromEvent(event);
 
     try {
-      const lessonGroup = await LessonGroupService.updateLessonGroup(id, group);
+      const lessonGroup = await LessonGroupService.updateLessonGroup(id, name);
 
       return createResponseWithData(StatusCode.OK, lessonGroup);
     } catch (e) {

@@ -4,7 +4,7 @@ import { LessonGroup } from "../models/lessonGroupsModel";
 export class LessonGroupService {
   static async addLessonGroup(lessonGroup: string) {
     try {
-      return await LessonGroup.create({ group: lessonGroup });
+      return await LessonGroup.create({ name: lessonGroup });
     } catch (e) {
       throw e;
     }
@@ -14,7 +14,7 @@ export class LessonGroupService {
     try {
       return await LessonGroup.updateOne(
         { _id: new mongoose.mongo.ObjectId(id) },
-        { group: lessonGroup }
+        { name: lessonGroup }
       );
     } catch (e) {
       throw e;
