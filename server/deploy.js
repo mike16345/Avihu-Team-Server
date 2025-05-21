@@ -5,6 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const { setupAliases } = require("./scripts/setupAliases");
 
+const { lambdaConfig } = require("./config/lambdaConfig");
+
 dotenv.config({ path: "./.env.local" });
 
 const args = process.argv.slice(2);
@@ -67,7 +69,7 @@ function getLambdaFunctions() {
 
 function deploy({ functionName, handlerPath }, envKey = null) {
   const envToUse = envKey || envArg.split("=")[1];
-  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout 10 --environment Variables="{${envMap[envToUse]}}" --region ${REGION}`;
+  const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout ${lambdaConfig.timeout} --environment Variables="{${envMap[envToUse]}}" --region ${REGION}`;
   const uploadCommand = `lambda-build upload ${functionName} -e ${handlerPath} -r ${REGION}`;
 
   try {

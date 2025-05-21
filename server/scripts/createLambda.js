@@ -9,6 +9,8 @@ const ZIP_FILE = path.resolve("./scripts/archive.zip");
 const ROLE_ARN = "arn:aws:iam::913524933161:role/BasicLambdaRole";
 const REGION = "il-central-1";
 
+const { lambdaConfig } = require("../config/lambdaConfig");
+
 // Get function name from command-line argument
 const args = process.argv.slice(2);
 const FUNCTION_NAME = args[0];
@@ -27,7 +29,7 @@ try {
     --role ${ROLE_ARN} \
     --handler ${HANDLER} \
     --zip-file fileb://${ZIP_FILE} \
-    --timeout 10 \
+    --timeout ${lambdaConfig.timeout} \
     --region ${REGION}`;
 
   execSync(command, { stdio: "ignore" });
