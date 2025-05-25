@@ -23,7 +23,8 @@ export class LessonGroupsController {
   }
 
   static async updateLessonGroup(event: APIGatewayEvent) {
-    const { id, name } = extractBodyFromEvent(event);
+    const { id = "" } = extractQueryFromEvent(event);
+    const { name } = extractBodyFromEvent(event);
 
     try {
       const lessonGroup = await LessonGroupService.updateLessonGroup(id, name);
