@@ -7,12 +7,15 @@ import {
   createServerErrorResponse,
   removeNestedIds,
 } from "../utils/utils";
+import { calculateTotalCalories } from "../utils/dietPlan";
 
 class DietPlanController {
   static addDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const dietPlan = JSON.parse(event.body || "{}");
 
     try {
+      dietPlan.totalCalories=calculateTotalCalories(dietPlan.meals,dietPlan.fatsPerDay)
+
       const dietPlanResult = await DietPlanServices.addDietPlan(dietPlan);
 
       return createResponseWithData(

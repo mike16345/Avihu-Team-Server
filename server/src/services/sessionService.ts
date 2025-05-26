@@ -15,10 +15,7 @@ const isSessionExpired = (session: ISession): boolean => {
     const workoutExpiration = session.updatedAt.getTime() + 2 * 60 * 60 * 1000; // 2 hours in ms
 
     return now > workoutExpiration;
-  } else if (session.type == "meals") {
-    const updatedSession=removeExpiredMeals(session.data)
-
-  }
+  } 
 
   return false;
 };

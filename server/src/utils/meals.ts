@@ -1,5 +1,4 @@
 import { ISession } from "../models/sessionModel";
-import SessionService from "../services/sessionService";
 
 export const removeExpiredMeals=(session:ISession)=>{
     const now = new Date();
@@ -22,3 +21,4 @@ export const removeExpiredMeals=(session:ISession)=>{
    
     return result;
 }
+
