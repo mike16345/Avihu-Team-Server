@@ -8,6 +8,7 @@ const sessionApiHandlers = {
   [`GET ${BASE_PATH}/type`]: SessionController.getSessionsByType,
   [`PUT ${BASE_PATH}/one`]: SessionController.refreshSession,
   [`POST ${BASE_PATH}`]: SessionController.startSession,
+  [`PUT ${BASE_PATH}/update`]: SessionController.updateSession,
   [`DELETE ${BASE_PATH}/one`]: SessionController.endSession,
   [`DELETE ${BASE_PATH}/all`]: SessionController.endAllSessions,
 };
