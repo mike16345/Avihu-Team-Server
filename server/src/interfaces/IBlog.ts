@@ -4,5 +4,6 @@ export interface IBlog {
   imageUrl?: string;
   date: Date;
   group?: string;
+  planType?: string;
   link?: string;
 }

@@ -11,8 +11,9 @@ const uri = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.ne
 
 export default async function () {
   try {
-    console.log("connecting to database");
+    console.log("Connecting to database...");
     if (conn == null) {
+      console.log('Creating new connection to database...')
       conn = mongoose
         .connect(uri, {
           serverSelectionTimeoutMS: 5000,
