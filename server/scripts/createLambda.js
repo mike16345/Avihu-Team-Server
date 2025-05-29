@@ -1,13 +1,18 @@
 const { execSync } = require("child_process");
 const { setupAliases } = require("./setupAliases");
 const path = require("path");
+const dotenv = require("dotenv");
+
+const { lambdaConfig } = require("./config/lambdaConfig");
+
+dotenv.config({ path: "./.env.local" });
 
 // Constants (same as the batch script)
 const RUNTIME = "nodejs20.x";
 const HANDLER = "index.handler";
 const ZIP_FILE = path.resolve("./scripts/archive.zip");
-const ROLE_ARN = "arn:aws:iam::913524933161:role/BasicLambdaRole";
-const REGION = "il-central-1";
+const ROLE_ARN = `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/BasicLambdaRole`;
+const REGION = process.env.AWS_REGION;
 
 const { lambdaConfig } = require("../config/lambdaConfig");
 

@@ -17,19 +17,23 @@ const REGION = "il-central-1";
 const lambdaFolder = "./src/functions";
 
 // ENV variables
+
+// DB
 const DB_NAME = `DB_NAME=${process.env.DB_NAME}`;
-const DB_USER = `DB_USERNAME=${process.env.DB_USERNAME}`;
-const DB_PASSWORD = `DB_PASSWORD=${process.env.DB_PASSWORD}`;
-const DB_CLUSTER = `DB_CLUSTER=${process.env.DB_CLUSTER}`;
+const MONGO_URI = `MONGO_URI=${process.env.MONGO_URI}`;
+
+// AWS
 const AWS_BUCKET = `AWS_BUCKET=${process.env.AWS_BUCKET}`;
-const AWS_REGION = `REGION=${process.env.REGION}`;
-const EMAIL = `EMAIL=${process.env.EMAIL}`;
-const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
+const AWS_REGION = `AWS_REGION=${process.env.AWS_REGION}`;
 const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
 const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 
+// Email
+const EMAIL = `EMAIL=${process.env.EMAIL}`;
+const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
+
 const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
-const apiEnv = `${DB_NAME},${DB_USER},${DB_PASSWORD},${DB_CLUSTER}`;
+const apiEnv = `${DB_NAME},${MONGO_URI}`;
 const envMap = {
   signedUrl: signedUrlEnv,
   api: apiEnv,
