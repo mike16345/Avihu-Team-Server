@@ -12,16 +12,18 @@ const uri = `mongodb+srv://${username}:${password}@${cluster}.syi4d9w.mongodb.ne
 export default async function () {
   try {
     console.log("Connecting to database...");
-    if (conn == null) {
-      console.log('Creating new connection to database...')
-      conn = mongoose
-        .connect(uri, {
-          serverSelectionTimeoutMS: 5000,
-          dbName: dbName,
-        })
-        .then(() => mongoose);
-      await conn;
-    }
+    if (conn) return conn;
+
+    console.log("Creating new connection to database...");
+    mongoose.set("strictQuery", true); // Ignore strict query warning
+
+    conn = mongoose
+      .connect(uri, {
+        serverSelectionTimeoutMS: 5000,
+        dbName: dbName,
+      })
+      .then(() => mongoose);
+    await conn;
 
     console.log("Connected to database!");
     return conn;
