@@ -11,6 +11,7 @@ export interface IWorkout {
   exerciseMethod?: string;
   name: string;
   sets: ISet[];
+  restTime: number;
 }
 
 export interface IDetailedWorkoutPlan {

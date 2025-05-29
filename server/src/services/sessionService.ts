@@ -1,5 +1,6 @@
 import Session, { ISession, ISessionCreate, SessionType } from "../models/sessionModel";
 import { Cache } from "../utils/cache";
+import { removeExpiredMeals } from "../utils/meals";
 
 const sessionCache = new Cache<any>();
 
@@ -14,7 +15,7 @@ const isSessionExpired = (session: ISession): boolean => {
     const workoutExpiration = session.updatedAt.getTime() + 2 * 60 * 60 * 1000; // 2 hours in ms
 
     return now > workoutExpiration;
-  }
+  } 
 
   return false;
 };
@@ -48,7 +49,7 @@ export default class SessionService {
 
   static async getSessionById(sessionId: string) {
     try {
-      const session = await Session.findById(sessionId);
+      let session = await Session.findById(sessionId);
 
       if (!session) return null;
 
@@ -56,6 +57,13 @@ export default class SessionService {
         await Session.deleteOne(session._id);
         return null;
       }
+
+      if(session.type == "meals"){
+       const newSession= removeExpiredMeals(session)
+
+       session=await Session.findByIdAndUpdate(session._id, {data:newSession,updatedAt:new Date()},{new:true})
+      }
+
       sessionCache.set(sessionId, session);
 
       return session;
@@ -111,7 +119,7 @@ export default class SessionService {
 
       if (result) {
         sessionCache.invalidate(sessionId); // Invalidate cache for the updated session
-          sessionCache.invalidateAll(); // Optionally invalidate all sessions 
+        sessionCache.invalidateAll(); // Optionally invalidate all sessions
       }
 
       return result;

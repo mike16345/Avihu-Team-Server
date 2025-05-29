@@ -25,6 +25,25 @@ export default class SessionController {
       return createServerErrorResponse(err);
     }
   }
+  static async updateSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    const { id, data } = JSON.parse(event.body || "{}");
+
+    if (!id ) {
+      return createResponse(StatusCode.BAD_REQUEST, "Id is required.");
+    }
+
+    const session: ISessionCreate = {
+      data,
+    };
+
+    try {
+      const result = await SessionService.updateSession(id,session);
+      
+      return createResponseWithData(StatusCode.OK, result);
+    } catch (err: any) {
+      return createServerErrorResponse(err);
+    }
+  }
 
   static async refreshSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     const sessionId = event.queryStringParameters?.sessionId;

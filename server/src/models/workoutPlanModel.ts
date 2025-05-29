@@ -43,6 +43,10 @@ export const workoutSchema: Schema<IWorkout> = new Schema({
     type: String,
     minlength: 1,
   },
+  restTime: {
+    type: Number,
+    default: 60,
+  },
 });
 
 export const muscleGroupWorkoutPlanSchema: Schema<IMuscleGroupWorkoutPlan> = new Schema({
@@ -150,6 +154,7 @@ export const workoutValidationSchema = Joi.object({
   linkToVideo: Joi.string().optional(),
   tipFromTrainer: Joi.string().allow("").optional(),
   exerciseMethod: Joi.string().min(1).optional().allow(""),
+  restTime: Joi.number().min(1).max(300),
 });
 
 export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
