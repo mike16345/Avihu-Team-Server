@@ -126,3 +126,10 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
   await workoutPlanService.deleteWorkoutPlanByUserId(userId).catch((err) => console.log(err));
 };
+
+export const sortObjectKeys=(obj:Record<string,any>)=>{
+  return Object.keys(obj).sort().reduce((acc, key) => {
+    acc[key] = obj[key];
+    return acc;
+  }, {} as Record<string, any>);
+}

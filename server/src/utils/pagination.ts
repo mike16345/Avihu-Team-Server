@@ -1,4 +1,5 @@
 import { Model } from "mongoose";
+import { sortObjectKeys } from "./utils";
 
 export interface PaginationParams {
   model: Model<any>;
@@ -15,6 +16,19 @@ export interface PaginationResult<T> {
   currentPage: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
+}
+
+
+export const generatePaginationCacheKey=({
+  model,
+  limit,
+  page,
+  query={},
+  sort
+}:PaginationParams):string=>{
+  const sortedQuery = JSON.stringify(sortObjectKeys(query));
+
+  return `${model}?page=${page}&limit=${limit}&sort=${sort}&query=${sortedQuery}`;
 }
 
 async function paginate<T>({
