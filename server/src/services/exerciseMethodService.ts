@@ -1,32 +1,38 @@
 import { IExerciseMethod } from "../interfaces/IWorkoutPlan";
 import { exerciseMethods } from "../models/excerciseMethodModel";
-import { Cache } from "../utils/cache";
+import { PaginationParams } from "../utils/pagination";
+import { BaseService } from "./baseService";
 
-let cachedExerciseMethods = new Cache<IExerciseMethod[]>();
-let singleExerciseMethodCache = new Cache<IExerciseMethod>();
 
-export class ExerciseMethodService {
-  static async getAllExerciseMethods() {
-    const cached = cachedExerciseMethods.get(`all`);
+
+const RESOURCE_NAME=`exercise-methods`
+
+ class ExerciseMethodService extends BaseService<IExerciseMethod> {
+    async getAllExerciseMethods() {
 
     try {
-      const allExerciseMethods = cached || (await exerciseMethods.find());
-
-      cachedExerciseMethods.set(`all`, allExerciseMethods);
-
+      const allExerciseMethods =  await this.findAll(exerciseMethods,`${RESOURCE_NAME}-all`);
+      
       return allExerciseMethods;
     } catch (error) {
       throw error;
     }
   }
 
-  static async getexErciseMethodById(id: string) {
-    const cached = singleExerciseMethodCache.get(id);
+  async getPaginatedMethods(limit:number,page:number,query:any,sort:Record<string,any>){
+    try {
+      const paginatedData=await this.findPaginated({model:exerciseMethods,limit,page,sort,query}, RESOURCE_NAME)
+
+      return paginatedData
+    } catch (error) {
+      throw error
+    }
+  }
+
+   async getexErciseMethodById(id: string) {
 
     try {
-      const exerciseMethod = cached || (await exerciseMethods.findById(id));
-
-      singleExerciseMethodCache.set(id, exerciseMethod);
+      const exerciseMethod = await this.findById(id,exerciseMethods,`${RESOURCE_NAME}-${id}`)
 
       return exerciseMethod;
     } catch (error) {
@@ -34,13 +40,11 @@ export class ExerciseMethodService {
     }
   }
 
-  static async getExerciseMethodByName(name: string) {
-    const cached = singleExerciseMethodCache.get(name);
+   async getExerciseMethodByName(name: string) {
 
     try {
-      const exerciseMethod = cached || (await exerciseMethods.find({ title: name })).pop();
+      const exerciseMethod =await this.findOne({title:name},exerciseMethods,`${RESOURCE_NAME}-${name}`)
 
-      singleExerciseMethodCache.set(name, exerciseMethod);
 
       return exerciseMethod;
     } catch (error) {
@@ -48,18 +52,18 @@ export class ExerciseMethodService {
     }
   }
 
-  static async addExerciseMethod(exerciseMethod: IExerciseMethod) {
+   async addExerciseMethod(exerciseMethod: IExerciseMethod) {
     try {
-      const newExerciseMethod = await exerciseMethods.create(exerciseMethod);
-
-      cachedExerciseMethods.invalidateAll();
+      const newExerciseMethod = await this.create(exerciseMethod,exerciseMethods)
 
       return newExerciseMethod;
     } catch (error) {
       throw error;
     }
   }
-  static async addManyExerciseMethods(exerciseMethods: IExerciseMethod[]) {
+
+
+   async addManyExerciseMethods(exerciseMethods: IExerciseMethod[]) {
     try {
       const newExrciseMethods = await Promise.all(
         exerciseMethods.map(async (e) => {
@@ -67,7 +71,7 @@ export class ExerciseMethodService {
         })
       );
 
-      cachedExerciseMethods.invalidateAll();
+      this.cache.invalidateAll();
 
       return newExrciseMethods;
     } catch (error) {
@@ -75,16 +79,10 @@ export class ExerciseMethodService {
     }
   }
 
-  static async editExerciseMethod(exerciseMethod: IExerciseMethod, id: string) {
+   async editExerciseMethod(exerciseMethod: IExerciseMethod, id: string) {
     try {
-      const newExerciseMethod = await exerciseMethods.findByIdAndUpdate(id, exerciseMethod, {
-        new: true,
-      });
+      const newExerciseMethod = await this.update(id,exerciseMethod,exerciseMethods)
 
-      if (newExerciseMethod) {
-        cachedExerciseMethods.invalidateAll();
-        singleExerciseMethodCache.invalidate(id);
-      }
 
       return newExerciseMethod;
     } catch (error) {
@@ -92,14 +90,10 @@ export class ExerciseMethodService {
     }
   }
 
-  static async deleteExerciseMethod(id: string) {
+   async deleteExerciseMethod(id: string) {
     try {
-      const deletedExerciseMethod = await exerciseMethods.findByIdAndDelete(id);
+      const deletedExerciseMethod = await this.delete(id,exerciseMethods)
 
-      if (deletedExerciseMethod) {
-        cachedExerciseMethods.invalidateAll();
-        singleExerciseMethodCache.invalidate(id);
-      }
 
       return deletedExerciseMethod;
     } catch (error) {
@@ -107,3 +101,5 @@ export class ExerciseMethodService {
     }
   }
 }
+
+export default new ExerciseMethodService()

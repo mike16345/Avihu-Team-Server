@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
-import { ExerciseMethodService } from "../services/exerciseMethodService";
+import  ExerciseMethodService  from "../services/exerciseMethodService";
 
 export default class ExerciseMethodController {
   static async getAllExerciseMethods(
@@ -11,13 +11,31 @@ export default class ExerciseMethodController {
     try {
       const allExerciseMethods = await ExerciseMethodService.getAllExerciseMethods();
 
-      if (!allExerciseMethods) {
-        return createResponse(StatusCode.NOT_FOUND, "Could not find any exercise methods!");
-      }
+   
 
       return createResponseWithData(
         StatusCode.OK,
         allExerciseMethods,
+        "Exercise methods retrieved successfully!"
+      );
+    } catch (error: any) {
+      return createServerErrorResponse(error.message);
+    }
+  }
+
+  static async getPaginatedExerciseMethods(
+    event: APIGatewayProxyEvent,
+    context: Context
+  ): Promise<APIGatewayProxyResult> {
+    const { limit,page, query={}, sort } = event.queryStringParameters || {};
+
+    try {
+      const paginatedExerciseMethods = await ExerciseMethodService.getPaginatedMethods(limit,page,query,sort);
+
+    
+      return createResponseWithData(
+        StatusCode.OK,
+        paginatedExerciseMethods,
         "Exercise methods retrieved successfully!"
       );
     } catch (error: any) {
@@ -34,9 +52,7 @@ export default class ExerciseMethodController {
     try {
       const exerciseMethod = await ExerciseMethodService.getexErciseMethodById(id || "");
 
-      if (!exerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "Exercise method not found!");
-      }
+    
 
       return createResponseWithData(
         StatusCode.OK,
@@ -56,9 +72,7 @@ export default class ExerciseMethodController {
     try {
       const exerciseMethod = await ExerciseMethodService.getExerciseMethodByName(name || "");
 
-      if (!exerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, `לא נמצאה שיטת אימון בשם ${name}`);
-      }
+    
 
       return createResponseWithData(
         StatusCode.OK,
@@ -103,9 +117,7 @@ export default class ExerciseMethodController {
     try {
       const newExerciseMethod = await ExerciseMethodService.addExerciseMethod(exerciseMethod);
 
-      if (!newExerciseMethod) {
-        return createResponse(StatusCode.BAD_REQUEST, "לא הצלחנו ליצור את שיטת האימון!");
-      }
+    
 
       return createResponseWithData(
         StatusCode.CREATED,
@@ -130,9 +142,7 @@ export default class ExerciseMethodController {
         id || ""
       );
 
-      if (!updatedExerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "שיטת אימון לא נמצאה ");
-      }
+    
 
       return createResponseWithData(
         StatusCode.OK,
@@ -153,9 +163,7 @@ export default class ExerciseMethodController {
     try {
       const deletedExerciseMethod = await ExerciseMethodService.deleteExerciseMethod(id || "");
 
-      if (!deletedExerciseMethod) {
-        return createResponse(StatusCode.NOT_FOUND, "שיטת אימון לא נמצאה ");
-      }
+     
 
       return createResponseWithData(
         StatusCode.OK,

@@ -19,8 +19,7 @@ export interface PaginationResult<T> {
 }
 
 
-export const generatePaginationCacheKey=({
-  model,
+export const generatePaginationCacheKey=(resource:string,{
   limit,
   page,
   query={},
@@ -28,7 +27,7 @@ export const generatePaginationCacheKey=({
 }:PaginationParams):string=>{
   const sortedQuery = JSON.stringify(sortObjectKeys(query));
 
-  return `${model}?page=${page}&limit=${limit}&sort=${sort}&query=${sortedQuery}`;
+  return `${resource}?page=${page}&limit=${limit}&sort=${sort}&query=${sortedQuery}`;
 }
 
 async function paginate<T>({
