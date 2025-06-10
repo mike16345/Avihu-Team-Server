@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { sortObjectKeys } from "./utils";
+import { stableStringify } from "./utils";
 
 export interface PaginationParams {
   model: Model<any>;
@@ -18,17 +18,14 @@ export interface PaginationResult<T> {
   hasPreviousPage: boolean;
 }
 
-
-export const generatePaginationCacheKey=(resource:string,{
-  limit,
-  page,
-  query={},
-  sort
-}:PaginationParams):string=>{
-  const sortedQuery = JSON.stringify(sortObjectKeys(query));
+export const generatePaginationCacheKey = (
+  resource: string,
+  { limit, page, query = {}, sort }: PaginationParams
+): string => {
+  const sortedQuery = stableStringify(query);
 
   return `${resource}?page=${page}&limit=${limit}&sort=${sort}&query=${sortedQuery}`;
-}
+};
 
 async function paginate<T>({
   model,

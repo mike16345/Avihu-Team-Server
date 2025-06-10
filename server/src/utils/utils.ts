@@ -137,14 +137,19 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await workoutPlanService.deleteWorkoutPlanByUserId(userId).catch((err) => console.log(err));
 };
 
-export const sortObjectKeys = (obj: Record<string, any>) => {
-  return Object.keys(obj)
-    .sort()
-    .reduce((acc, key) => {
-      acc[key] = obj[key];
-      return acc;
-    }, {} as Record<string, any>);
-};
+export function stableStringify(obj: any): string {
+  // Simple stable stringify by sorting keys (can be improved if needed)
+  if (!obj || typeof obj !== "object") return String(obj);
+  if (Array.isArray(obj)) return `[${obj.map(stableStringify).join(",")}]`;
+  return (
+    "{" +
+    Object.keys(obj)
+      .sort()
+      .map((key) => `"${key}":${stableStringify(obj[key])}`)
+      .join(",") +
+    "}"
+  );
+}
 
 export const createMissingParamErrorMessage = (paramName: string) => {
   return `"${paramName}" param is required!`;
