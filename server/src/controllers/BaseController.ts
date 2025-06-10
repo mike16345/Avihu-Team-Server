@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
-import { BaseService } from "../services/baseService";
+import { BaseService } from "../services/BaseService";
 import {
   createMissingParamErrorMessage,
   createServerResponse,
@@ -24,6 +24,7 @@ export default class BaseController<T> implements IBaseController<T> {
    */
   protected async beforeAction(event: APIGatewayProxyEvent) {
     // placeholder for subclass overrides
+    console.log("Performing action...");
   }
 
   /**
@@ -31,6 +32,7 @@ export default class BaseController<T> implements IBaseController<T> {
    */
   protected async afterAction(result: APIGatewayProxyResult) {
     // placeholder for subclass overrides
+    console.log("Finished Action...");
   }
 
   /**
@@ -39,6 +41,7 @@ export default class BaseController<T> implements IBaseController<T> {
    */
   protected getIdOrError(event: APIGatewayProxyEvent): IdOrError {
     const { id } = extractQueryFromEvent(event);
+
     if (!id) {
       return {
         id: null,
@@ -85,16 +88,17 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async getById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const { id, error } = this.getIdOrError(event);
       if (error) return error;
 
       const data = await this.service.findById(id);
-
       const response = this.successResponse({
         data,
         message: `Successfully found item with id: "${id}"`,
       });
+
       await this.afterAction(response);
       return response;
     } catch (e: any) {
@@ -107,9 +111,10 @@ export default class BaseController<T> implements IBaseController<T> {
     try {
       const query = extractQueryFromEvent(event);
       const item = await this.service.findOne(query);
-
       const response = this.successResponse({ data: item });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -118,12 +123,14 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async getPaginated(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const query = extractQueryFromEvent(event);
       const results = await this.service.findPaginated(query, "");
-
       const response = this.successResponse({ data: results });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -134,12 +141,13 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async update(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const query = extractQueryFromEvent(event);
       const data = extractBodyFromEvent(event);
       const updatedItem = await this.service.updateOne(query, data);
       const response = this.successResponse({ data: updatedItem, message: "פריט עודכן בהצלחה!" });
-      
+
       await this.afterAction(response);
       return response;
     } catch (e: any) {
@@ -149,15 +157,17 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async updateById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const { id, error } = this.getIdOrError(event);
-      if (error) return error;
 
+      if (error) return error;
       const data = extractBodyFromEvent(event);
       const updatedItem = await this.service.updateById(id, data);
-
       const response = this.successResponse({ data: updatedItem, message: "פריט עודכן בהצלחה!" });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -166,17 +176,18 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async updateMany(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const query = extractQueryFromEvent(event);
       const data = extractBodyFromEvent(event);
-
       const updatedItem = await this.service.updateMany(query, data);
-
       const response = this.successResponse({
         data: updatedItem,
         message: "פריטים עודכנו בהצלחה!",
       });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -187,12 +198,14 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async delete(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const query = extractQueryFromEvent(event);
       const deletedItem = await this.service.delete(query);
-
       const response = this.successResponse({ data: deletedItem, message: "פריט נמחק בהצלחה!" });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -201,12 +214,14 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async deleteMany(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const query = extractQueryFromEvent(event);
       const deletedItem = await this.service.deleteMany(query);
-
       const response = this.successResponse({ data: deletedItem, message: "פריטים נמחקו בהצלחה!" });
+
       await this.afterAction(response);
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -215,14 +230,17 @@ export default class BaseController<T> implements IBaseController<T> {
 
   async deleteById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     await this.beforeAction(event);
+
     try {
       const { id, error } = this.getIdOrError(event);
+    
       if (error) return error;
 
       const deletedItem = await this.service.deleteById(id);
-
       const response = this.successResponse({ data: deletedItem, message: "פריט נמחק בהצלחה!" });
+
       await this.afterAction(response);
+      
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
