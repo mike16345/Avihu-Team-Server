@@ -37,6 +37,16 @@ export const createResponse = (statusCode: StatusCode, message?: string) => {
   };
 };
 
+export const createServerResponse = (statusCode: StatusCode, message?: string, data?: any) => {
+  return {
+    statusCode: statusCode,
+    body: JSON.stringify({
+      message,
+      data,
+    }),
+  };
+};
+
 export const createResponseWithData = (statusCode: StatusCode, data: any, message?: string) => {
   return {
     statusCode: statusCode,
@@ -77,7 +87,7 @@ export const extractBodyFromEvent = (event: APIGatewayEvent) => {
   return JSON.parse(event.body || "{}");
 };
 
-export const extractQueryFromEvent = (event: APIGatewayEvent) => {
+export const extractQueryFromEvent = (event: any) => {
   return event.queryStringParameters || {};
 };
 
@@ -127,9 +137,15 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await workoutPlanService.deleteWorkoutPlanByUserId(userId).catch((err) => console.log(err));
 };
 
-export const sortObjectKeys=(obj:Record<string,any>)=>{
-  return Object.keys(obj).sort().reduce((acc, key) => {
-    acc[key] = obj[key];
-    return acc;
-  }, {} as Record<string, any>);
-}
+export const sortObjectKeys = (obj: Record<string, any>) => {
+  return Object.keys(obj)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = obj[key];
+      return acc;
+    }, {} as Record<string, any>);
+};
+
+export const createMissingParamErrorMessage = (paramName: string) => {
+  return `"${paramName}" param is required!`;
+};
