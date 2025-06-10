@@ -1,4 +1,4 @@
-import Joi, { required } from "joi";
+import Joi from "joi";
 import { model, Schema } from "mongoose";
 
 export const exercisePresetSchema = new Schema({
