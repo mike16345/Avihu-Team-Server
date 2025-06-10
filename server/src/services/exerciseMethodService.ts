@@ -1,10 +1,14 @@
 import { IExerciseMethod } from "../interfaces/IWorkoutPlan";
-import { exerciseMethods } from "../models/excerciseMethodModel";
-import { BaseService } from "./baseService";
+import { ExerciseMethodRepository } from "../repositories/ExerciseMethods/ExerciseMethodRepository";
+import { BaseService } from "./BaseService";
 
 const RESOURCE_NAME = `exercise-methods`;
 
-class ExerciseMethodService extends BaseService<IExerciseMethod> {
+export default class ExerciseMethodService extends BaseService<IExerciseMethod> {
+  constructor() {
+    super(new ExerciseMethodRepository(), RESOURCE_NAME);
+  }
+
   async getAllExerciseMethods() {
     return this.find();
   }
@@ -26,11 +30,10 @@ class ExerciseMethodService extends BaseService<IExerciseMethod> {
   }
 
   async addManyExerciseMethods(exerciseMethods: IExerciseMethod[]) {
-    // Using Promise.all and this.addExerciseMethod with instance method (not static)
     const newExerciseMethods = await Promise.all(
       exerciseMethods.map((e) => this.addExerciseMethod(e))
     );
-    this.cache.invalidateAll(); // Clear cache after adding many
+    this.cache.invalidateAll();
     return newExerciseMethods;
   }
 
@@ -42,5 +45,3 @@ class ExerciseMethodService extends BaseService<IExerciseMethod> {
     return this.deleteById(id);
   }
 }
-
-export default new ExerciseMethodService(exerciseMethods, RESOURCE_NAME);
