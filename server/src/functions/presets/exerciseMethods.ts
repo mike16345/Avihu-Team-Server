@@ -2,14 +2,13 @@ import ExerciseMethodController from "../../controllers/exerciseMethodController
 
 export const EXERCISE_METHODS_BASE_PATH = "/presets/exerciseMethods";
 
+const exerciseMethodController = new ExerciseMethodController();
+
 export const exerciseMethodsApiHandlers = {
-  [`GET ${EXERCISE_METHODS_BASE_PATH}`]: ExerciseMethodController.getAllExerciseMethods,
-  [`GET ${EXERCISE_METHODS_BASE_PATH}/one`]: ExerciseMethodController.getExerciseMethodById,
-  [`GET ${EXERCISE_METHODS_BASE_PATH}/name`]: ExerciseMethodController.getExerciseMethodByName,
-  [`POST ${EXERCISE_METHODS_BASE_PATH}`]: ExerciseMethodController.addExerciseMethod,
-  [`POST ${EXERCISE_METHODS_BASE_PATH}/many`]: ExerciseMethodController.addManyExerciseMethod,
-  [`PUT ${EXERCISE_METHODS_BASE_PATH}/one`]: ExerciseMethodController.editExerciseMethod,
-  [`DELETE ${EXERCISE_METHODS_BASE_PATH}/one`]: ExerciseMethodController.deleteExerciseMethod,
+  [`GET ${EXERCISE_METHODS_BASE_PATH}`]: exerciseMethodController,
+  [`GET ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.getById,
+  [`GET ${EXERCISE_METHODS_BASE_PATH}/name`]: exerciseMethodController.getOne,
+  [`POST ${EXERCISE_METHODS_BASE_PATH}`]: exerciseMethodController.create,
+  [`PUT ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.updateById,
+  [`DELETE ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.deleteById,
 };
-
-
