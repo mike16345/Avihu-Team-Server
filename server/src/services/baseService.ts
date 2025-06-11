@@ -35,7 +35,7 @@ export class BaseService<T> {
 
     if (data) return data;
 
-    data = await this.repository.find(query);
+    data = await this.repository.find({ query });
     if (!data) throw new Error("Data could not be retrieved!");
     this.cache.set(key, data);
 
@@ -82,7 +82,7 @@ export class BaseService<T> {
 
     if (item) return item;
 
-    item = await this.repository.findOne(query);
+    item = await this.repository.findOne({ query });
     if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
