@@ -1,5 +1,6 @@
 import { FilterQuery, Model, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
+import { FindOptions } from "../types/mongooseTypes";
 
 export class BaseRepository<T> {
   protected model: Model<T>;
@@ -16,24 +17,27 @@ export class BaseRepository<T> {
     return newDoc;
   }
 
-  async find(query: FilterQuery<T> = {}) {
-    const data = await this.model.find(query).lean().exec();
+  async find(options: FindOptions<T> = { query: {} }) {
+    const { query, projection, queryOptions } = options;
+    let data = await this.model.find(query, projection, queryOptions);
 
     if (!data) throw new Error("Data could not be retrieved!");
 
     return data;
   }
 
-  async findById(id: string) {
-    const item = await this.model.findById(id).lean().exec();
+  async findById(id: string, options?: FindOptions<T>) {
+    const { projection = {}, queryOptions = {} } = options || {};
+    const item = await this.model.findById(id, projection, queryOptions);
 
     if (!item) throw new Error("Could not retrieve item!");
 
     return item;
   }
 
-  async findOne(query: FilterQuery<T>) {
-    const item = await this.model.findOne(query).lean().exec();
+  async findOne(options: FindOptions<T>) {
+    const { projection, queryOptions, query } = options;
+    const item = await this.model.findOne(query, projection, queryOptions);
 
     if (!item) throw new Error("Could not retrieve item!");
 
