@@ -10,23 +10,23 @@ export default class ExerciseMethodService extends BaseService<IExerciseMethod> 
   }
 
   async getAllExerciseMethods() {
-    return this.find();
+    return await  this.find();
   }
 
   async getPaginatedMethods(limit: number, page: number, query: any, sort: Record<string, any>) {
-    return this.findPaginated({ limit, page, sort, query }, RESOURCE_NAME);
+    return await this.findPaginated({ limit, page, sort, query }, RESOURCE_NAME);
   }
 
   async getExerciseMethodById(id: string) {
-    return this.findById(id);
+    return await this.findById(id);
   }
 
   async getExerciseMethodByName(name: string) {
-    return this.findOne({ title: name });
+    return await this.findOne({ title: name });
   }
 
   async addExerciseMethod(exerciseMethod: IExerciseMethod) {
-    return this.create(exerciseMethod);
+    return await this.create(exerciseMethod);
   }
 
   async addManyExerciseMethods(exerciseMethods: IExerciseMethod[]) {
@@ -38,10 +38,10 @@ export default class ExerciseMethodService extends BaseService<IExerciseMethod> 
   }
 
   async editExerciseMethod(exerciseMethod: IExerciseMethod, id: string) {
-    return this.updateById(id, exerciseMethod);
+    return await this.updateById(id, exerciseMethod);
   }
 
   async deleteExerciseMethod(id: string) {
-    return this.deleteById(id);
+    return await this.deleteById(id);
   }
 }

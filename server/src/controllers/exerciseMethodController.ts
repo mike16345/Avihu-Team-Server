@@ -8,27 +8,27 @@ export default class ExerciseMethodController extends BaseController<IExerciseMe
     super(new ExerciseMethodService());
   }
 
-  create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return super.create(event);
+  async create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await  super.create(event);
   }
 
-  getAll(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return super.getAll(event);
+ async getAll(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await super.getAll(event);
   }
 
-  getOne(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return this.getOne(event);
+  async getOne(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await this.getOne(event);
   }
 
-  getById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return super.getById(event);
+  async getById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await super.getById(event);
   }
 
-  updateById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return super.updateById(event);
+  async updateById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await super.updateById(event);
   }
 
-  deleteById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-    return super.deleteById(event);
+  async deleteById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    return await super.deleteById(event);
   }
 }
