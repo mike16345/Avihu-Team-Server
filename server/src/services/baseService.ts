@@ -97,9 +97,10 @@ export class BaseService<T> {
   }
 
   async updateById(id: string, data: any) {
+
     const updatedDoc = await this.repository.updateById(id, data);
     const key = this.generateCacheKey("id", id);
-    this.cache.invalidate(key);
+    this.cache.invalidateAll()
 
     return updatedDoc;
   }

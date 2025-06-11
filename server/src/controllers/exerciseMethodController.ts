@@ -6,6 +6,7 @@ import { IExerciseMethod } from "../interfaces/IWorkoutPlan";
 export default class ExerciseMethodController extends BaseController<IExerciseMethod> {
   constructor() {
     super(new ExerciseMethodService());
+    
   }
 
   async create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
