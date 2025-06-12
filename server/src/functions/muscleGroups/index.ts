@@ -4,12 +4,15 @@ import MuscleGroupController from "../../controllers/muscleGroupController";
 import { checkIfMuscleGroupExists } from "../../middleware/muscleGroupMiddleWare";
 
 const BASE_PATH = "/muscleGroups";
+
+const muscleGroupController=new MuscleGroupController()
+
 const muscleGroupApiHandlers = {
-  [`GET ${BASE_PATH}`]: MuscleGroupController.getAllMuscleGroups,
-  [`GET ${BASE_PATH}/one`]: MuscleGroupController.getMuscleGroupById,
-  [`PUT ${BASE_PATH}/one`]: MuscleGroupController.editMuscleGroup,
-  [`POST ${BASE_PATH}`]: MuscleGroupController.addMuscleGroup,
-  [`DELETE ${BASE_PATH}/one`]: MuscleGroupController.deleteMuscleGroup,
+  [`GET ${BASE_PATH}`]: muscleGroupController.getAll,
+  [`GET ${BASE_PATH}/one`]: muscleGroupController.getById,
+  [`PUT ${BASE_PATH}/one`]: muscleGroupController.updateById,
+  [`POST ${BASE_PATH}`]: muscleGroupController.create,
+  [`DELETE ${BASE_PATH}/one`]: muscleGroupController.deleteById,
 };
 const muscleGroupValidators = {
   [`POST ${BASE_PATH}`]: checkIfMuscleGroupExists,
