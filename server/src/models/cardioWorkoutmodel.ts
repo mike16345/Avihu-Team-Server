@@ -1,6 +1,7 @@
 import { model, Schema } from "mongoose";
+import { ICardioWorkout } from "../interfaces/IWorkoutPlan";
 
-export const cardioWorkout = new Schema({
+export const cardioWorkout = new Schema<ICardioWorkout>({
   name: {
     type: String,
     required: true,
