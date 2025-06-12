@@ -14,6 +14,10 @@ export interface IWorkout {
   restTime: number;
 }
 
+export interface IExercisePreset extends Omit<IWorkout, 'sets' | 'restTime'|'exerciseMethod'>{
+muscleGroup:string;
+}
+
 export interface IDetailedWorkoutPlan {
   planName: string;
   muscleGroups: IMuscleGroupWorkoutPlan[];

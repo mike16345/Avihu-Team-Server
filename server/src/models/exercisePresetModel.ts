@@ -1,7 +1,8 @@
 import Joi from "joi";
 import { model, Schema } from "mongoose";
+import { IExercisePreset } from "../interfaces/IWorkoutPlan";
 
-export const exercisePresetSchema = new Schema({
+export const exercisePresetSchema = new Schema<IExercisePreset>({
   name: {
     type: String,
     required: true,
