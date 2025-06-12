@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
-import { BaseService } from "../services/BaseService";
+import { BaseService } from "../services/baseService";
 import {
   createMissingParamErrorMessage,
   createServerResponse,
@@ -52,7 +52,7 @@ export default class BaseController<T> implements IBaseController<T> {
   }
 
   // ====== CREATE ======
-  async create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  create = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
     try {
       const data = extractBodyFromEvent(event);
@@ -69,11 +69,11 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
   // ====== READ ======
 
-  async getAll(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  getAll = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
     try {
       const data = await this.service.find();
@@ -84,9 +84,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async getById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  getById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -104,9 +104,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async getOne(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  getOne = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
     try {
       const query = extractQueryFromEvent(event);
@@ -119,9 +119,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async getPaginated(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  getPaginated = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -135,11 +135,11 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
   // ====== UPDATE ======
 
-  async update(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  update = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -153,9 +153,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async updateById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  updateById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -172,9 +172,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async updateMany(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  updateMany = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -192,11 +192,11 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
   // ====== DELETE ======
 
-  async delete(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  delete = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -210,9 +210,9 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async deleteMany(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  deleteMany = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -226,26 +226,26 @@ export default class BaseController<T> implements IBaseController<T> {
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
-  async deleteById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  deleteById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
       const { id, error } = this.getIdOrError(event);
-    
+
       if (error) return error;
 
       const deletedItem = await this.service.deleteById(id);
       const response = this.successResponse({ data: deletedItem, message: "פריט נמחק בהצלחה!" });
 
       await this.afterAction(response);
-      
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
     }
-  }
+  };
 
   // ====== RESPONSE HELPERS ======
 

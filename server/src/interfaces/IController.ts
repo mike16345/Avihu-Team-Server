@@ -7,31 +7,31 @@ import { IResponse, IServerResponseParams } from "./IResponse";
 import { StatusCode } from "../enums/StatusCode";
 
 export interface IBaseController<T> {
-  getPaginated(
+  getPaginated: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
+  ) => Promise<APIGatewayProxyResult>;
 
-  getAll(
+  getAll: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
-  getById(
+  ) => Promise<APIGatewayProxyResult>;
+  getById: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
-  create(
+  ) => Promise<APIGatewayProxyResult>;
+  create: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
-  update(
+  ) => Promise<APIGatewayProxyResult>;
+  update: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
-  delete(
+  ) => Promise<APIGatewayProxyResult>;
+  delete: (
     event: APIGatewayProxyEvent,
     context?: APIGatewayEventRequestContext
-  ): Promise<APIGatewayProxyResult>;
+  ) => Promise<APIGatewayProxyResult>;
   successResponse: (response: IServerResponseParams) => IResponse;
   errorResponse: (error?: any, statusCode?: StatusCode) => IResponse;
 }
