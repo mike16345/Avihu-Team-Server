@@ -1,6 +1,7 @@
 import { FilterQuery, Model, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions } from "../types/mongooseTypes";
+import { CREATE_FAILURE, DELETE_FAILURE, FIND_FAILURE, FIND_ONE_FAILURE, NOT_FOUND_FAILURE, UPDATE_FAILURE } from "../constants/repository";
 
 export class BaseRepository<T> {
   protected model: Model<T>;
@@ -12,7 +13,7 @@ export class BaseRepository<T> {
   async create(doc: any): Promise<T> {
     const newDoc = await this.model.create(doc);
 
-    if (!newDoc) throw new Error("Could not create item!");
+    if (!newDoc) throw new Error(CREATE_FAILURE);
 
     return newDoc;
   }
@@ -21,7 +22,7 @@ export class BaseRepository<T> {
     const { query, projection, queryOptions } = options;
     let data = await this.model.find(query, projection, queryOptions);
 
-    if (!data) throw new Error("Data could not be retrieved!");
+    if (!data) throw new Error(FIND_FAILURE);
 
     return data;
   }
@@ -30,16 +31,18 @@ export class BaseRepository<T> {
     const { projection = {}, queryOptions = {} } = options || {};
     const item = await this.model.findById(id, projection, queryOptions);
 
-    if (!item) throw new Error("Could not retrieve item!");
+    if (!item) throw new Error(FIND_ONE_FAILURE);
 
     return item;
   }
 
   async findOne(options: FindOptions<T>) {
+
     const { projection, queryOptions, query } = options;
+
     const item = await this.model.findOne(query, projection, queryOptions);
 
-    if (!item) throw new Error("Could not retrieve item!");
+    if (!item) throw new Error(FIND_ONE_FAILURE);
 
     return item;
   }
@@ -72,7 +75,7 @@ export class BaseRepository<T> {
   async updateOne(query: FilterQuery<T>, data: any) {
     const updatedDoc = await this.model.findOneAndUpdate(query, data, { new: true }).lean().exec();
 
-    if (!updatedDoc) throw new Error("Item not found");
+    if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
 
     return updatedDoc;
   }
@@ -80,7 +83,7 @@ export class BaseRepository<T> {
   async updateById(id: string, data: any) {
     const updatedDoc = await this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
 
-    if (!updatedDoc) throw new Error("Item not found");
+    if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
 
     return updatedDoc;
   }
@@ -88,7 +91,7 @@ export class BaseRepository<T> {
   async updateMany(query: FilterQuery<T>, data: any): Promise<UpdateWriteOpResult> {
     const updateResult = await this.model.updateMany(query, data);
 
-    if (!updateResult) throw new Error("Update failed");
+    if (!updateResult) throw new Error(UPDATE_FAILURE);
 
     return updateResult;
   }
@@ -96,7 +99,7 @@ export class BaseRepository<T> {
   async deleteById(id: string) {
     const deletedDoc = await this.model.findByIdAndDelete(id).lean().exec();
 
-    if (!deletedDoc) throw new Error("Item not found");
+    if (!deletedDoc) throw new Error(NOT_FOUND_FAILURE);
 
     return deletedDoc;
   }
@@ -104,7 +107,7 @@ export class BaseRepository<T> {
   async delete(query: FilterQuery<T>) {
     const deletedDoc = await this.model.findOneAndDelete(query).lean().exec();
 
-    if (!deletedDoc) throw new Error("Item not found");
+    if (!deletedDoc) throw new Error(NOT_FOUND_FAILURE);
 
     return deletedDoc;
   }
@@ -112,7 +115,7 @@ export class BaseRepository<T> {
   async deleteMany(query: FilterQuery<T>): Promise<{ deletedCount?: number }> {
     const deleteResult = await this.model.deleteMany(query);
 
-    if (!deleteResult) throw new Error("Delete failed");
+    if (!deleteResult) throw new Error(DELETE_FAILURE);
 
     return deleteResult;
   }

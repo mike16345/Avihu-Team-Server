@@ -4,13 +4,16 @@ import { handleApiCall } from "../baseHandler";
 import { validateMenuItem } from "../../middleware/menuItemMiddleware";
 
 const BASE_PATH = "/menuItems";
+
+const menuItemPresetController= new MenuItemPresetController()
+
 const menuItemApiHandlers = {
-  [`GET ${BASE_PATH}`]: MenuItemPresetController.getAllMenuItems,
-  [`GET ${BASE_PATH}/one`]: MenuItemPresetController.getOneMenuItem,
-  [`GET ${BASE_PATH}/foodGroup`]: MenuItemPresetController.getMenuItems,
-  [`PUT ${BASE_PATH}/one`]: MenuItemPresetController.editMenuItem,
-  [`POST ${BASE_PATH}`]: MenuItemPresetController.addMenuItem,
-  [`DELETE ${BASE_PATH}/one`]: MenuItemPresetController.deleteMenuItem,
+  [`GET ${BASE_PATH}`]: menuItemPresetController.getAllMenuItems,
+  [`GET ${BASE_PATH}/one`]: menuItemPresetController.getById,
+  [`GET ${BASE_PATH}/foodGroup`]: menuItemPresetController.getMenuItems,
+  [`PUT ${BASE_PATH}/one`]: menuItemPresetController.updateById,
+  [`POST ${BASE_PATH}`]: menuItemPresetController.create,
+  [`DELETE ${BASE_PATH}/one`]: menuItemPresetController.deleteById,
 };
 const menuItemValidators = {
   [`PUT ${BASE_PATH}/one`]: validateMenuItem,

@@ -1,31 +1,20 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { MenuItemService } from "../services/menuItemServices";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import {  createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import BaseController from "./BaseController";
+import { ICustomItemInstructions } from "../interfaces/IDietPlan";
 
-export class MenuItemPresetController {
-  static async addMenuItem(
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> {
-    const menuItem = JSON.parse(event.body || "{}");
+const menuItemService= new MenuItemService()
 
-    try {
-      const newMenuItem = await MenuItemService.addMenuItem(menuItem);
-
-      return createResponseWithData(
-        StatusCode.CREATED,
-        newMenuItem,
-        "Menu item added successfully!"
-      );
-    } catch (error: any) {
-      return createServerErrorResponse(error.message);
-    }
+export class MenuItemPresetController extends BaseController<ICustomItemInstructions> {
+  constructor(){
+    super(new MenuItemService())
   }
 
-  static async getMenuItems(
+
+   async getMenuItems(
     event: APIGatewayProxyEvent,
-    context: Context
   ): Promise<APIGatewayProxyResult> {
     const { foodGroup } = event.queryStringParameters || {};
     const { "dietaryRestrictions[]": dietaryRestrictions } =
@@ -36,17 +25,11 @@ export class MenuItemPresetController {
       : null;
 
     try {
-      const menuItems = await MenuItemService.getMenuItems(
+      const menuItems = await menuItemService.getMenuItems(
         foodGroup || "",
         dietaryRestrictionsArray
       );
 
-      if (!menuItems) {
-        return createResponse(
-          StatusCode.NOT_FOUND,
-          "Could not find menu items that match requested food group!"
-        );
-      }
 
       return createResponseWithData(StatusCode.OK, menuItems, "Menu items retrieved successfully!");
     } catch (error: any) {
@@ -54,35 +37,11 @@ export class MenuItemPresetController {
     }
   }
 
-  static async getOneMenuItem(
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> {
-    const { id } = event.queryStringParameters || {};
+  
 
+   async getAllMenuItems(): Promise<APIGatewayProxyResult> {
     try {
-      const menuItem = await MenuItemService.getOneMenuItem(id || "");
-
-      if (!menuItem) {
-        return createResponse(StatusCode.NOT_FOUND, `Menu item not found!`);
-      }
-
-      return createResponseWithData(StatusCode.OK, menuItem, "Menu item retrieved successfully!");
-    } catch (error: any) {
-      return createServerErrorResponse(error.message);
-    }
-  }
-
-  static async getAllMenuItems(
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> {
-    try {
-      const allMenuItems = await MenuItemService.getAllMenuItems();
-
-      if (!allMenuItems) {
-        return createResponse(StatusCode.NOT_FOUND, `Could not find menu items!`);
-      }
+      const allMenuItems = await menuItemService.getAllMenuItems();
 
       return createResponseWithData(
         StatusCode.OK,
@@ -94,56 +53,5 @@ export class MenuItemPresetController {
     }
   }
 
-  static async editMenuItem(
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> {
-    const newMenuItem = JSON.parse(event.body || "{}");
-    const { id } = event.queryStringParameters || {};
-
-    try {
-      const updatedMenuItem = await MenuItemService.updateMenuItem(newMenuItem, id || "");
-
-      if (!updatedMenuItem) {
-        return createResponse(
-          StatusCode.NOT_FOUND,
-          `Could not find the menu item you are trying to update!`
-        );
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        updatedMenuItem,
-        "Menu item updated successfully!"
-      );
-    } catch (error: any) {
-      return createServerErrorResponse(error.message);
-    }
-  }
-
-  static async deleteMenuItem(
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> {
-    const { id } = event.queryStringParameters || {};
-
-    try {
-      const deletedMenuItem = await MenuItemService.deleteMenuItem(id || "");
-
-      if (!deletedMenuItem) {
-        return createResponse(
-          StatusCode.NOT_FOUND,
-          `Could not find the menu item you are trying to delete!`
-        );
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        deletedMenuItem,
-        "Menu item deleted successfully!"
-      );
-    } catch (error: any) {
-      return createServerErrorResponse(error.message);
-    }
-  }
+  
 }

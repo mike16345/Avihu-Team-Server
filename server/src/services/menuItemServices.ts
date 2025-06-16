@@ -1,67 +1,32 @@
-import { fullMenuItemPresets } from "../models/menuItemModel";
-import { Cache } from "../utils/cache";
-import { returnStringVal } from "../utils/utils";
+import { ICustomItemInstructions } from "../interfaces/IDietPlan";
+import { MenuItemRepository } from "../repositories/MenuItems/MenuItemRepository";
+import { BaseService } from "./baseService";
 
-let cachedMenuItems = new Cache<any>();
 
-export class MenuItemService {
-  static async addMenuItem(data: any) {
-    try {
-      const newMenuItem = await fullMenuItemPresets.create(data);
-      cachedMenuItems.invalidateAllContaining(data.foodGroup);
-      cachedMenuItems.invalidate("all");
+const RESOURCE_NAME='menu-item'
 
-      return newMenuItem;
-    } catch (error) {
-      throw error;
-    }
+export  class MenuItemService extends BaseService<ICustomItemInstructions> {
+  constructor(){
+    super(new MenuItemRepository(),RESOURCE_NAME)
   }
 
-  static async getMenuItems(foodGroup: string, dietaryRestrictions: string[] | null) {
-    const strValForCaching = dietaryRestrictions ? returnStringVal(dietaryRestrictions) : ``;
-    const cacheKey = foodGroup + strValForCaching;
-    const cached = cachedMenuItems.get(cacheKey);
+   async getMenuItems(foodGroup: string, dietaryRestrictions: string[] | null) {
     const query = dietaryRestrictions ? { dietaryType: { $in: dietaryRestrictions } } : {};
 
     try {
-      const menuItems = cached || (await fullMenuItemPresets.find({ foodGroup, ...query }));
-      cachedMenuItems.set(cacheKey, menuItems);
+      
+      const menuItems = await this.find({foodGroup,...query});
 
       return menuItems;
     } catch (error) {
       throw error;
     }
   }
-  static async getOneMenuItem(id: string) {
-    const cached = cachedMenuItems.get(id);
+  
 
+   async getAllMenuItems() {
     try {
-      const menuItem = cached || (await fullMenuItemPresets.findOne({ _id: id }));
-      cachedMenuItems.set(id, menuItem);
-
-      return menuItem;
-    } catch (error) {
-      throw error;
-    }
-  }
-  static async getOneMenuItemByName(name: string) {
-    const cached = cachedMenuItems.get(name);
-
-    try {
-      const menuItem = cached || (await fullMenuItemPresets.findOne({ name }));
-      cachedMenuItems.set(name, menuItem);
-
-      return menuItem;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async getAllMenuItems() {
-    const cached = cachedMenuItems.get(`all`);
-    try {
-      const allMenuItems = cached || (await fullMenuItemPresets.find());
-      cachedMenuItems.set(`all`, allMenuItems);
+      const allMenuItems =await this.find();
 
       let mapped: { [key: string]: any[] } = {};
       allMenuItems.forEach((item: any) => {
@@ -77,27 +42,4 @@ export class MenuItemService {
     }
   }
 
-  static async updateMenuItem(newMenuItem: any, id: string) {
-    try {
-      const updatedMenuItem = await fullMenuItemPresets.findOneAndUpdate({ _id: id }, newMenuItem, {
-        new: true,
-      });
-      cachedMenuItems.invalidateAll();
-
-      return updatedMenuItem;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async deleteMenuItem(id: string) {
-    try {
-      const deletedMenuItem = await fullMenuItemPresets.findOneAndRemove({ _id: id });
-      cachedMenuItems.invalidateAll();
-
-      return deletedMenuItem;
-    } catch (error) {
-      throw error;
-    }
-  }
 }

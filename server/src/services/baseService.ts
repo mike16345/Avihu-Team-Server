@@ -7,6 +7,7 @@ import {
 } from "../utils/pagination";
 import { stableStringify } from "../utils/utils";
 import { BaseRepository } from "../repositories/BaseRepository";
+import { FindOptions } from "../types/mongooseTypes";
 
 export class BaseService<T> {
   protected cache = new Cache<any>();
@@ -76,13 +77,14 @@ export class BaseService<T> {
     return item;
   }
 
-  async findOne(query: FilterQuery<T>) {
-    const key = this.generateCacheKey("one", stableStringify(query));
+  async findOne(options: FindOptions<T>) {
+    
+    const key = this.generateCacheKey("one", stableStringify(options.query));
     let item = this.cache.get(key);
 
     if (item) return item;
 
-    item = await this.repository.findOne({ query });
+    item = await this.repository.findOne(options);
     if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
