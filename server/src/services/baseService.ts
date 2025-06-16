@@ -78,7 +78,6 @@ export class BaseService<T> {
   }
 
   async findOne(options: FindOptions<T>) {
-    
     const key = this.generateCacheKey("one", stableStringify(options.query));
     let item = this.cache.get(key);
 

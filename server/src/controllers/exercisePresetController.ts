@@ -3,7 +3,7 @@ import BaseController from "./BaseController";
 import { IExercisePreset } from "../interfaces/IWorkoutPlan";
 
 export class ExercisePresetController extends BaseController<IExercisePreset> {
-  constructor(){
+  constructor() {
     super(new ExercisePresetService());
   }
 }

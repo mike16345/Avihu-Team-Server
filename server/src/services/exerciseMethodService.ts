@@ -8,6 +8,4 @@ export default class ExerciseMethodService extends BaseService<IExerciseMethod> 
   constructor() {
     super(new ExerciseMethodRepository(), RESOURCE_NAME);
   }
-
-  
 }
