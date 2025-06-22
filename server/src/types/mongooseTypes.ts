@@ -5,3 +5,5 @@ export type FindOptions<T> = {
   projection?: ProjectionType<T>;
   queryOptions?: QueryOptions;
 };
+
+export type FindOptionsNoQuery<T> = Omit<FindOptions<T>, "query">;
