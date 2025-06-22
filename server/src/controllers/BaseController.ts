@@ -9,6 +9,7 @@ import {
   extractQueryFromEvent,
 } from "../utils/utils";
 import { IServerResponseParams } from "../interfaces/IResponse";
+import { FindOptionsNoQuery } from "../types/mongooseTypes";
 
 type IdOrError = { id: string; error: null } | { id: null; error: APIGatewayProxyResult };
 
@@ -91,9 +92,11 @@ export default class BaseController<T> implements IBaseController<T> {
 
     try {
       const { id, error } = this.getIdOrError(event);
+      const {query}=extractBodyFromEvent(event);
+
       if (error) return error;
 
-      const data = await this.service.findById(id);
+      const data = await this.service.findById(id,query);
       const response = this.successResponse({
         data,
         message: `Successfully found item with id: "${id}"`,

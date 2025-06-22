@@ -1,6 +1,6 @@
 import { FilterQuery, Model, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
-import { FindOptions } from "../types/mongooseTypes";
+import { FindOptions, FindOptionsNoQuery } from "../types/mongooseTypes";
 import { CREATE_FAILURE, DELETE_FAILURE, FIND_FAILURE, FIND_ONE_FAILURE, NOT_FOUND_FAILURE, UPDATE_FAILURE } from "../constants/repository";
 
 export class BaseRepository<T> {
@@ -27,7 +27,7 @@ export class BaseRepository<T> {
     return data;
   }
 
-  async findById(id: string, options?: FindOptions<T>) {
+  async findById(id: string, options?: FindOptionsNoQuery<T>) {
     const { projection = {}, queryOptions = {} } = options || {};
     const item = await this.model.findById(id, projection, queryOptions);
 
