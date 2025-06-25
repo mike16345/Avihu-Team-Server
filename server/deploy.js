@@ -24,7 +24,7 @@ const MONGO_URI = `MONGO_URI=${process.env.MONGO_URI}`;
 
 // AWS
 const AWS_BUCKET = `AWS_BUCKET=${process.env.AWS_BUCKET}`;
-const AWS_REGION = `AWS_REGION=${process.env.AWS_REGION}`;
+const AMAZON_REGION = `AMAZON_REGION=${process.env.AMAZON_REGION}`;
 const ACCESS_KEY = `ACCESS_KEY=${process.env.ACCESS_KEY}`;
 const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 
@@ -32,7 +32,7 @@ const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 const EMAIL = `EMAIL=${process.env.EMAIL}`;
 const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 
-const signedUrlEnv = `${AWS_BUCKET},${AWS_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
+const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
 const apiEnv = `${DB_NAME},${MONGO_URI}`;
 const envMap = {
   signedUrl: signedUrlEnv,

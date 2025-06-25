@@ -12,7 +12,7 @@ const RUNTIME = "nodejs20.x";
 const HANDLER = "index.handler";
 const ZIP_FILE = path.resolve("./scripts/archive.zip");
 const ROLE_ARN = `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/BasicLambdaRole`;
-const REGION = process.env.AWS_REGION;
+const REGION = process.env.AMAZON_REGION;
 
 const { lambdaConfig } = require("../config/lambdaConfig");
 

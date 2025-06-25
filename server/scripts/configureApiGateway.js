@@ -9,7 +9,7 @@ function sleep(ms) {
 const apiId = process.env.API_ID;
 const parentResourceId = process.env.PARENT_RESOURCE_ID;
 const authorizerId = process.env.AUTHORIZER_ID;
-const AWS_REGION = process.env.AWS_REGION;
+const AMAZON_REGION = process.env.AMAZON_REGION;
 const AWS_ACCOUNT_ID = process.env.AWS_ACCOUNT_ID;
 
 // Parse CLI args
@@ -97,7 +97,7 @@ function setupAuthorization(apiId, resourceId, authorizerId) {
 
 function setupIntegration(apiId, resourceId, functionName) {
   console.log("🔗 Setting up integration with stage variable for alias...");
-  const uri = `arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${functionName}:\${stageVariables.lambdaAlias}/invocations`;
+  const uri = `arn:aws:apigateway:${AMAZON_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AMAZON_REGION}:${AWS_ACCOUNT_ID}:function:${functionName}:\${stageVariables.lambdaAlias}/invocations`;
 
   run(
     `aws apigateway put-integration --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --type AWS_PROXY --integration-http-method POST --uri "${uri}"`
@@ -110,7 +110,7 @@ function addLambdaPermission(apiId, resourceId, resourcePath, functionName, alia
   // Normalize resourcePath: replace {proxy+} with * for correct wildcard match
   const normalizedPath = resourcePath === "{proxy+}" ? "*" : resourcePath;
 
-  const sourceArn = `arn:aws:execute-api:${AWS_REGION}:${AWS_ACCOUNT_ID}:${apiId}/*/ANY/${normalizedPath}`;
+  const sourceArn = `arn:aws:execute-api:${AMAZON_REGION}:${AWS_ACCOUNT_ID}:${apiId}/*/ANY/${normalizedPath}`;
 
   console.log(`🛡️  Granting permission for alias "${alias}" on path "${resourcePath}"...`);
   try {
