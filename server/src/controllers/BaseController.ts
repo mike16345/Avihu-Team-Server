@@ -68,6 +68,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
 
       const response = this.successResponse({ data: item });
       await this.afterAction(response);
+      
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -80,8 +81,8 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
     try {
       const data = await this.service.find();
-
       const response = this.successResponse({ data, message: "Successfully found items!" });
+
       await this.afterAction(response);
       return response;
     } catch (e: any) {
@@ -98,7 +99,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
 
       if (error) return error;
 
-      const data = await this.service.findById(id, query);
+      const data = await this.service.findById(id);
       const response = this.successResponse({
         data,
         message: `Successfully found item with id: "${id}"`,
@@ -115,7 +116,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
     try {
       const query = extractQueryFromEvent(event);
-      const item = await this.service.findOne({ query });
+      const item = await this.service.findOne(query);
       const response = this.successResponse({ data: item });
 
       await this.afterAction(response);

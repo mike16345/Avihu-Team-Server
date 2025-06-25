@@ -5,9 +5,11 @@ import { validateUserImageUrl } from "../../middleware/UserImageUrlMiddleware";
 
 const BASE_PATH = "/userImageUrls";
 
+const userImageUrlController = new UserImageUrlController();
+
 const userImageApiHandlers = {
-  [`GET ${BASE_PATH}/user`]: UserImageUrlController.getUserImageUrls,
-  [`POST ${BASE_PATH}`]: UserImageUrlController.addImageUrl,
+  [`GET ${BASE_PATH}/user`]: userImageUrlController.getOne,
+  [`POST ${BASE_PATH}`]: userImageUrlController.addImageUrl,
 };
 
 export const userImageMiddleWare = {
