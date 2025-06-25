@@ -1,19 +1,28 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { workoutPlanService } from "../services/workoutPlanService";
+import {  workoutPlanService } from "../services/workoutPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import { createResponse, createResponseWithData, createServerErrorResponse, extractBodyFromEvent } from "../utils/utils";
+import BaseController from "./BaseController";
+import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 
-class WorkoutPlanController {
+
+class WorkoutPlanController extends BaseController<IFullWorkoutPlan> {
+  constructor(){
+    super(workoutPlanService);
+  }
+
   static addWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const userId = event?.queryStringParameters?.id;
-    const workoutPlan = { ...JSON.parse(event.body || "{}"), userId: userId };
+    const body=extractBodyFromEvent(event)
 
-    if (!workoutPlan) {
+    const workoutPlan = { ...body, userId: userId };
+
+    if (!body) {
       return createResponse(StatusCode.BAD_REQUEST, "Workout plan data is required.");
     }
 
     try {
-      const workoutPlanResult = await workoutPlanService.addWorkoutPlan(workoutPlan);
+      const workoutPlanResult = await workoutPlanService.create(workoutPlan);
 
       return createResponseWithData(
         StatusCode.CREATED,
@@ -25,52 +34,17 @@ class WorkoutPlanController {
     }
   };
 
-  static updateWorkoutPlan = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    const workoutPlanId = event.queryStringParameters?.id || "";
-    const newWorkoutPlan = JSON.parse(event.body || "{}");
-
-    if (!workoutPlanId) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
-    }
-
-    try {
-      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlan(
-        workoutPlanId,
-        newWorkoutPlan
-      );
-
-      if (!updatedWorkoutPlan) {
-        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        updatedWorkoutPlan,
-        "Successfully updated workout plan!"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  };
 
   static updateWorkoutPlanByUserId = async (event: APIGatewayProxyEvent) => {
     const userId = String(event.queryStringParameters?.userId) || "";
-    const updatedData = JSON.parse(event.body || "{}");
+    const updatedData = extractBodyFromEvent(event);
 
     try {
-      const updatedWorkoutPlan = await workoutPlanService.updateWorkoutPlanByUserId(
-        userId,
+      const updatedWorkoutPlan = await workoutPlanService.updateOne(
+        { userId },
         updatedData
       );
 
-      if (!updatedWorkoutPlan) {
-        return createResponse(
-          StatusCode.NOT_FOUND,
-          "There was an error updating the workout plan."
-        );
-      }
 
       return createResponseWithData(
         StatusCode.OK,
@@ -82,73 +56,7 @@ class WorkoutPlanController {
     }
   };
 
-  static deleteWorkoutPlan = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    const id = event.queryStringParameters?.id || "";
-
-    if (!id) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
-    }
-
-    try {
-      const response = await workoutPlanService.deleteWorkoutPlanById(id);
-
-      if (!response) {
-        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
-      }
-
-      return createResponseWithData(StatusCode.OK, response, "Successfully deleted workout plan!");
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  };
-
-  static getAllWorkoutPlans = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    try {
-      const workoutPlans = await workoutPlanService.getAllWorkoutPlans();
-
-      if (!workoutPlans) {
-        return createResponse(StatusCode.NOT_FOUND, "No workout plans found.");
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        workoutPlans,
-        "Successfully retrieved all workout plans!"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  };
-
-  static getWorkoutPlanById = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    const workoutPlanId = event.queryStringParameters?.id || "";
-
-    if (!workoutPlanId) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan ID is required.");
-    }
-
-    try {
-      const workoutPlan = await workoutPlanService.getWorkoutPlanById(workoutPlanId);
-
-      if (!workoutPlan) {
-        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        workoutPlan,
-        "Successfully retrieved workout plan!"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  };
+  
 
   static getWorkoutPlanByUserId = async (
     event: APIGatewayProxyEvent
@@ -160,11 +68,8 @@ class WorkoutPlanController {
     }
 
     try {
-      const workoutPlan = await workoutPlanService.getWorkoutPlanByUserId(userId);
+      const workoutPlan = await workoutPlanService.findOne({query:{userId}});
 
-      if (!workoutPlan) {
-        return createResponse(StatusCode.NOT_FOUND, "Workout plan not found!");
-      }
 
       return createResponseWithData(
         StatusCode.OK,

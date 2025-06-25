@@ -92,6 +92,9 @@ export class BaseService<T> {
 
   async updateOne(query: FilterQuery<T>, data: any) {
     const updatedDoc = await this.repository.updateOne(query, data);
+
+    if (!updatedDoc) throw new Error("Could not update item!");
+
     this.cache.invalidateAll();
 
     return updatedDoc;

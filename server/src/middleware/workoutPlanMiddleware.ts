@@ -1,7 +1,6 @@
 import { FullWorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
-import { StatusCode } from "../enums/StatusCode";
 import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
-import { createResponse, createValidatorResponse } from "../utils/utils";
+import {  createValidatorResponse } from "../utils/utils";
 import { APIGatewayEvent } from "aws-lambda";
 
 export const validateWorkoutPlan = (event: APIGatewayEvent) => {
