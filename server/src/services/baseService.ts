@@ -7,7 +7,7 @@ import {
 } from "../utils/pagination";
 import { stableStringify } from "../utils/utils";
 import { BaseRepository } from "../repositories/BaseRepository";
-import { FindOptions } from "../types/mongooseTypes";
+import { FindOptions, FindOptionsNoQuery } from "../types/mongooseTypes";
 
 export class BaseService<T> {
   protected cache = new Cache<any>();
@@ -64,13 +64,13 @@ export class BaseService<T> {
     return data;
   }
 
-  async findById(id: string) {
+  async findById(id: string, options?: FindOptionsNoQuery<T>) {
     const key = this.generateCacheKey("id", id);
     let item = this.cache.get(key);
 
     if (item) return item;
 
-    item = await this.repository.findById(id);
+    item = await this.repository.findById(id,options);
     if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
@@ -78,7 +78,6 @@ export class BaseService<T> {
   }
 
   async findOne(options: FindOptions<T>) {
-    
     const key = this.generateCacheKey("one", stableStringify(options.query));
     let item = this.cache.get(key);
 
