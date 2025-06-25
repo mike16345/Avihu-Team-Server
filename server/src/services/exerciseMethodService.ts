@@ -1,5 +1,5 @@
 import { IExerciseMethod } from "../interfaces/IWorkoutPlan";
-import { ExerciseMethodRepository } from "../repositories/ExerciseMethods/ExerciseMethodRepository";
+import { ExerciseMethodRepository } from "../repositories/Presets/ExerciseMethodRepository";
 import { BaseService } from "./BaseService";
 
 const RESOURCE_NAME = `exercise-methods`;

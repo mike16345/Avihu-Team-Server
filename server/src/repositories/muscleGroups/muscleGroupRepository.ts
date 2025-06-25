@@ -1,4 +1,4 @@
-import {  IMuscleGroup } from "../../interfaces/IWorkoutPlan";
+import { IMuscleGroup } from "../../interfaces/IWorkoutPlan";
 import { muscleGroupPresets } from "../../models/muscleGroupModel";
 import { BaseRepository } from "../BaseRepository";
 

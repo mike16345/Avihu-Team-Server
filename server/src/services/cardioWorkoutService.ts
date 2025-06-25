@@ -1,6 +1,6 @@
 import { ICardioWorkout } from "../interfaces/IWorkoutPlan";
 import { BaseService } from "./baseService";
-import { CardioWorkoutRepository } from "../repositories/CardioWorkout/CardioWorkoutRepository";
+import { CardioWorkoutRepository } from "../repositories/Presets/CardioWorkoutRepository";
 
 const RESOURCE_NAME = "cardio-workout";
 

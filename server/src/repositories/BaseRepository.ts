@@ -1,7 +1,14 @@
 import { FilterQuery, Model, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions, FindOptionsNoQuery } from "../types/mongooseTypes";
-import { CREATE_FAILURE, DELETE_FAILURE, FIND_FAILURE, FIND_ONE_FAILURE, NOT_FOUND_FAILURE, UPDATE_FAILURE } from "../constants/repository";
+import {
+  CREATE_FAILURE,
+  DELETE_FAILURE,
+  FIND_FAILURE,
+  FIND_ONE_FAILURE,
+  NOT_FOUND_FAILURE,
+  UPDATE_FAILURE,
+} from "../constants/repository";
 
 export class BaseRepository<T> {
   protected model: Model<T>;
@@ -37,7 +44,6 @@ export class BaseRepository<T> {
   }
 
   async findOne(options: FindOptions<T>) {
-
     const { projection, queryOptions, query } = options;
 
     const item = await this.model.findOne(query, projection, queryOptions);
