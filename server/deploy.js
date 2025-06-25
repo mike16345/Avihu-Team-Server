@@ -4,6 +4,7 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const path = require("path");
 const { setupAliases } = require("./scripts/setupAliases");
+const sleep=require('./scripts/utils')
 
 const { lambdaConfig } = require("./config/lambdaConfig");
 
@@ -71,7 +72,7 @@ function getLambdaFunctions() {
   }
 }
 
-function deploy({ functionName, handlerPath }, envKey = null) {
+async function deploy({ functionName, handlerPath }, envKey = null) {
   const envToUse = envKey || envArg.split("=")[1];
   const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout ${lambdaConfig.timeout} --environment Variables="{${envMap[envToUse]}}" --region ${REGION}`;
   const uploadCommand = `lambda-build upload ${functionName} -e ${handlerPath} -r ${REGION}`;
@@ -82,6 +83,8 @@ function deploy({ functionName, handlerPath }, envKey = null) {
 
     console.log(`Uploading code with lambda-build...`);
     execSync(uploadCommand, { stdio: "inherit" });
+
+    await sleep(2000)
 
     setupAliases(functionName, promote);
 
