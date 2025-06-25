@@ -4,7 +4,7 @@ import { BaseService } from "./BaseService";
 
 const RESOURCE_NAME = `muscle-groups`;
 
-export class MuscleGroupService extends BaseService<IMuscleGroup> {
+export class MuscleGroupService extends BaseService<IMuscleGroup, MuscleGroupRepository> {
   constructor() {
     super(new MuscleGroupRepository(), RESOURCE_NAME);
   }

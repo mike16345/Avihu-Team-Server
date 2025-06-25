@@ -1,41 +1,25 @@
 import { IUserImageUrls, UserImageUrlsModel } from "../models/urlModel";
-import { Cache } from "../utils/cache";
+import UserImageUrlsRepository from "../repositories/UserImageUrls/UserImageUrlsRepository";
+import { BaseService } from "./BaseService";
 
-const urlsCache = new Cache<IUserImageUrls>();
+const baseKey = "user-image-urls";
 
-export class UserImageUrlService {
-  static async getUserImageUrls(userId: string) {
+export class UserImageUrlService extends BaseService<IUserImageUrls, UserImageUrlsRepository> {
+  constructor() {
+    super(new UserImageUrlsRepository(), baseKey);
+  }
+
+  async addImageUrl(userId: string, imageUrl: string) {
     try {
-      const urls = urlsCache.get(userId) || (await UserImageUrlsModel.findOne({ userId }));
-      urlsCache.set(userId, urls);
+      const urls = await this.repository.upsertImageUrl({ userId }, imageUrl);
 
-      return urls?.imageUrls;
+      return urls?.imageUrls || [];
     } catch (e: any) {
       throw e;
     }
   }
 
-  static async addImageUrl(userId: string, imageUrl: string) {
-    try {
-      const urls = await UserImageUrlsModel.findOneAndUpdate(
-        { userId },
-        { $push: { imageUrls: imageUrl } },
-        { new: true, upsert: true }
-      );
-      urlsCache.invalidate(userId);
-
-      return urls;
-    } catch (e: any) {
-      throw e;
-    }
-  }
-
-  static async deleteUserImageUrls(userId: string) {
-    try {
-      await UserImageUrlsModel.deleteOne({ userId });
-      urlsCache.invalidate(userId);
-    } catch (e: any) {
-      throw e;
-    }
+  async findOne(filter: Partial<Record<keyof IUserImageUrls, any>>): Promise<any> {
+    return (await super.findOne(filter)).imageUrls;
   }
 }

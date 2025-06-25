@@ -7,7 +7,10 @@ import { ICustomItemInstructions } from "../interfaces/IDietPlan";
 
 const menuItemService = new MenuItemService();
 
-export class MenuItemPresetController extends BaseController<ICustomItemInstructions> {
+export class MenuItemPresetController extends BaseController<
+  ICustomItemInstructions,
+  MenuItemService
+> {
   constructor() {
     super(new MenuItemService());
   }
