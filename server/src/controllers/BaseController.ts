@@ -79,8 +79,10 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
 
   getAll = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
+
+    const query=extractQueryFromEvent(event);
     try {
-      const data = await this.service.find();
+      const data = await this.service.find(query);
       const response = this.successResponse({ data, message: "Successfully found items!" });
 
       await this.afterAction(response);

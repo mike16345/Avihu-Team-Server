@@ -5,7 +5,8 @@ import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = `workout-plan`;
 
-export class WorkoutPlanService extends BaseService<IFullWorkoutPlan> {
+export class 
+WorkoutPlanService extends BaseService<IFullWorkoutPlan,WorkoutPlanRepository> {
   constructor(){
     super(new WorkoutPlanRepository(),RESOURCE_NAME)
   }

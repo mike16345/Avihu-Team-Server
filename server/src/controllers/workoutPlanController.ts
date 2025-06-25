@@ -1,12 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import {  workoutPlanService } from "../services/workoutPlanService";
+import {  workoutPlanService,WorkoutPlanService } from "../services/workoutPlanService";
 import { StatusCode } from "../enums/StatusCode";
 import { createResponse, createResponseWithData, createServerErrorResponse, extractBodyFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 
 
-class WorkoutPlanController extends BaseController<IFullWorkoutPlan> {
+class WorkoutPlanController extends BaseController<IFullWorkoutPlan,WorkoutPlanService> {
   constructor(){
     super(workoutPlanService);
   }
