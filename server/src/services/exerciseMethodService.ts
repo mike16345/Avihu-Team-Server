@@ -4,7 +4,10 @@ import { BaseService } from "./BaseService";
 
 const RESOURCE_NAME = `exercise-methods`;
 
-export default class ExerciseMethodService extends BaseService<IExerciseMethod> {
+export default class ExerciseMethodService extends BaseService<
+  IExerciseMethod,
+  ExerciseMethodRepository
+> {
   constructor() {
     super(new ExerciseMethodRepository(), RESOURCE_NAME);
   }

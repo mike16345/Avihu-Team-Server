@@ -7,7 +7,10 @@ import { StatusCode } from "../enums/StatusCode";
 
 const exercisePresetService=new ExercisePresetService()
 
-export class ExercisePresetController extends BaseController<IExercisePreset> {
+export class ExercisePresetController extends BaseController<
+  IExercisePreset,
+  ExercisePresetService
+> {
   constructor() {
     super(exercisePresetService);
   }

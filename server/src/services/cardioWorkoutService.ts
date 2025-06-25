@@ -4,7 +4,7 @@ import { CardioWorkoutRepository } from "../repositories/Presets/CardioWorkoutRe
 
 const RESOURCE_NAME = "cardio-workout";
 
-export class CardioWorkoutService extends BaseService<ICardioWorkout> {
+export class CardioWorkoutService extends BaseService<ICardioWorkout, CardioWorkoutRepository> {
   constructor() {
     super(new CardioWorkoutRepository(), RESOURCE_NAME);
   }

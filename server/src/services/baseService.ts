@@ -1,4 +1,4 @@
-import { FilterQuery, UpdateWriteOpResult } from "mongoose";
+import { UpdateWriteOpResult } from "mongoose";
 import { Cache } from "../utils/cache";
 import {
   generatePaginationCacheKey,
@@ -7,14 +7,13 @@ import {
 } from "../utils/pagination";
 import { stableStringify } from "../utils/utils";
 import { BaseRepository } from "../repositories/BaseRepository";
-import { FindOptions, FindOptionsNoQuery } from "../types/mongooseTypes";
 
-export class BaseService<T> {
+export class BaseService<T, R extends BaseRepository<T>> {
   protected cache = new Cache<any>();
-  protected repository: BaseRepository<T>;
+  protected repository: R;
   protected baseCacheKey: string;
 
-  constructor(repository: BaseRepository<T>, baseCacheKey: string) {
+  constructor(repository: R, baseCacheKey: string) {
     this.repository = repository;
     this.baseCacheKey = baseCacheKey;
   }
@@ -23,114 +22,125 @@ export class BaseService<T> {
     return `${this.baseCacheKey}:${prefix}:${identifier}`;
   }
 
-  async create(doc: any) {
+  async create(doc: T) {
     const newDoc = await this.repository.create(doc);
     this.cache.invalidateAll();
 
     return newDoc;
   }
 
-  async find(query: FilterQuery<T> = {}): Promise<T[]> {
-    const key = this.generateCacheKey("query", stableStringify(query));
-    let data = this.cache.get(key);
+  async find(filter: Partial<Record<keyof T, any>> = {}): Promise<T[]> {
+    const key = this.generateCacheKey("query", stableStringify(filter));
+    const cached = this.cache.get(key);
 
-    if (data) return data;
+    if (cached) return cached;
+    const data = await this.repository.find({ query: filter });
 
-    data = await this.repository.find({ query });
     if (!data) throw new Error("Data could not be retrieved!");
+
     this.cache.set(key, data);
 
     return data;
   }
 
   async findPaginated(
-    query: Omit<PaginationParams, "model">,
+    params: Omit<PaginationParams, "model">,
     resource: string = ""
   ): Promise<PaginationResult<T>> {
     const cacheKey = this.generateCacheKey(
       "paginated",
-      generatePaginationCacheKey(resource || this.baseCacheKey, query)
+      generatePaginationCacheKey(resource || this.baseCacheKey, params)
     );
 
-    let data = this.cache.get(cacheKey);
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
 
-    if (data) return data;
-
-    data = await this.repository.getPaginated(query);
+    const data = await this.repository.getPaginated(params);
     if (!data) throw new Error("Error retrieving page!");
 
     this.cache.set(cacheKey, data);
-
     return data;
   }
 
-  async findById(id: string, options?: FindOptionsNoQuery<T>) {
+  async findById(id: string): Promise<T> {
     const key = this.generateCacheKey("id", id);
-    let item = this.cache.get(key);
+    const cached = this.cache.get(key);
 
-    if (item) return item;
+    if (cached) return cached;
+    const item = await this.repository.findById(id);
 
-    item = await this.repository.findById(id,options);
     if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
     return item;
   }
 
-  async findOne(options: FindOptions<T>) {
-    const key = this.generateCacheKey("one", stableStringify(options.query));
-    let item = this.cache.get(key);
+  async findOne(filter: Partial<Record<keyof T, any>>): Promise<T> {
+    const key = this.generateCacheKey("one", stableStringify(filter));
+    const cached = this.cache.get(key);
 
-    if (item) return item;
+    if (cached) return cached;
+    const item = await this.repository.findOne({ query: filter });
 
-    item = await this.repository.findOne(options);
     if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
     return item;
   }
 
-  async updateOne(query: FilterQuery<T>, data: any) {
-    const updatedDoc = await this.repository.updateOne(query, data);
-
-    if (!updatedDoc) throw new Error("Could not update item!");
+  async updateOne(filter: Partial<Record<keyof T, any>>, update: Partial<T>) {
+    const updated = await this.repository.updateOne({
+      filter,
+      update,
+      options: { new: true }, // You can lock these defaults
+    });
 
     this.cache.invalidateAll();
 
-    return updatedDoc;
+    return updated;
   }
 
-  async updateById(id: string, data: any) {
-    const updatedDoc = await this.repository.updateById(id, data);
-    const key = this.generateCacheKey("id", id);
-    this.cache.invalidateAll();
+  async updateById(id: string, update: Partial<T>) {
+    const updated = await this.repository.updateById(id, {
+      update,
+      options: { new: true },
+    });
 
-    return updatedDoc;
+    this.cache.invalidate(this.generateCacheKey("id", id));
+
+    return updated;
   }
 
-  async updateMany(query: FilterQuery<T>, data: any): Promise<UpdateWriteOpResult> {
-    const result = await this.repository.updateMany(query, data);
+  async updateMany(
+    filter: Partial<Record<keyof T, any>>,
+    update: Partial<T>
+  ): Promise<UpdateWriteOpResult> {
+    const result = await this.repository.updateMany(filter, update);
+
     this.cache.invalidateAll();
 
     return result;
   }
 
   async deleteById(id: string) {
-    const deletedDoc = await this.repository.deleteById(id);
+    const deleted = await this.repository.deleteById(id);
+
     this.cache.invalidateAll();
 
-    return deletedDoc;
+    return deleted;
   }
 
-  async delete(query: FilterQuery<T>) {
-    const deletedDoc = await this.repository.delete(query);
+  async delete(filter: Partial<Record<keyof T, any>>) {
+    const deleted = await this.repository.delete(filter);
+
     this.cache.invalidateAll();
 
-    return deletedDoc;
+    return deleted;
   }
 
-  async deleteMany(query: FilterQuery<T>): Promise<{ deletedCount?: number }> {
-    const result = await this.repository.deleteMany(query);
+  async deleteMany(filter: Partial<Record<keyof T, any>>): Promise<{ deletedCount?: number }> {
+    const result = await this.repository.deleteMany(filter);
+
     this.cache.invalidateAll();
 
     return result;

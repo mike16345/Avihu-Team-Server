@@ -132,7 +132,7 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await DietPlanServices.deleteDietPlanByUserId(userId).catch((err) => console.log(err));
   await RecordedSetsService.deleteUserRecordedSets(userId).catch((err) => console.log(err));
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
-  await UserImageUrlService.deleteUserImageUrls(userId).catch((err) => console.log(err));
+  await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
   await workoutPlanService.deleteMany({userId}).catch((err) => console.log(err));
 };
