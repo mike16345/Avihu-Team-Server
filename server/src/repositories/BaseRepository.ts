@@ -1,6 +1,6 @@
-import { FilterQuery, Model, UpdateWriteOpResult } from "mongoose";
+import { FilterQuery, Model, QueryOptions, UpdateQuery, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
-import { FindOptions, FindOptionsNoQuery } from "../types/mongooseTypes";
+import { FindOptions, FindOptionsNoQuery, UpdateOptions } from "../types/mongooseTypes";
 import {
   CREATE_FAILURE,
   DELETE_FAILURE,
@@ -17,7 +17,7 @@ export class BaseRepository<T> {
     this.model = model;
   }
 
-  async create(doc: any): Promise<T> {
+  async create(doc: T): Promise<T> {
     const newDoc = await this.model.create(doc);
 
     if (!newDoc) throw new Error(CREATE_FAILURE);
@@ -78,16 +78,18 @@ export class BaseRepository<T> {
     };
   }
 
-  async updateOne(query: FilterQuery<T>, data: any) {
-    const updatedDoc = await this.model.findOneAndUpdate(query, data, { new: true }).lean().exec();
+  async updateOne(updateOptions: UpdateOptions<T>) {
+    const { options, filter, update } = updateOptions;
+    const updatedDoc = await this.model.findOneAndUpdate(filter, update, options);
 
     if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
 
     return updatedDoc;
   }
 
-  async updateById(id: string, data: any) {
-    const updatedDoc = await this.model.findByIdAndUpdate(id, data, { new: true }).lean().exec();
+  async updateById(id: string, updateOptions: Omit<UpdateOptions<T>, "filter">) {
+    const { options, update } = updateOptions;
+    const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
 
     if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
 
@@ -102,8 +104,8 @@ export class BaseRepository<T> {
     return updateResult;
   }
 
-  async deleteById(id: string) {
-    const deletedDoc = await this.model.findByIdAndDelete(id).lean().exec();
+  async deleteById(id: string, options?: QueryOptions<T>) {
+    const deletedDoc = await this.model.findByIdAndDelete(id, options).lean().exec();
 
     if (!deletedDoc) throw new Error(NOT_FOUND_FAILURE);
 

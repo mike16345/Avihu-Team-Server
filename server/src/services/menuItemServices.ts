@@ -4,7 +4,7 @@ import { BaseService } from "./BaseService";
 
 const RESOURCE_NAME = "menu-item";
 
-export class MenuItemService extends BaseService<ICustomItemInstructions> {
+export class MenuItemService extends BaseService<ICustomItemInstructions, MenuItemRepository> {
   constructor() {
     super(new MenuItemRepository(), RESOURCE_NAME);
   }

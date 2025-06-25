@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
-import { BaseService } from "../services/baseService";
+import { BaseService } from "../services/BaseService";
 import {
   createMissingParamErrorMessage,
   createServerResponse,
@@ -9,14 +9,16 @@ import {
   extractQueryFromEvent,
 } from "../utils/utils";
 import { IServerResponseParams } from "../interfaces/IResponse";
-import { FindOptionsNoQuery } from "../types/mongooseTypes";
+import { BaseRepository } from "../repositories/BaseRepository";
 
 type IdOrError = { id: string; error: null } | { id: null; error: APIGatewayProxyResult };
 
-export default class BaseController<T> implements IBaseController<T> {
-  protected service: BaseService<T>;
+export default class BaseController<T, S extends BaseService<T, BaseRepository<T>>>
+  implements IBaseController<T>
+{
+  protected service: S;
 
-  constructor(service: BaseService<T>) {
+  constructor(service: S) {
     this.service = service;
   }
 
@@ -92,11 +94,11 @@ export default class BaseController<T> implements IBaseController<T> {
 
     try {
       const { id, error } = this.getIdOrError(event);
-      const {query}=extractBodyFromEvent(event);
+      const { query } = extractBodyFromEvent(event);
 
       if (error) return error;
 
-      const data = await this.service.findById(id,query);
+      const data = await this.service.findById(id, query);
       const response = this.successResponse({
         data,
         message: `Successfully found item with id: "${id}"`,
@@ -113,7 +115,7 @@ export default class BaseController<T> implements IBaseController<T> {
     await this.beforeAction(event);
     try {
       const query = extractQueryFromEvent(event);
-      const item = await this.service.findOne(query);
+      const item = await this.service.findOne({ query });
       const response = this.successResponse({ data: item });
 
       await this.afterAction(response);
