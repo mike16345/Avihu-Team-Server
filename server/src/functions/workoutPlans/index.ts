@@ -8,13 +8,13 @@ const BASE_PATH = "/workoutPlans";
 const workoutPlanController=new WorkoutPlanController();
 
 const workoutPlanApiHandlers = {
-  [`GET ${BASE_PATH}`]: workoutPlanController.getAll, // Get weigh ins by ID
-  [`GET ${BASE_PATH}/one`]:workoutPlanController.getById, // Get weigh ins by ID
-  [`GET ${BASE_PATH}/user`]: WorkoutPlanController.getWorkoutPlanByUserId, // Get user by ID
-  [`PUT ${BASE_PATH}/one`]:workoutPlanController.updateById, // Update user by ID
-  [`PUT ${BASE_PATH}/one/user`]: WorkoutPlanController.updateWorkoutPlanByUserId, // Update user by ID
-  [`POST ${BASE_PATH}`]:WorkoutPlanController.addWorkoutPlan, // Add new user
-  [`DELETE ${BASE_PATH}/one`]:workoutPlanController.deleteById,  // Delete user by ID
+  [`GET ${BASE_PATH}`]: workoutPlanController.getAll, 
+  [`GET ${BASE_PATH}/one`]:workoutPlanController.getById, 
+  [`GET ${BASE_PATH}/user`]: workoutPlanController.getOne, 
+  [`PUT ${BASE_PATH}/one`]:workoutPlanController.updateById,
+  [`PUT ${BASE_PATH}/one/user`]: workoutPlanController.update, 
+  [`POST ${BASE_PATH}`]:WorkoutPlanController.addWorkoutPlan,
+  [`DELETE ${BASE_PATH}/one`]:workoutPlanController.deleteById,  
 };
 
 const workoutPlanMiddleware = {

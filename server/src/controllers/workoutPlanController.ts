@@ -35,51 +35,7 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan> {
   };
 
 
-  static updateWorkoutPlanByUserId = async (event: APIGatewayProxyEvent) => {
-    const userId = String(event.queryStringParameters?.userId) || "";
-    const updatedData = extractBodyFromEvent(event);
-
-    try {
-      const updatedWorkoutPlan = await workoutPlanService.updateOne(
-        { userId },
-        updatedData
-      );
-
-
-      return createResponseWithData(
-        StatusCode.OK,
-        updatedWorkoutPlan,
-        "Successfully updated workout plan!"
-      );
-    } catch (err) {
-      return createServerErrorResponse(err);
-    }
-  };
-
-  
-
-  static getWorkoutPlanByUserId = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    const userId = event.queryStringParameters?.userId || "";
-
-    if (!userId) {
-      return createResponse(StatusCode.BAD_REQUEST, "User ID is required.");
-    }
-
-    try {
-      const workoutPlan = await workoutPlanService.findOne({query:{userId}});
-
-
-      return createResponseWithData(
-        StatusCode.OK,
-        workoutPlan,
-        "Successfully retrieved workout plan!"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  };
+ 
 }
 
 export default WorkoutPlanController;
