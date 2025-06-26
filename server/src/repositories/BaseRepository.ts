@@ -1,4 +1,11 @@
-import { FilterQuery, Model, QueryOptions, UpdateQuery, UpdateWriteOpResult } from "mongoose";
+import {
+  FilterQuery,
+  Model,
+  ObjectId,
+  QueryOptions,
+  UpdateQuery,
+  UpdateWriteOpResult,
+} from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions, FindOptionsNoQuery, UpdateOptions } from "../types/mongooseTypes";
 import {
@@ -87,7 +94,7 @@ export class BaseRepository<T> {
     return updatedDoc;
   }
 
-  async updateById(id: string, updateOptions: Omit<UpdateOptions<T>, "filter">) {
+  async updateById(id: string | ObjectId, updateOptions: Omit<UpdateOptions<T>, "filter">) {
     const { options, update } = updateOptions;
     const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
 

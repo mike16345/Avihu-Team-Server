@@ -151,6 +151,6 @@ export function stableStringify(obj: any): string {
   );
 }
 
-export const createMissingParamErrorMessage = (paramName: string) => {
-  return `"${paramName}" param is required!`;
+export const createMissingParamErrorMessage = (paramNames: string[]) => {
+  return `"${paramNames.join(" ")}" params are required!`;
 };
