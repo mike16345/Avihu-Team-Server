@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyEventBase, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
 import { BaseService } from "../services/BaseService";
@@ -36,14 +36,17 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     console.log("Finished Action...");
   }
 
-  protected getParamsOrError(event: APIGatewayProxyEvent, params: string[]) {
-    const query = extractQueryFromEvent(event);
+  protected getParamsOrError(
+    event: APIGatewayProxyEvent,
+    params: string[],
+    extractor: "query" | "body" = "query"
+  ) {
+    const query = extractor === "body" ? extractBodyFromEvent(event) : extractQueryFromEvent(event);
     const missingParams = params.filter((param) => !query[param]);
 
     if (missingParams.length == 0) return { ...query, error: null };
 
     return {
-      params: null,
       error: this.errorResponse(
         createMissingParamErrorMessage(missingParams),
         StatusCode.BAD_REQUEST
