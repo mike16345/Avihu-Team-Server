@@ -13,4 +13,3 @@ WorkoutPlanService extends BaseService<IFullWorkoutPlan,WorkoutPlanRepository> {
 
 }
 
-export const workoutPlanService = new WorkoutPlanService();

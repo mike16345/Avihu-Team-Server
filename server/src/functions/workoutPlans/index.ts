@@ -13,7 +13,7 @@ const workoutPlanApiHandlers = {
   [`GET ${BASE_PATH}/user`]: workoutPlanController.getOne, 
   [`PUT ${BASE_PATH}/one`]:workoutPlanController.updateById,
   [`PUT ${BASE_PATH}/one/user`]: workoutPlanController.update, 
-  [`POST ${BASE_PATH}`]:WorkoutPlanController.addWorkoutPlan,
+  [`POST ${BASE_PATH}`]:workoutPlanController.addWorkoutPlan,
   [`DELETE ${BASE_PATH}/one`]:workoutPlanController.deleteById,  
 };
 
