@@ -5,7 +5,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { createResponse, createResponseWithData, createServerErrorResponse, extractBodyFromEvent } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
-const workoutPlanPresetService=new WorkoutPlanPresetService();
 
 export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPreset,WorkoutPlanPresetService> {
   constructor(){
@@ -22,7 +21,7 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     }
   
     try {
-      const workoutPlanPreset = await workoutPlanPresetService.findById(id); //base controller requires event not id
+      const workoutPlanPreset = await this.service.findById(id); 
 
     
 
@@ -43,7 +42,7 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     }
 
     try {
-      const updatedWorkoutPlanPreset = await workoutPlanPresetService.updateById(id,data); //base controller requires event not id
+      const updatedWorkoutPlanPreset = await this.service.updateById(id,data); 
 
 
       return createResponseWithData(StatusCode.OK, updatedWorkoutPlanPreset);
@@ -62,7 +61,7 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     }
 
     try {
-      const deletedWorkoutPlanPreset  = await workoutPlanPresetService.deleteById(id); //base controller requires event not id
+      const deletedWorkoutPlanPreset  = await this.service.deleteById(id); 
 
 
       return createResponseWithData(StatusCode.OK, deletedWorkoutPlanPreset);
