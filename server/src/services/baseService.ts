@@ -107,6 +107,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     });
 
     this.cache.invalidate(this.generateCacheKey("id", id));
+    this.cache.invalidateAll()
 
     return updated;
   }
