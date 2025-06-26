@@ -1,4 +1,4 @@
-import  { Schema, model, Document } from "mongoose";
+import  { Schema, model } from "mongoose";
 import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 export type SessionType = "login" | "workout" | string;
