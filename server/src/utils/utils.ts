@@ -8,7 +8,7 @@ import { RecordedSetsService } from "../services/recordedSetsService";
 import { weighInServices } from "../services/weighInService";
 import { UserImageUrlService } from "../services/UserImageUrlService";
 import PasswordsService from "../services/PasswordsService";
-import { workoutPlanService } from "../services/workoutPlanService";
+import { WorkoutPlanService } from "../services/workoutPlanService";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -134,7 +134,7 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
-  await workoutPlanService.deleteWorkoutPlanByUserId(userId).catch((err) => console.log(err));
+  await new WorkoutPlanService().deleteMany({userId}).catch((err) => console.log(err));
 };
 
 export function stableStringify(obj: any): string {

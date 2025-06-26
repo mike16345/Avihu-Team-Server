@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { ExercisePresetService } from "../services/exercisePresetService";
+import { FIND_ONE_FAILURE } from "../constants/repository";
 
 export const validateExercise = async (
   event: APIGatewayProxyEvent,
@@ -16,7 +17,8 @@ export const validateExercise = async (
     }
 
     if (!id) {
-      const exerciseExists = await ExercisePresetService.getExerciseByName(exercise.name);
+      const exerciseExists = await new ExercisePresetService().findOne({ name: exercise.name });
+
       if (exerciseExists) {
         return { isValid: false, message: "תרגיל כבר קיים במערכת" }; // Exercise already exists in the system
       }
@@ -28,6 +30,9 @@ export const validateExercise = async (
     // Validation passed
     return { isValid: true, validatedExercise: exercise };
   } catch (err: any) {
+    if(err.message==FIND_ONE_FAILURE) return {isValid:true} 
+
     return { isValid: false, message: "An error occurred during validation" };
+
   }
 };
