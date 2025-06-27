@@ -5,14 +5,10 @@ import { validateRecordedSet } from "../../middleware/recordedSetMiddleware";
 
 const BASE_PATH = "/recordedSets";
 
+const recordedSetsController = new RecordedSetsController();
 const recordedSetsApiHandlers = {
-  [`POST ${BASE_PATH}`]: RecordedSetsController.addRecordedSet, // Add new user
-  [`GET ${BASE_PATH}/user`]: RecordedSetsController.getRecordedSetsByUserId, // Get weigh ins by ID
-  [`GET ${BASE_PATH}/user/names`]: RecordedSetsController.getUserRecordedExerciseNamesByMuscleGroup, // Get weigh ins by ID
-  [`GET ${BASE_PATH}/user/names/muscleGroups`]:
-    RecordedSetsController.getUserRecordedMuscleGroupNames, // Get weigh ins by ID
-  [`GET ${BASE_PATH}`]: RecordedSetsController.getRecordedSetsByUserId,
-  [`GET ${BASE_PATH}/user/exercise`]: RecordedSetsController.getUserRecordedSetsByExercise,
+  [`POST ${BASE_PATH}`]: recordedSetsController.addRecordedSet,
+  [`GET ${BASE_PATH}/user`]: recordedSetsController.getRecordedSetsByUserId,
 };
 
 const recordedSetsMiddleware = {

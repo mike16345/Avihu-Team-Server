@@ -18,7 +18,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     this.baseCacheKey = baseCacheKey;
   }
 
-  private generateCacheKey(prefix: string, identifier: string): string {
+  protected generateCacheKey(prefix: string, identifier: string): string {
     return `${this.baseCacheKey}:${prefix}:${identifier}`;
   }
 
