@@ -64,7 +64,7 @@ export default class SessionController extends BaseController<ISession, SessionS
   };
 
   endSession = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { sessionId, error } = this.getParamsOrError(event, ["sessionId"], "query").sessionId;
+    const { sessionId, error } = this.getParamsOrError(event, ["sessionId"], "query");
 
     if (error) return error;
 

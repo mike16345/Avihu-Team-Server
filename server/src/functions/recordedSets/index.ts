@@ -9,6 +9,7 @@ const recordedSetsController = new RecordedSetsController();
 const recordedSetsApiHandlers = {
   [`POST ${BASE_PATH}`]: recordedSetsController.addRecordedSet,
   [`GET ${BASE_PATH}/user`]: recordedSetsController.getRecordedSetsByUserId,
+  [`GET ${BASE_PATH}/user/exercise`]: recordedSetsController.getUserRecordedSetsByExercise,
 };
 
 const recordedSetsMiddleware = {

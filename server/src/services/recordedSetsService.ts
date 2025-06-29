@@ -1,5 +1,4 @@
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
-import { RecordedSet } from "../models/recordedSetsModel";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISession, ISessionCreate } from "../models/sessionModel";
@@ -64,8 +63,8 @@ export class RecordedSetsService extends BaseService<
       const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
       recordedSet.setNumber = nextSetNumber;
 
-      this.repository.appendRecordedSet(muscleGroupRecord, exercise, new RecordedSet(recordedSet));
-      const savedResult = await muscleGroupRecord.save();
+      this.repository.appendRecordedSet(muscleGroupRecord, exercise, recordedSet);
+      await muscleGroupRecord.save();
 
       const sessionDetails: ISessionCreate = this.buildSessionDetails(
         userId,
@@ -76,13 +75,12 @@ export class RecordedSetsService extends BaseService<
       );
       const session = isNewSession
         ? await this.sessionService.create(sessionDetails as ISession)
-        : this.sessionService.updateById(sessionId, sessionDetails);
+        : await this.sessionService.updateById(sessionId, sessionDetails);
 
       this.cache.invalidateAllContaining(userId);
 
       return {
         session,
-        recordedSet: savedResult,
       };
     } catch (e: any) {
       throw e;
@@ -106,6 +104,30 @@ export class RecordedSetsService extends BaseService<
       this.cache.set(cacheKey, result);
 
       return result;
+    } catch (err: any) {
+      throw err;
+    }
+  }
+
+  async getUserRecordedSetsByExercise(
+    query: RecordedSetsQueryParams
+  ): Promise<IRecordedSet[] | null> {
+    const cacheKey = stableStringify(query);
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+    const { userId, muscleGroup, exercise } = query;
+
+    try {
+      const result = await this.repository.findOne({
+        query: { userId, muscleGroup },
+        projection: { [`recordedSets.${exercise}`]: 1 },
+      });
+
+      const sets = result?.recordedSets?.[exercise];
+      if (!sets) return null;
+      this.cache.set(cacheKey, sets);
+
+      return sets;
     } catch (err: any) {
       throw err;
     }

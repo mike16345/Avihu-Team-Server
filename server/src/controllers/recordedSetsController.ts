@@ -11,9 +11,15 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
     super(new RecordedSetsService());
   }
 
-  async addRecordedSet(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  addRecordedSet = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const sessionId = event.queryStringParameters?.sessionId;
-    const { userId, muscleGroup, exercise, recordedSet } = JSON.parse(event.body || "{}");
+    const { error, userId, muscleGroup, exercise, recordedSet } = this.getParamsOrError(
+      event,
+      ["userId", "muscleGroup", "exercise", "recordedSet"],
+      "body"
+    );
+
+    if (error) return error;
 
     try {
       const response = await this.service.addRecordedSet(
@@ -29,13 +35,39 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
         body: JSON.stringify(response),
       };
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
-  }
+  };
+
+  getUserRecordedSetsByExercise = async (event: APIGatewayProxyEvent) => {
+    const { error, userId, muscleGroup, exercise } = this.getParamsOrError(event, [
+      "userId",
+      "muscleGroup",
+      "exercise",
+    ]);
+
+    if (error) return this.errorResponse(error);
+
+    try {
+      const sets = await this.service.getUserRecordedSetsByExercise({
+        userId,
+        muscleGroup,
+        exercise,
+      });
+      if (!sets) return this.errorResponse("No recorded sets found for the given parameters.");
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: sets,
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
 
   getRecordedSetsByUserId = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { error, userId, ...query } = this.getParamsOrError(event, ["userId"]);
-    
+
     if (error) return error;
 
     try {
@@ -48,13 +80,13 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
         return createResponse(StatusCode.BAD_REQUEST, response);
       }
 
-      return createResponseWithData(
-        StatusCode.OK,
-        response,
-        "Successfully retrieved recorded sets"
-      );
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: response,
+        message: "Successfully retrieved recorded sets",
+      });
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
   };
 }
