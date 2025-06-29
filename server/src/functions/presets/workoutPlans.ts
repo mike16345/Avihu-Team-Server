@@ -7,10 +7,10 @@ const workoutPlanPresetController=new WorkoutPlanPresetsController()
 
 export const workoutPlanPresetApiHandlers = {
   [`GET ${BASE_PATH}`]: workoutPlanPresetController.getAll,
-  [`GET ${BASE_PATH}/one`]:workoutPlanPresetController.getWorkoutPlanPresetById,//frontend is sending 'presetId' and not id
+  [`GET ${BASE_PATH}/one`]:workoutPlanPresetController.getWorkoutPlanPresetById,
   [`POST ${BASE_PATH}`]:workoutPlanPresetController.create,
-  [`PUT ${BASE_PATH}/one`]:workoutPlanPresetController.updateWorkoutPlanPresetById,//frontend is sending 'presetId' and not id
-  [`DELETE ${BASE_PATH}/one`]:workoutPlanPresetController.deleteWorkoutPlanPresetById,//frontend is sending 'presetId' and not id
+  [`PUT ${BASE_PATH}/one`]:workoutPlanPresetController.updateWorkoutPlanPresetById,
+  [`DELETE ${BASE_PATH}/one`]:workoutPlanPresetController.deleteWorkoutPlanPresetById,
 };
 
 export const workoutPlanPresetApiMiddleware = {

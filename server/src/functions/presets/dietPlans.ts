@@ -7,10 +7,10 @@ const dietPlanPresetController= new DietPlanPresetController();
 
 export const dietPlanPresetApiHandlers = {
   [`GET ${BASE_PATH}`]:dietPlanPresetController.getAll,
-  [`GET ${BASE_PATH}/one`]:dietPlanPresetController.getById, // Get diet plan preset by ID
-  [`POST ${BASE_PATH}`]:dietPlanPresetController.create, // Add new diet plan preset
-  [`PUT ${BASE_PATH}/one`]:dietPlanPresetController.updateDietPlanPreset, // Update diet plan preset by ID
-  [`DELETE ${BASE_PATH}/one`]:dietPlanPresetController.deleteById, // Delete diet plan preset by ID
+  [`GET ${BASE_PATH}/one`]:dietPlanPresetController.getById, 
+  [`POST ${BASE_PATH}`]:dietPlanPresetController.create, 
+  [`PUT ${BASE_PATH}/one`]:dietPlanPresetController.updateDietPlanPreset, 
+  [`DELETE ${BASE_PATH}/one`]:dietPlanPresetController.deleteById, 
 };
 
 export const dietPlanPresetsMiddleware = {

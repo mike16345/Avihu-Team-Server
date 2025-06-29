@@ -2,13 +2,12 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanPresetsService } from "../services/dietPlanPresetsService";
 import { StatusCode } from "../enums/StatusCode";
 import {
-  createResponse,
-  createResponseWithData,
-  createServerErrorResponse,
+
   removeNestedIds,
 } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IDietPlanPreset } from "../interfaces/IDietPlan";
+
 
 export class DietPlanPresetController extends BaseController<IDietPlanPreset,DietPlanPresetsService> {
   constructor(){
@@ -16,6 +15,8 @@ export class DietPlanPresetController extends BaseController<IDietPlanPreset,Die
   }
 
   
+
+
 
    updateDietPlanPreset = async (
     event: APIGatewayProxyEvent
@@ -29,14 +30,11 @@ export class DietPlanPresetController extends BaseController<IDietPlanPreset,Die
       const updatedDietPlanPreset = await this.service.updateById(id,newDietPlanPreset);
 
   
-
-      return createResponseWithData(
-        StatusCode.OK,
-        updatedDietPlanPreset,
-        "Successfully updated diet plan preset!"
-      );
+return this.successResponse({status:StatusCode.OK,data:updatedDietPlanPreset,message:"Successfully updated diet plan preset!"})
+     
     } catch (err: any) {
-      return createServerErrorResponse(err);
+
+      return this.errorResponse(err)
     }
   }; 
 

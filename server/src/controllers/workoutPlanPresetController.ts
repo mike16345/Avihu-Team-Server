@@ -17,7 +17,8 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     const id = event.queryStringParameters?.presetId;
 
     if (!id) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
+      return this.errorResponse({message:"Workout plan preset ID is required!"
+      },StatusCode.BAD_REQUEST)
     }
   
     try {
@@ -25,9 +26,9 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
 
     
 
-      return createResponseWithData(StatusCode.OK, workoutPlanPreset);
+      return this.successResponse({status:StatusCode.OK,data:workoutPlanPreset})
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err) 
     }
   }
 
@@ -38,16 +39,16 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     const data=extractBodyFromEvent(event);
 
     if (!id) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
+      return this.errorResponse({message:"Workout plan preset ID is required!"},StatusCode.BAD_REQUEST)
     }
 
     try {
       const updatedWorkoutPlanPreset = await this.service.updateById(id,data); 
 
 
-      return createResponseWithData(StatusCode.OK, updatedWorkoutPlanPreset);
+      return this.successResponse({status:StatusCode.OK,data:updatedWorkoutPlanPreset})
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err) 
     }
   
   }
@@ -57,16 +58,15 @@ export class WorkoutPlanPresetsController extends BaseController<IWorkoutPlanPre
     const id = event.queryStringParameters?.presetId;
 
     if (!id) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan preset ID is required!");
+      return this.errorResponse({message:"Workout plan preset ID is required!"},StatusCode.BAD_REQUEST)
     }
 
     try {
       const deletedWorkoutPlanPreset  = await this.service.deleteById(id); 
 
-
-      return createResponseWithData(StatusCode.OK, deletedWorkoutPlanPreset);
+      return this.successResponse({status:StatusCode.OK,data:deletedWorkoutPlanPreset})
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err) 
     }
   
   }
