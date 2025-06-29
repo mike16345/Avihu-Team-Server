@@ -6,6 +6,7 @@ import { BaseService } from "./BaseService";
 import { RecordedSetsRepository } from "../repositories/RecordedSets/RecordedSetsRepository";
 import { stableStringify } from "../utils/utils";
 import mongoose from "mongoose";
+import { FIND_ONE_FAILURE } from "../constants/repository";
 
 const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
   if (!activeSession) return 1;
@@ -124,11 +125,12 @@ export class RecordedSetsService extends BaseService<
       });
 
       const sets = result?.recordedSets?.[exercise];
-      if (!sets) return null;
+      if (!sets) return [];
       this.cache.set(cacheKey, sets);
 
       return sets;
     } catch (err: any) {
+      if (err.message === FIND_ONE_FAILURE) return [];
       throw err;
     }
   }
