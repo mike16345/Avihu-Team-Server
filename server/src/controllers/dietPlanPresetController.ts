@@ -14,7 +14,7 @@ export class DietPlanPresetController extends BaseController<
   }
 
   updateDietPlanPreset = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, id, data } = this.getParamsOrError(event, ["id,data"], "body");
+    const { error, id, data } = this.getParamsOrError(event, ["id", "data"], "body");
     const newDietPlanPreset = removeNestedIds(data);
 
     if (error) return error;
