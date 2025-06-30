@@ -130,7 +130,7 @@ export const returnStringVal = (arr: any[]) => {
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
   await DietPlanServices.deleteDietPlanByUserId(userId).catch((err) => console.log(err));
-  await RecordedSetsService.deleteUserRecordedSets(userId).catch((err) => console.log(err));
+  await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
@@ -151,6 +151,6 @@ export function stableStringify(obj: any): string {
   );
 }
 
-export const createMissingParamErrorMessage = (paramName: string) => {
-  return `"${paramName}" param is required!`;
+export const createMissingParamErrorMessage = (paramNames: string[]) => {
+  return `"${paramNames.join(" ")}" params are required!`;
 };

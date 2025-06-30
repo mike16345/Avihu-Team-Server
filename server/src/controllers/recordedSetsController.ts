@@ -3,14 +3,26 @@ import { RecordedSetsService } from "../services/recordedSetsService";
 import { StatusCode } from "../enums/StatusCode";
 import mongoose from "mongoose";
 import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import BaseController from "./BaseController";
+import { IMuscleGroupRecordedSets } from "../interfaces/ISet";
 
-class RecordedSetsController {
-  static async addRecordedSet(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, RecordedSetsService> {
+  constructor() {
+    super(new RecordedSetsService());
+  }
+
+  addRecordedSet = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const sessionId = event.queryStringParameters?.sessionId;
-    const { userId, muscleGroup, exercise, recordedSet } = JSON.parse(event.body || "{}");
+    const { error, userId, muscleGroup, exercise, recordedSet } = this.getParamsOrError(
+      event,
+      ["userId", "muscleGroup", "exercise", "recordedSet"],
+      "body"
+    );
+
+    if (error) return error;
 
     try {
-      const response = await RecordedSetsService.addRecordedSet(
+      const response = await this.service.addRecordedSet(
         userId,
         muscleGroup,
         exercise,
@@ -23,137 +35,60 @@ class RecordedSetsController {
         body: JSON.stringify(response),
       };
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
-  }
+  };
 
-  static async getRecordedSetsByUserId(
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> {
-    const userId = event.queryStringParameters?.userId;
-    const query = { ...event.queryStringParameters };
+  getUserRecordedSetsByExercise = async (event: APIGatewayProxyEvent) => {
+    const { error, userId, muscleGroup, exercise } = this.getParamsOrError(event, [
+      "userId",
+      "muscleGroup",
+      "exercise",
+    ]);
 
-    if (!userId) {
-      return createResponse(StatusCode.BAD_REQUEST, "userId query parameter is required.");
+    if (error) return this.errorResponse(error);
+
+    try {
+      const sets = await this.service.getUserRecordedSetsByExercise({
+        userId,
+        muscleGroup,
+        exercise,
+      });
+      if (!sets) return this.errorResponse("No recorded sets found for the given parameters.");
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: sets,
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
     }
+  };
+
+  getRecordedSetsByUserId = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { error, userId, ...query } = this.getParamsOrError(event, ["userId"]);
+
+    if (error) return error;
 
     try {
       const objectId = new mongoose.mongo.ObjectId(userId);
       query.userId = objectId;
 
-      const response = await RecordedSetsService.getRecordedSetsByUserId(query);
+      const response = await this.service.getRecordedSetsByUserId(query);
 
       if (typeof response === "string") {
         return createResponse(StatusCode.BAD_REQUEST, response);
       }
 
-      return createResponseWithData(
-        StatusCode.OK,
-        response,
-        "Successfully retrieved recorded sets"
-      );
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: response,
+        message: "Successfully retrieved recorded sets",
+      });
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
-  }
-
-  static async getUserRecordedSetsByExercise(event: APIGatewayProxyEvent) {
-    const userId = event.queryStringParameters?.userId || "";
-    const exercise = event.queryStringParameters?.exercise || "";
-    const muscleGroup = event.queryStringParameters?.muscleGroup || "";
-
-    if (!userId) {
-      return createResponse(StatusCode.BAD_REQUEST, "userId query parameter is required.");
-    }
-
-    if (!exercise) {
-      return createResponse(StatusCode.BAD_REQUEST, "exercise query parameter is required.");
-    }
-
-    try {
-      const response = await RecordedSetsService.getUserRecordedSetsByExercise(
-        userId,
-        muscleGroup,
-        exercise
-      );
-      return createResponseWithData(StatusCode.OK, response);
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  }
-
-  static async getLastRecordedSetInExercise(event: APIGatewayEvent) {
-    const exercise = event.queryStringParameters?.exercise;
-
-    if (!exercise) {
-      return createResponse(StatusCode.BAD_REQUEST, "exercise query parameter is required.");
-    }
-
-    try {
-      const response = await RecordedSetsService.getLastRecordedSetInfoInExercise(exercise, 1);
-
-      return createResponseWithData(StatusCode.OK, response);
-    } catch (err) {}
-  }
-
-  static async getUserRecordedExerciseNamesByMuscleGroup(
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> {
-    const userId = event.queryStringParameters?.userId;
-    const muscleGroup = event.queryStringParameters?.muscleGroup;
-
-    if (!userId) {
-      return createResponse(StatusCode.BAD_REQUEST, "userId query parameter is required.");
-    }
-
-    if (!muscleGroup) {
-      return createResponse(StatusCode.BAD_REQUEST, "muscleGroup query parameter is required.");
-    }
-
-    try {
-      const query = { ...event.queryStringParameters, userId: new mongoose.mongo.ObjectId(userId) };
-      const response = await RecordedSetsService.getUserRecordedExerciseNamesByMuscleGroup(query);
-
-      if (typeof response === "string") {
-        return createResponse(StatusCode.NOT_FOUND, response);
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        response,
-        "Successfully retrieved exercise names"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  }
-
-  static async getUserRecordedMuscleGroupNames(
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> {
-    const userId = event.queryStringParameters?.userId;
-
-    if (!userId) {
-      return createResponse(StatusCode.BAD_REQUEST, "userId query parameter is required.");
-    }
-
-    try {
-      const query = { ...event.queryStringParameters, userId: new mongoose.mongo.ObjectId(userId) };
-      const response = await RecordedSetsService.getUserRecordedMuscleGroupNames(query);
-
-      if (typeof response === "string") {
-        return createResponse(StatusCode.NOT_FOUND, response);
-      }
-
-      return createResponseWithData(
-        StatusCode.OK,
-        response,
-        "Successfully retrieved  user record muscle group names"
-      );
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
-  }
+  };
 }
 
 export default RecordedSetsController;
