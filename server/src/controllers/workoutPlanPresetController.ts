@@ -15,7 +15,9 @@ export class WorkoutPlanPresetsController extends BaseController<
   getWorkoutPlanPresetById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const { presetId } = this.getParamsOrError(event, ["presetId"]);
+    const { presetId, error } = this.getParamsOrError(event, ["presetId"]);
+
+    if (error) return error;
 
     try {
       const workoutPlanPreset = await this.service.findById(presetId);
@@ -29,7 +31,9 @@ export class WorkoutPlanPresetsController extends BaseController<
   updateWorkoutPlanPresetById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const { presetId, data } = this.getParamsOrError(event, ["presetId", "data"], "body");
+    const { presetId, data, error } = this.getParamsOrError(event, ["presetId", "data"], "body");
+
+    if (error) return error;
 
     try {
       const updatedWorkoutPlanPreset = await this.service.updateById(presetId, data);
@@ -42,7 +46,9 @@ export class WorkoutPlanPresetsController extends BaseController<
   deleteWorkoutPlanPresetById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const { presetId } = this.getParamsOrError(event, ["presetId"]);
+    const { presetId, error } = this.getParamsOrError(event, ["presetId"]);
+
+    if (error) return error;
 
     try {
       const deletedWorkoutPlanPreset = await this.service.deleteById(presetId);
