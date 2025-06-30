@@ -42,7 +42,9 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     extractor: "query" | "body" = "query"
   ) {
     const query = extractor === "body" ? extractBodyFromEvent(event) : extractQueryFromEvent(event);
-    const missingParams = params.filter((param) => !query[param]);
+    const missingParams = params.filter((param) => {
+      return query[param] === undefined;
+    });
 
     if (missingParams.length == 0) return { ...query, error: null };
 
