@@ -3,12 +3,14 @@ import { validateWorkoutPlanPreset } from "../../middleware/workoutPlanMiddlewar
 
 export const BASE_PATH = "/presets/workoutPlans";
 
+const workoutPlanPresetController=new WorkoutPlanPresetsController()
+
 export const workoutPlanPresetApiHandlers = {
-  [`GET ${BASE_PATH}`]: WorkoutPlanPresetsController.getAllWorkoutPlanPresets,
-  [`GET ${BASE_PATH}/one`]: WorkoutPlanPresetsController.getWorkoutPlanPresetById,
-  [`POST ${BASE_PATH}`]: WorkoutPlanPresetsController.addWorkoutPlanPreset,
-  [`PUT ${BASE_PATH}/one`]: WorkoutPlanPresetsController.updateWorkoutPlanPreset,
-  [`DELETE ${BASE_PATH}/one`]: WorkoutPlanPresetsController.deleteWorkoutPlanPreset,
+  [`GET ${BASE_PATH}`]: workoutPlanPresetController.getAll,
+  [`GET ${BASE_PATH}/one`]:workoutPlanPresetController.getWorkoutPlanPresetById,
+  [`POST ${BASE_PATH}`]:workoutPlanPresetController.create,
+  [`PUT ${BASE_PATH}/one`]:workoutPlanPresetController.updateWorkoutPlanPresetById,
+  [`DELETE ${BASE_PATH}/one`]:workoutPlanPresetController.deleteWorkoutPlanPresetById,
 };
 
 export const workoutPlanPresetApiMiddleware = {
