@@ -7,3 +7,15 @@ function unformattedFunction() {
 const d = {
   key1: "value1",
 };
+
+
+const newd="this is a new variable";
+const anotherUnformattedVariable = {
+  key2: "value2",
+  key3: "value3",
+    
+}
+
+
+
+const unformattedArray = [1,2,3,4,5,'4',"5"];
