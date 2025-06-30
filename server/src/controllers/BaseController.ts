@@ -10,6 +10,8 @@ import {
 } from "../utils/utils";
 import { IServerResponseParams } from "../interfaces/IResponse";
 import { BaseRepository } from "../repositories/BaseRepository";
+import { MongoCode } from "../enums/MongoCode";
+import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
 
 export default class BaseController<T, S extends BaseService<T, BaseRepository<T>>>
   implements IBaseController<T>
@@ -73,6 +75,10 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
 
       return response;
     } catch (e: any) {
+      if (e?.code == MongoCode.DUPLICATE_KEY) {
+        e.message=DUPLICATE_PRESET_ERROR
+      }
+
       return this.errorResponse(e);
     }
   };

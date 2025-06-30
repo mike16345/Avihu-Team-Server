@@ -1,93 +1,19 @@
-import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
-import { MongoCode } from "../enums/MongoCode";
-import { WorkoutPlanPreset } from "../models/workoutPlanPresetModel";
-import { Cache } from "../utils/cache";
+import { IWorkoutPlanPreset } from "../interfaces/IWorkoutPlan";
+import { WorkoutPlanPresetRepository } from "../repositories/Presets/WorkoutPlanPresetRepository";
+import { BaseService } from "./BaseService";
 
-const workoutPlanCache = new Cache<any>();
 
-export class WorkoutPlanPresetService {
-  static async addWorkoutPlanPreset(data: any) {
-    try {
-      const workoutPlanDoc = await WorkoutPlanPreset.create(data);
-      workoutPlanCache.invalidateAll();
+const baseKey = "workout-plan-preset";
 
-      return workoutPlanDoc;
-    } catch (err: any) {
-      if (err?.code == MongoCode.DUPLICATE_KEY) {
-        throw new Error(DUPLICATE_PRESET_ERROR);
-      }
-
-      throw err;
-    }
+export class WorkoutPlanPresetService extends BaseService<IWorkoutPlanPreset,WorkoutPlanPresetRepository> {
+  constructor(){
+    super(new WorkoutPlanPresetRepository(),baseKey);
   }
 
-  static async updateWorkoutPlanPreset(presetId: string, data: any) {
-    try {
-      const workoutPlanDoc = await WorkoutPlanPreset.findById(presetId);
-      if (!workoutPlanDoc) {
-        return null;
-      }
+  
 
-      Object.assign(workoutPlanDoc, data);
-      const result = await workoutPlanDoc.save();
+ 
 
-      workoutPlanCache.invalidate(presetId);
-      workoutPlanCache.invalidate("all");
 
-      return result;
-    } catch (err: any) {
-      if (err?.code == MongoCode.DUPLICATE_KEY) {
-        throw new Error(DUPLICATE_PRESET_ERROR);
-      }
-      throw err;
-    }
-  }
 
-  static async deleteWorkoutPlanPreset(presetId: string) {
-    try {
-      const workoutPlanDoc = await WorkoutPlanPreset.findByIdAndDelete(presetId);
-
-      if (workoutPlanDoc) {
-        workoutPlanCache.invalidate(presetId); // Invalidate cache for the deleted preset
-        workoutPlanCache.invalidate("all"); // Optionally invalidate all presets cache
-      }
-
-      return workoutPlanDoc;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async getAllWorkoutPlanPresets() {
-    const cachedPresets = workoutPlanCache.get("all");
-    if (cachedPresets) {
-      return cachedPresets;
-    }
-
-    try {
-      const workoutPlanPresets = await WorkoutPlanPreset.find();
-      workoutPlanCache.set("all", workoutPlanPresets);
-      return workoutPlanPresets;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async getWorkoutPlanPresetById(id: string) {
-    const cachedPreset = workoutPlanCache.get(id);
-    if (cachedPreset) {
-      return cachedPreset;
-    }
-
-    try {
-      const workoutPlanPreset = await WorkoutPlanPreset.findById(id);
-      if (workoutPlanPreset) {
-        workoutPlanCache.set(id, workoutPlanPreset); // Cache the preset by ID
-      }
-
-      return workoutPlanPreset;
-    } catch (err) {
-      throw err;
-    }
-  }
 }
