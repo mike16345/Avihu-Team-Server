@@ -1,57 +1,21 @@
-//@ts-nocheck
-import { DataBrew } from "aws-sdk";
+import { FilterQuery } from "mongoose";
+import { IUser } from "../interfaces/IUser";
 import { User } from "../models/userModel";
-import { Cache } from "../utils/cache";
-import connect, { conn } from "../db/connect";
-import mongoose from "mongoose";
 import { deleteUserDataFromAllCollections } from "../utils/utils";
+import { BaseService } from "./BaseService";
+import UserRepository from "../repositories/User/UserRepository";
 
-let cachedUsers = new Cache<IUser[]>();
-let singleUsersCache = new Cache<IUser>();
-
-class UserService {
-  static async createUser(data) {
-    try {
-      const newUser = await User.create(data);
-      cachedUsers.invalidateAll();
-
-      return newUser;
-    } catch (error) {
-      throw error;
-    }
+export default class UserService extends BaseService<IUser, UserRepository> {
+  constructor() {
+    super(new UserRepository(), "users");
   }
 
-  static async getUsers() {
-    const cached = cachedUsers.get("all");
-
-    try {
-      const users = cached || (await User.find());
-      cachedUsers.set("all", users);
-
-      return users;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async getUser(id) {
-    const cached = singleUsersCache.get(id);
-    try {
-      const user = cached || (await User.findById(id).lean());
-      singleUsersCache.set(id, user);
-
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async getUsersByParameter(param) {
-    let searchParam = [];
+  async getUsersByParameter(param: Partial<IUser>) {
+    let searchParam: FilterQuery<IUser>[] = [];
     const objectKeys = Object.keys(param);
 
     objectKeys.forEach((key) => {
-      searchParam.push({ [key]: param[key] });
+      searchParam.push({ [key]: param[key as keyof IUser] });
     });
 
     try {
@@ -65,43 +29,12 @@ class UserService {
     }
   }
 
-  static async updateUser(data, id) {
+  deleteUser = async (id: string) => {
     try {
-      const user = await User.findByIdAndUpdate(id, data, { new: true });
+      const user = await this.repository.deleteById(id);
 
       if (user) {
-        cachedUsers.invalidateAll();
-        singleUsersCache.invalidate(id);
-      }
-
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async updateManyUsers(data) {
-    try {
-      const updatedUsers = await Promise.all(
-        data.map(async (user) => {
-          return await UserService.updateUser(user, user._id);
-        })
-      );
-      singleUsersCache.invalidateAll();
-      cachedUsers.invalidateAll();
-
-      return updatedUsers;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  static async deleteUser(id) {
-    try {
-      const user = await User.findByIdAndDelete(id);
-      if (user) {
-        cachedUsers.invalidateAll();
-        singleUsersCache.invalidate(id);
+        this.cache.invalidateAll();
         await deleteUserDataFromAllCollections(id);
       }
 
@@ -109,50 +42,28 @@ class UserService {
     } catch (error) {
       throw error;
     }
-  }
+  };
 
-  static async updateUserField(id, fieldName, fieldValue) {
+  updateUserField = async (id: string, fieldName: string, fieldValue: string) => {
     try {
       const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
 
-      if (user) {
-        cachedUsers.invalidateAll();
-        singleUsersCache.set(id, user);
-      }
+      if (user) this.cache.invalidateAll();
 
       return user;
     } catch (error) {
       throw error;
     }
-  }
+  };
 
-  static async updateImagesUploadedstatus(id, status) {
+  updateImagesUploadedstatus = async (id: string, status: string) => {
     try {
       const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
-      if (user) {
-        cachedUsers.invalidateAll();
-        singleUsersCache.set(id, user);
-      }
+      if (user) this.cache.invalidateAll();
 
       return user;
     } catch (error) {
       throw error;
     }
-  }
-
-  static async register(email, password) {
-    try {
-      const user = await User.findOneAndUpdate({ email }, { password }, { new: true });
-      if (user) {
-        cachedUsers.invalidateAll();
-        singleUsersCache.set(email, user);
-      }
-
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  }
+  };
 }
-
-export default UserService;

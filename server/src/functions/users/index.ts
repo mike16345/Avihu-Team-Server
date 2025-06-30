@@ -5,18 +5,18 @@ import { validateUser } from "../../middleware/usersMiddleware";
 import { scheduleUserChecks } from "../../middleware/analyticsMiddleware";
 
 const BASE_PATH = "/users";
+const userController = new UserController();
 const userApiHandlers = {
-  [`GET ${BASE_PATH}`]: UserController.getUsers, // Get all users
-  [`GET ${BASE_PATH}/one`]: UserController.getUser, // Get user by ID
-  [`PUT ${BASE_PATH}/one`]: UserController.updateUser, // Update user by ID
-  [`PUT ${BASE_PATH}/bulk`]: UserController.updateManyUsers, // Update users (bulk)
-  [`POST ${BASE_PATH}`]: UserController.addUser, // Add new user
-  [`DELETE ${BASE_PATH}/one`]: UserController.deleteUser, // Delete user by ID
-  [`PUT ${BASE_PATH}/one/field`]: UserController.updateUserField,
-  [`GET ${BASE_PATH}/user/email`]: UserController.checkUsersAccess,
-  [`PUT ${BASE_PATH}/user/register`]: UserController.register,
-  [`POST ${BASE_PATH}/user/login`]: UserController.logIn,
-  [`POST ${BASE_PATH}/user/session`]: UserController.checkUserSessionToken,
+  [`GET ${BASE_PATH}`]: userController.getAll,
+  [`GET ${BASE_PATH}/one`]: userController.getById,
+  [`PUT ${BASE_PATH}/one`]: userController.updateById,
+  [`POST ${BASE_PATH}`]: userController.addUser,
+  [`DELETE ${BASE_PATH}/one`]: userController.deleteById,
+  [`PUT ${BASE_PATH}/one/field`]: userController.updateUserField,
+  [`GET ${BASE_PATH}/user/email`]: userController.checkUsersAccess,
+  [`PUT ${BASE_PATH}/user/register`]: userController.register,
+  [`POST ${BASE_PATH}/user/login`]: userController.logIn,
+  [`POST ${BASE_PATH}/user/session`]: userController.checkUserSessionToken,
 };
 
 const userValidaters = {
