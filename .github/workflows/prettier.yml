@@ -1,0 +1,24 @@
+name: Prettier Auto Format
+
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Auto-format changed files with Prettier
+        uses: creyD/prettier_action@v4.6
+        with:
+          prettier_options: --write **/*.{js,ts,tsx,jsx,md,json,yml}
+          only_changed: true
+          commit_message: "chore: auto-format with Prettier"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
