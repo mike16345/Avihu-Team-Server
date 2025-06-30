@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanPresetsService } from "../services/dietPlanPresetsService";
 import { StatusCode } from "../enums/StatusCode";
-import { removeNestedIds } from "../utils/utils";
+import { extractBodyFromEvent, removeNestedIds } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IDietPlanPreset } from "../interfaces/IDietPlan";
 
@@ -14,7 +14,8 @@ export class DietPlanPresetController extends BaseController<
   }
 
   updateDietPlanPreset = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, id, data } = this.getParamsOrError(event, ["id", "data"], "body");
+    const { error, id } = this.getParamsOrError(event, ["id",]);
+    const data=extractBodyFromEvent(event);
     const newDietPlanPreset = removeNestedIds(data);
 
     if (error) return error;

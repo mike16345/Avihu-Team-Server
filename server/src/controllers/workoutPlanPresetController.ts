@@ -3,6 +3,7 @@ import BaseController from "./BaseController";
 import { IWorkoutPlanPreset } from "../interfaces/IWorkoutPlan";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
+import { extractBodyFromEvent } from "../utils/utils";
 
 export class WorkoutPlanPresetsController extends BaseController<
   IWorkoutPlanPreset,
@@ -31,9 +32,10 @@ export class WorkoutPlanPresetsController extends BaseController<
   updateWorkoutPlanPresetById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const { presetId, data, error } = this.getParamsOrError(event, ["presetId", "data"], "body");
+    const data=extractBodyFromEvent(event);
+    const {  error,presetId } = this.getParamsOrError(event, ['presetId'], );
 
-    if (error) return error;
+    if (error) return error
 
     try {
       const updatedWorkoutPlanPreset = await this.service.updateById(presetId, data);
