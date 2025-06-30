@@ -15,7 +15,7 @@ export class DietPlanService extends BaseService<IDietPlan,DietPlanRepository> {
   }
 
 
-  getDietPlan=async(query:FilterQuery<IDietPlan>,populate:boolean)=>{
+ protected getDietPlan=async(query:FilterQuery<IDietPlan>,populate:boolean)=>{
 
     if(populate){
       const key= this.generateCacheKey('one',stableStringify({...query,populate}))
