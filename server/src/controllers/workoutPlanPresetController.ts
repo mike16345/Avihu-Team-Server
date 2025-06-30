@@ -32,10 +32,10 @@ export class WorkoutPlanPresetsController extends BaseController<
   updateWorkoutPlanPresetById = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const data=extractBodyFromEvent(event);
-    const {  error,presetId } = this.getParamsOrError(event, ['presetId'], );
+    const data = extractBodyFromEvent(event);
+    const { error, presetId } = this.getParamsOrError(event, ["presetId"]);
 
-    if (error) return error
+    if (error) return error;
 
     try {
       const updatedWorkoutPlanPreset = await this.service.updateById(presetId, data);
