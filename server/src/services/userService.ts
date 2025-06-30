@@ -10,25 +10,6 @@ export default class UserService extends BaseService<IUser, UserRepository> {
     super(new UserRepository(), "users");
   }
 
-  async getUsersByParameter(param: Partial<IUser>) {
-    let searchParam: FilterQuery<IUser>[] = [];
-    const objectKeys = Object.keys(param);
-
-    objectKeys.forEach((key) => {
-      searchParam.push({ [key]: param[key as keyof IUser] });
-    });
-
-    try {
-      const users = await User.find({
-        $or: searchParam,
-      });
-
-      return users;
-    } catch (error) {
-      throw error;
-    }
-  }
-
   deleteUser = async (id: string) => {
     try {
       const user = await this.repository.deleteById(id);

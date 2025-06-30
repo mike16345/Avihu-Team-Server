@@ -1,21 +1,31 @@
 import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import {
-  createResponseWithData,
-  createServerErrorResponse,
-  extractBodyFromEvent,
-} from "../utils/utils";
+import { extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
 import PasswordsService from "../services/PasswordsService";
 import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
+import { welcomeEmailTemplate } from "../utils/emailTemplates";
 
 export class UserController extends BaseController<IUser, UserService> {
+  private sessionService: SessionService;
+
   constructor() {
     super(new UserService());
+    this.sessionService = new SessionService();
+  }
+
+  private validateUserAccess(user: IUser | null): APIGatewayProxyResult | null {
+    if (!user) {
+      return this.errorResponse(`משתמש לא נמצא!`, StatusCode.NOT_FOUND);
+    }
+    if (!user.hasAccess) {
+      return this.errorResponse(`אין גישה לכתובת המייל`, StatusCode.UNAUTHORIZED);
+    }
+    return null;
   }
 
   addUser = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -26,34 +36,22 @@ export class UserController extends BaseController<IUser, UserService> {
       if (user) {
         const phoneNumber = user.phone.replace(/\D/g, "");
         await PasswordsService.hashPassword(user._id.toString(), phoneNumber);
+
         const mailOptions = {
           to: user.email,
-          subject: "ברוכים הבאים ל-AvihuTeam!",
-          text: `ברוכים הבאים ל-AvihuTeam!\n\nהסיסמה שלך היא: ${phoneNumber}\n\nבהצלחה!`,
-          html: `
-            <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-              <h2 style="color: #2c3e50;">ברוכים הבאים ל-AvihuTeam!</h2>
-              <p style="font-size: 16px; color: #333;">
-                אנו שמחים שהצטרפת אלינו. להלן הסיסמה שלך:
-              </p>
-              <p style="font-size: 18px; color: #000; font-weight: bold; background-color: #e8f0fe; padding: 10px; border-radius: 5px; display: inline-block;">
-                ${phoneNumber}
-              </p>
-              <p style="font-size: 16px; color: #333; margin-top: 20px;">
-                בהצלחה!
-                <br/>
-                צוות AvihuTeam
-              </p>
-            </div>
-          `,
+          ...welcomeEmailTemplate(phoneNumber),
         };
 
         await new EmailService().sendEmail(mailOptions);
       }
 
-      return createResponseWithData(StatusCode.CREATED, user, "User created successfully!");
+      return this.successResponse({
+        status: StatusCode.CREATED,
+        data: user,
+        message: "User created successfully!",
+      });
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
   };
 
@@ -72,9 +70,13 @@ export class UserController extends BaseController<IUser, UserService> {
     try {
       const user = await this.service.updateUserField(userId, fieldName, value);
 
-      return createResponseWithData(StatusCode.OK, user, "User updated successfully!");
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: user,
+        message: "User updated successfully!",
+      });
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
   };
 
@@ -83,9 +85,9 @@ export class UserController extends BaseController<IUser, UserService> {
   ): Promise<APIGatewayProxyResult> => {
     try {
       const { error, id, status } = this.getParamsOrError(event, ["id", "status"]);
-
       if (error) return error;
-      const user = await this.service.updateImagesUploadedstatus(id || "", status);
+
+      const user = await this.service.updateImagesUploadedstatus(id, status);
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -97,19 +99,31 @@ export class UserController extends BaseController<IUser, UserService> {
     }
   };
 
+  getById = async (event: APIGatewayProxyEvent) => {
+    const { userId, error } = this.getParamsOrError(event, ["userId"]);
+
+    if (error) return error;
+
+    try {
+      const user = await this.service.findById(userId);
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: user,
+        message: "User retrieved successfully!",
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
+
   checkUsersAccess = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const email = event.queryStringParameters?.email;
+    const { email } = extractQueryFromEvent(event);
 
     try {
       const user = await this.service.findOne({ email: email?.toLowerCase() });
-
-      if (!user) {
-        return this.errorResponse(`משתמש לא נמצא!`, StatusCode.NOT_FOUND);
-      }
-
-      if (!user.hasAccess) {
-        return this.errorResponse(`אין גישה לכתובת המייל`, StatusCode.UNAUTHORIZED);
-      }
+      const error = this.validateUserAccess(user);
+      if (error) return error;
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -123,16 +137,17 @@ export class UserController extends BaseController<IUser, UserService> {
 
   register = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      const { email, password } = extractBodyFromEvent(event);
+      const {
+        email,
+        password,
+        error: bodyError,
+      } = this.getParamsOrError(event, ["email", "password"], "body");
+
+      if (bodyError) return bodyError;
       const user = await this.service.findOne({ email: email.toLowerCase() });
 
-      if (!user) {
-        return this.errorResponse(`משתמש לא נמצא!`, StatusCode.NOT_FOUND);
-      }
-
-      if (!user.hasAccess) {
-        return this.errorResponse(`אין גישה לכתובת המייל`, StatusCode.UNAUTHORIZED);
-      }
+      const error = this.validateUserAccess(user);
+      if (error) return error;
 
       await PasswordsService.updatePassword(user._id.toString(), password);
 
@@ -148,13 +163,14 @@ export class UserController extends BaseController<IUser, UserService> {
 
   logIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      const { email, password, isAdminApp } = this.getParamsOrError(event, [
-        "email",
-        "password",
-        "isAdminApp",
-      ]);
-      const user = await this.service.findOne({ email: email.toLowerCase() });
+      const { email, password, isAdminApp, error } = this.getParamsOrError(
+        event,
+        ["email", "password"],
+        "body"
+      );
+      if (error) return error;
 
+      const user = await this.service.findOne({ email: email.toLowerCase() });
       const isSamePassword =
         user && (await PasswordsService.comparePasswords(user._id.toString(), password));
 
@@ -171,7 +187,7 @@ export class UserController extends BaseController<IUser, UserService> {
         data: { user },
         type: "login",
       };
-      const session = await new SessionService().create(sessionData as ISession);
+      const session = await this.sessionService.create(sessionData as ISession);
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -184,21 +200,26 @@ export class UserController extends BaseController<IUser, UserService> {
   };
 
   checkUserSessionToken = async (event: APIGatewayEvent) => {
-    const sessionService = new SessionService();
     try {
-      const { token } = extractBodyFromEvent(event);
-      const session = await sessionService.getSessionById(token._id);
+      const { token, error } = this.getParamsOrError(event, ["token"], "body");
+
+      if (error) return error;
+      const session = await this.sessionService.getSessionById(token._id);
       const userId = token.data.user._id;
       const user = await this.service.findById(userId);
 
-      await sessionService.refreshSession(token._id);
+      await this.sessionService.refreshSession(token._id);
+
       if (!user.hasAccess) {
-        await sessionService.deleteById(token._id);
+        await this.sessionService.deleteById(token._id);
       }
 
-      return createResponseWithData(StatusCode.OK, {
-        isValid: !!session,
-        hasAccess: user.hasAccess,
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: {
+          isValid: !!session,
+          hasAccess: user.hasAccess,
+        },
       });
     } catch (error) {
       return this.errorResponse(error);
