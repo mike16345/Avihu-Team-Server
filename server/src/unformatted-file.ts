@@ -16,6 +16,10 @@ const anotherUnformattedVariable = {
     
 }
 
+const unformattedObject = {
+  key1: "value1",
+  key2: "value2",   }
+
 
 
 const unformattedArray = [1,2,3,4,5,'4',"5"];
