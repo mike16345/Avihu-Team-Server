@@ -1,5 +1,5 @@
 import { ISession, ISessionCreate } from "../models/sessionModel";
-import { SessionRepository } from "../repositories/SessionRepository";
+import { SessionRepository } from "../repositories/Sessions/SessionRepository";
 import { removeExpiredMeals } from "../utils/meals";
 import { BaseService } from "./BaseService";
 
