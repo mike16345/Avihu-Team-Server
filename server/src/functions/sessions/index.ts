@@ -3,14 +3,16 @@ import { handleApiCall } from "../baseHandler";
 import SessionController from "../../controllers/SessionController";
 
 const BASE_PATH = "/sessions";
+
+const sessionController = new SessionController();
+
 const sessionApiHandlers = {
-  [`GET ${BASE_PATH}/one`]: SessionController.getSessionById,
-  [`GET ${BASE_PATH}/type`]: SessionController.getSessionsByType,
-  [`PUT ${BASE_PATH}/one`]: SessionController.refreshSession,
-  [`POST ${BASE_PATH}`]: SessionController.startSession,
-  [`PUT ${BASE_PATH}/update`]: SessionController.updateSession,
-  [`DELETE ${BASE_PATH}/one`]: SessionController.endSession,
-  [`DELETE ${BASE_PATH}/all`]: SessionController.endAllSessions,
+  [`GET ${BASE_PATH}/one`]: sessionController.getSessionById,
+  [`GET ${BASE_PATH}`]: sessionController.getAll,
+  [`PUT ${BASE_PATH}/one`]: sessionController.refreshSession,
+  [`POST ${BASE_PATH}`]: sessionController.startSession,
+  [`PUT ${BASE_PATH}/update`]: sessionController.updateSession,
+  [`DELETE ${BASE_PATH}/one`]: sessionController.endSession,
 };
 
 export const handler = async (

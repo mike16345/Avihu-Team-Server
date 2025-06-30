@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyEventBase, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
 import { BaseService } from "../services/BaseService";
@@ -10,8 +10,6 @@ import {
 } from "../utils/utils";
 import { IServerResponseParams } from "../interfaces/IResponse";
 import { BaseRepository } from "../repositories/BaseRepository";
-
-type IdOrError = { id: string; error: null } | { id: null; error: APIGatewayProxyResult };
 
 export default class BaseController<T, S extends BaseService<T, BaseRepository<T>>>
   implements IBaseController<T>
@@ -38,20 +36,24 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     console.log("Finished Action...");
   }
 
-  /**
-   * Extracts `id` from query parameters or returns an error response.
-   * This helps reduce repeated error message creation.
-   */
-  protected getIdOrError(event: APIGatewayProxyEvent): IdOrError {
-    const { id } = extractQueryFromEvent(event);
+  protected getParamsOrError(
+    event: APIGatewayProxyEvent,
+    params: string[],
+    extractor: "query" | "body" = "query"
+  ) {
+    const query = extractor === "body" ? extractBodyFromEvent(event) : extractQueryFromEvent(event);
+    const missingParams = params.filter((param) => {
+      return query[param] === undefined;
+    });
 
-    if (!id) {
-      return {
-        id: null,
-        error: this.errorResponse(createMissingParamErrorMessage("id"), StatusCode.BAD_REQUEST),
-      };
-    }
-    return { id, error: null };
+    if (missingParams.length == 0) return { ...query, error: null };
+
+    return {
+      error: this.errorResponse(
+        createMissingParamErrorMessage(missingParams),
+        StatusCode.BAD_REQUEST
+      ),
+    };
   }
 
   // ====== CREATE ======
@@ -68,7 +70,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
 
       const response = this.successResponse({ data: item });
       await this.afterAction(response);
-      
+
       return response;
     } catch (e: any) {
       return this.errorResponse(e);
@@ -96,8 +98,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
 
     try {
-      const { id, error } = this.getIdOrError(event);
-      const { query } = extractBodyFromEvent(event);
+      const { id, error } = this.getParamsOrError(event, ["id"]);
 
       if (error) return error;
 
@@ -167,7 +168,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
 
     try {
-      const { id, error } = this.getIdOrError(event);
+      const { id, error } = this.getParamsOrError(event, ["id"]);
 
       if (error) return error;
       const data = extractBodyFromEvent(event);
@@ -240,7 +241,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
 
     try {
-      const { id, error } = this.getIdOrError(event);
+      const { id, error } = this.getParamsOrError(event, ["id"]);
 
       if (error) return error;
 

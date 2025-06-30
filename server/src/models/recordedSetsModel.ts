@@ -1,8 +1,8 @@
-import { model, Schema, Document } from "mongoose";
+import { model, Schema } from "mongoose";
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import Joi from "joi";
 
-interface IMuscleGroupRecordedSetsDocument extends IMuscleGroupRecordedSets, Document {}
+interface IMuscleGroupRecordedSetsDocument extends IMuscleGroupRecordedSets {}
 
 const recordedSetSchema = new Schema<IRecordedSet>({
   plan: { type: String, required: true },
@@ -27,10 +27,7 @@ const muscleGroupRecordedSetsSchema = new Schema<IMuscleGroupRecordedSetsDocumen
 
 export const RecordedSet = model<IRecordedSet>("RecordedSet", recordedSetSchema);
 
-export const MuscleGroupRecordedSets = model<IMuscleGroupRecordedSetsDocument>(
-  "RecordedSets",
-  muscleGroupRecordedSetsSchema
-);
+export const MuscleGroupRecordedSets = model("RecordedSets", muscleGroupRecordedSetsSchema);
 
 const RecordedSetJoiSchema = Joi.object<IRecordedSet>({
   plan: Joi.string().required(),

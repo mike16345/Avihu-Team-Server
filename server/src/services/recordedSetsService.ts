@@ -1,55 +1,53 @@
 import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
-import { MuscleGroupRecordedSets, RecordedSet } from "../models/recordedSetsModel";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
-import { ISessionCreate } from "../models/sessionModel";
+import { ISession, ISessionCreate } from "../models/sessionModel";
+import { BaseService } from "./BaseService";
+import { RecordedSetsRepository } from "../repositories/RecordedSets/RecordedSetsRepository";
+import { stableStringify } from "../utils/utils";
 import mongoose from "mongoose";
-import { Cache } from "../utils/cache";
-
-const cachedRecordedSets = new Cache<any>();
-
-const findOrCreateMuscleGroupRecord = async (userId: any, muscleGroup: string) => {
-  let muscleGroupRecord = await MuscleGroupRecordedSets.findOne({ userId, muscleGroup });
-  if (!muscleGroupRecord) {
-    muscleGroupRecord = new MuscleGroupRecordedSets({
-      userId,
-      muscleGroup,
-      recordedSets: {},
-    });
-  }
-  return muscleGroupRecord;
-};
-
-const initializeExerciseIfNecessary = (
-  muscleGroupRecord: IMuscleGroupRecordedSets,
-  exercise: string
-) => {
-  if (!muscleGroupRecord.recordedSets[exercise]) {
-    muscleGroupRecord.recordedSets[exercise] = [];
-  }
-};
+import { FIND_ONE_FAILURE } from "../constants/repository";
 
 const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
   if (!activeSession) return 1;
 
-  return (
-    (activeSession.data[planName] && activeSession.data[planName][exercise]?.setNumber) + 1 || 1
-  );
+  return activeSession.data?.[planName]?.[exercise]?.setNumber + 1 || 1;
 };
 
-const createOrUpdateSession = async (
-  isNewSession: boolean,
-  sessionId: string,
-  sessionDetails: ISessionCreate
-) => {
-  if (isNewSession) {
-    return SessionService.startSession(sessionDetails);
+export class RecordedSetsService extends BaseService<
+  IMuscleGroupRecordedSets,
+  RecordedSetsRepository
+> {
+  sessionService: SessionService;
+
+  constructor() {
+    super(new RecordedSetsRepository(), "recorded-sets");
+    this.sessionService = new SessionService();
   }
-  return SessionService.updateSession(sessionId, sessionDetails);
-};
 
-export class RecordedSetsService {
-  static async addRecordedSet(
+  private buildSessionDetails(
+    userId: string,
+    exercise: string,
+    nextSetNumber: number,
+    recordedSet: IRecordedSet,
+    activeSession: ISession | null = null
+  ): ISessionCreate {
+    const plan = recordedSet.plan;
+    const existingData = activeSession?.data ?? {};
+    const existingPlanData = existingData[plan] ?? {};
+    const sessionDetails: ISessionCreate = {
+      userId,
+      type: "workout",
+      data: {
+        ...activeSession?.data,
+        [plan]: { ...existingPlanData, [exercise]: { setNumber: nextSetNumber } },
+      },
+    };
+
+    return sessionDetails;
+  }
+
+  async addRecordedSet(
     userId: string,
     muscleGroup: string,
     exercise: string,
@@ -58,109 +56,53 @@ export class RecordedSetsService {
   ) {
     try {
       const objectId = new mongoose.mongo.ObjectId(userId);
-      const activeSession = sessionId ? await SessionService.getSessionById(sessionId) : null;
+      const activeSession = sessionId ? await this.sessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
+      const muscleGroupRecord = await this.repository.findOrCreate(objectId, muscleGroup);
 
-      const muscleGroupRecord = await findOrCreateMuscleGroupRecord(objectId, muscleGroup);
-      initializeExerciseIfNecessary(muscleGroupRecord, exercise);
-
+      this.repository.initializeExerciseIfNecessary(muscleGroupRecord, exercise);
       const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
-
       recordedSet.setNumber = nextSetNumber;
-      muscleGroupRecord.recordedSets[exercise].push(new RecordedSet(recordedSet));
-      muscleGroupRecord.markModified("recordedSets");
 
-      const plan = recordedSet.plan;
-      const prevExerciseData = activeSession?.data[plan] || {};
-      const sessionDetails: ISessionCreate = {
+      this.repository.appendRecordedSet(muscleGroupRecord, exercise, recordedSet);
+      await muscleGroupRecord.save();
+
+      const sessionDetails: ISessionCreate = this.buildSessionDetails(
         userId,
-        type: "workout",
-        data: {
-          ...activeSession?.data,
-          [plan]: { ...prevExerciseData, [exercise]: { setNumber: nextSetNumber } },
-        },
-      };
-      const session = await createOrUpdateSession(isNewSession, sessionId, sessionDetails);
-      const savedResult = await muscleGroupRecord.save();
+        exercise,
+        nextSetNumber,
+        recordedSet,
+        activeSession
+      );
+      const session = isNewSession
+        ? await this.sessionService.create(sessionDetails as ISession)
+        : await this.sessionService.updateById(sessionId, sessionDetails);
 
-      cachedRecordedSets.invalidateAllContaining(userId);
+      this.cache.invalidateAllContaining(userId);
 
       return {
         session,
-        recordedSet: savedResult,
       };
     } catch (e: any) {
       throw e;
     }
   }
 
-  static async getLastRecordedSetInfoInExercise(exercise: string, setNumber: number) {}
-
-  static async getUserRecordedSetsByExercise(
-    userId: string,
-    muscleGroup: string,
-    exercise: string
-  ) {
-    const cacheKey = `exercise:${userId}:${muscleGroup}:${exercise}`;
-    const cached = cachedRecordedSets.get(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
+  async getRecordedSetsByUserId(query: Partial<RecordedSetsQueryParams>) {
     try {
-      const result = await MuscleGroupRecordedSets.findOne({
-        userId,
-        muscleGroup,
-      });
+      const { exercise } = query;
+      const cacheKey = stableStringify(query);
+      const muscleGroupRecords = await this.repository.find({ query });
 
-      if (!result || !result.recordedSets[exercise]) {
-        return null;
-      }
+      this.cache.set(cacheKey, muscleGroupRecords);
 
-      cachedRecordedSets.set(cacheKey, result.recordedSets[exercise]);
-
-      return result.recordedSets[exercise];
-    } catch (err: any) {
-      throw err;
-    }
-  }
-
-  static async getRecordedSetsByUserId({
-    userId,
-    muscleGroup,
-    exercise,
-  }: Partial<RecordedSetsQueryParams>) {
-    const cacheKey = `user:${userId}:${muscleGroup ? `muscleGroup:${muscleGroup}` : ""}${
-      exercise ? `:exercise:${exercise}` : ""
-    }`;
-    const cached = cachedRecordedSets.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const query: any = { userId };
-
-      if (muscleGroup) {
-        query.muscleGroup = muscleGroup;
-      }
-
-      const muscleGroupRecords = await MuscleGroupRecordedSets.find(query).exec();
-
-      if (muscleGroupRecords.length === 0) {
-        return "No records found for user!";
-      }
-
-      cachedRecordedSets.set(cacheKey, muscleGroupRecords);
-      if (!exercise) return muscleGroupRecords;
-
+      if (!query.exercise) return muscleGroupRecords;
       const result = exercise
         ? muscleGroupRecords.map((record) => record.recordedSets[exercise])[0] ||
           `No exercises found for: ${exercise}`
         : muscleGroupRecords;
 
-      cachedRecordedSets.set(cacheKey, result);
+      this.cache.set(cacheKey, result);
 
       return result;
     } catch (err: any) {
@@ -168,61 +110,27 @@ export class RecordedSetsService {
     }
   }
 
-  static async getUserRecordedExerciseNamesByMuscleGroup(query: Partial<RecordedSetsQueryParams>) {
-    const cacheKey = `user:${query.userId}:muscleGroup:${query.muscleGroup}:exerciseNames`;
-    const cached = cachedRecordedSets.get(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
-
-      if (typeof muscleGroupRecords == "string") {
-        return muscleGroupRecords;
-      }
-
-      const result = Object.keys((muscleGroupRecords[0] as IMuscleGroupRecordedSets).recordedSets);
-      cachedRecordedSets.set(cacheKey, result);
-
-      return result;
-    } catch (err: any) {
-      throw err;
-    }
-  }
-
-  static async getUserRecordedMuscleGroupNames(query: Partial<RecordedSetsQueryParams>) {
-    const cacheKey = `user:${query.userId}:muscleGroupNames`;
-    const cached = cachedRecordedSets.get(cacheKey);
-
-    if (cached) {
-      return cached;
-    }
+  async getUserRecordedSetsByExercise(
+    query: RecordedSetsQueryParams
+  ): Promise<IRecordedSet[] | null> {
+    const cacheKey = stableStringify(query);
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+    const { userId, muscleGroup, exercise } = query;
 
     try {
-      const muscleGroupRecords = await this.getRecordedSetsByUserId(query);
+      const result = await this.repository.findOne({
+        query: { userId, muscleGroup },
+        projection: { [`recordedSets.${exercise}`]: 1 },
+      });
 
-      if (typeof muscleGroupRecords == "string") {
-        return muscleGroupRecords;
-      }
+      const sets = result?.recordedSets?.[exercise];
+      if (!sets) return [];
+      this.cache.set(cacheKey, sets);
 
-      const result = (muscleGroupRecords as IMuscleGroupRecordedSets[]).map(
-        (muscleGroup) => muscleGroup.muscleGroup
-      );
-      cachedRecordedSets.set(cacheKey, result);
-
-      return result;
+      return sets;
     } catch (err: any) {
-      throw err;
-    }
-  }
-
-  static async deleteUserRecordedSets(userId: string) {
-    try {
-      await MuscleGroupRecordedSets.deleteMany({ userId });
-      cachedRecordedSets.invalidateAllContaining(userId);
-    } catch (err: any) {
+      if (err.message === FIND_ONE_FAILURE) return [];
       throw err;
     }
   }

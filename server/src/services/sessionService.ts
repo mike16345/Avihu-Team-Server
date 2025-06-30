@@ -1,8 +1,7 @@
-import Session, { ISession, ISessionCreate, SessionType } from "../models/sessionModel";
-import { Cache } from "../utils/cache";
+import { ISession, ISessionCreate } from "../models/sessionModel";
+import { SessionRepository } from "../repositories/SessionRepository";
 import { removeExpiredMeals } from "../utils/meals";
-
-const sessionCache = new Cache<any>();
+import { BaseService } from "./BaseService";
 
 const isSessionExpired = (session: ISession): boolean => {
   const now = new Date().getTime();
@@ -15,31 +14,26 @@ const isSessionExpired = (session: ISession): boolean => {
     const workoutExpiration = session.updatedAt.getTime() + 2 * 60 * 60 * 1000; // 2 hours in ms
 
     return now > workoutExpiration;
-  } 
+  }
 
   return false;
 };
 
-export default class SessionService {
-  static async startSession(session: ISessionCreate) {
-    try {
-      const sessionDoc = await Session.create(session);
-      sessionCache.invalidateAll();
+const RESOURCE_NAME = "sessions";
 
-      return sessionDoc;
-    } catch (e) {
-      throw e;
-    }
+export default class SessionService extends BaseService<ISession, SessionRepository> {
+  constructor() {
+    super(new SessionRepository(), RESOURCE_NAME);
   }
 
-  static async refreshSession(sessionId: string) {
+  async refreshSession(sessionId: string) {
     try {
-      const updatedSession = await Session.findByIdAndUpdate(
-        sessionId,
-        { updatedAt: new Date() },
-        { new: true }
-      );
-      sessionCache.invalidate(sessionId);
+      const updateOptions = {
+        update: { updatedAt: new Date() },
+        options: { new: true },
+      };
+      const updatedSession = await this.repository.updateById(sessionId, updateOptions);
+      this.cache.invalidate(sessionId);
 
       return updatedSession;
     } catch (e) {
@@ -47,24 +41,25 @@ export default class SessionService {
     }
   }
 
-  static async getSessionById(sessionId: string) {
+  async getSessionById(sessionId: string) {
     try {
-      let session = await Session.findById(sessionId);
+      let session = await this.repository.findById(sessionId);
 
       if (!session) return null;
-
       if (isSessionExpired(session)) {
-        await Session.deleteOne(session._id);
+        await this.repository.deleteById(String(session._id));
         return null;
       }
 
-      if(session.type == "meals"){
-       const newSession= removeExpiredMeals(session)
-
-       session=await Session.findByIdAndUpdate(session._id, {data:newSession,updatedAt:new Date()},{new:true})
+      if (session.type == "meals") {
+        const newSession = removeExpiredMeals(session);
+        const updateOptions = {
+          update: { data: newSession, updatedAt: new Date() },
+          options: { new: true },
+        };
+        session = await this.repository.updateById(session._id.toString(), updateOptions);
       }
-
-      sessionCache.set(sessionId, session);
+      this.cache.set(sessionId, session);
 
       return session;
     } catch (err) {
@@ -72,90 +67,19 @@ export default class SessionService {
     }
   }
 
-  static async getSessionsByUserId(userId: string) {
-    const cacheKey = `sessions_user_${userId}`;
-    const cachedSessions = sessionCache.get(cacheKey);
-    if (cachedSessions) {
-      return cachedSessions;
-    }
-
+  async updateSessionById(sessionId: string, sessionDetails: ISessionCreate) {
     try {
-      const sessions = await Session.find({ userId });
-
-      sessionCache.set(cacheKey, sessions);
-      return sessions;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  static async getSessionsByType(type: SessionType) {
-    const cacheKey = `sessions_type_${type}`;
-    const cachedSessions = sessionCache.get(cacheKey);
-    if (cachedSessions) {
-      return cachedSessions;
-    }
-
-    try {
-      const sessions = await Session.find({ type });
-      sessionCache.set(cacheKey, sessions);
-
-      return sessions;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  static async updateSession(sessionId: string, sessionDetails: ISessionCreate) {
-    try {
-      const result = await Session.findByIdAndUpdate(
-        sessionId,
-        {
+      const updateOptions = {
+        update: {
           ...sessionDetails,
           updatedAt: new Date(),
         },
-        { new: true }
-      );
+        options: { new: true },
+      };
+      const result = await this.repository.updateById(sessionId, updateOptions);
 
-      if (result) {
-        sessionCache.invalidate(sessionId); // Invalidate cache for the updated session
-        sessionCache.invalidateAll(); // Optionally invalidate all sessions
-      }
+      if (result) this.cache.invalidateAll();
 
-      return result;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async endSession(sessionId: string) {
-    try {
-      const result = await Session.findByIdAndDelete(sessionId);
-      if (result) {
-        sessionCache.invalidate(sessionId); // Invalidate cache when session is deleted
-        sessionCache.invalidateAll(); // Optionally invalidate all sessions cache
-      }
-      return result;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async expireSessions() {
-    const expirationTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes
-
-    try {
-      await Session.deleteMany({ lastActivityTime: { $lt: expirationTime } });
-      sessionCache.invalidateAll(); // Invalidate all cache after deleting expired sessions
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  static async endAllSessions() {
-    try {
-      const result = await Session.deleteMany({});
-      sessionCache.invalidateAll(); // Invalidate all session caches
       return result;
     } catch (err) {
       throw err;
