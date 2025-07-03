@@ -129,12 +129,12 @@ export const returnStringVal = (arr: any[]) => {
 };
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
-  await new DietPlanService().delete({userId}).catch((err) => console.log(err));
+  await new DietPlanService().delete({ userId }).catch((err) => console.log(err));
   await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
-  await new WorkoutPlanService().deleteMany({userId}).catch((err) => console.log(err));
+  await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
 };
 
 export function stableStringify(obj: any): string {
