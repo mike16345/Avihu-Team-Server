@@ -3,7 +3,7 @@ import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
 import { ISession } from "../models/sessionModel";
 import { API_HEADERS } from "../constants/Constants";
-import { DietPlanServices } from "../services/dietPlanService";
+import { DietPlanService } from "../services/dietPlanService";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { weighInServices } from "../services/weighInService";
 import { UserImageUrlService } from "../services/UserImageUrlService";
@@ -129,7 +129,7 @@ export const returnStringVal = (arr: any[]) => {
 };
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
-  await DietPlanServices.deleteDietPlanByUserId(userId).catch((err) => console.log(err));
+  await new DietPlanService().delete({userId}).catch((err) => console.log(err));
   await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
