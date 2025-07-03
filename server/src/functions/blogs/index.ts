@@ -5,13 +5,16 @@ import { validateBlogPost } from "../../middleware/blogMiddleware";
 
 const BASE_PATH = "/blogs";
 
+
+const blogController=new BlogController();
+
 const blogApiHandlers = {
-  [`GET ${BASE_PATH}`]: BlogController.getAllPosts,
-  [`GET ${BASE_PATH}/paginate`]: BlogController.getPaginatedPosts,
-  [`PUT ${BASE_PATH}/one`]: BlogController.updatePost,
-  [`POST ${BASE_PATH}`]: BlogController.createPost,
-  [`GET ${BASE_PATH}/one`]: BlogController.getPostById,
-  [`DELETE ${BASE_PATH}/one`]: BlogController.deletePost,
+  [`GET ${BASE_PATH}`]: blogController.getAll,
+  [`GET ${BASE_PATH}/paginate`]:blogController.getPaginated,
+  [`PUT ${BASE_PATH}/one`]:blogController.updateById,
+  [`POST ${BASE_PATH}`]:blogController.create,
+  [`GET ${BASE_PATH}/one`]:blogController.getById,
+  [`DELETE ${BASE_PATH}/one`]:blogController.deleteById,
 };
 
 const blogApiMiddleware = {
