@@ -80,25 +80,6 @@ export class UserController extends BaseController<IUser, UserService> {
     }
   };
 
-  updateImagesUploadedstatus = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
-    try {
-      const { error, id, status } = this.getParamsOrError(event, ["id", "status"]);
-      if (error) return error;
-
-      const user = await this.service.updateImagesUploadedstatus(id, status);
-
-      return this.successResponse({
-        status: StatusCode.OK,
-        data: user,
-        message: "Status updated successfully!",
-      });
-    } catch (err: any) {
-      return this.errorResponse(err);
-    }
-  };
-
   getById = async (event: APIGatewayProxyEvent) => {
     const { userId, error } = this.getParamsOrError(event, ["userId"]);
 

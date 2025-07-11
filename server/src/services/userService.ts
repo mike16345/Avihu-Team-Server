@@ -1,6 +1,4 @@
-import { FilterQuery } from "mongoose";
 import { IUser } from "../interfaces/IUser";
-import { User } from "../models/userModel";
 import { deleteUserDataFromAllCollections } from "../utils/utils";
 import { BaseService } from "./BaseService";
 import UserRepository from "../repositories/User/UserRepository";
@@ -12,7 +10,7 @@ export default class UserService extends BaseService<IUser, UserRepository> {
 
   deleteUser = async (id: string) => {
     try {
-      const user = await this.repository.deleteById(id);
+      const user = await this.deleteById(id);
 
       if (user) {
         this.cache.invalidateAll();
@@ -27,19 +25,8 @@ export default class UserService extends BaseService<IUser, UserRepository> {
 
   updateUserField = async (id: string, fieldName: string, fieldValue: string) => {
     try {
-      const user = await User.findByIdAndUpdate(id, { [fieldName]: fieldValue }, { new: true });
+      const user = await this.updateById(id, { [fieldName]: fieldValue });
 
-      if (user) this.cache.invalidateAll();
-
-      return user;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  updateImagesUploadedstatus = async (id: string, status: string) => {
-    try {
-      const user = await User.findByIdAndUpdate(id, { imagesUploaded: status }, { new: true });
       if (user) this.cache.invalidateAll();
 
       return user;
