@@ -1,7 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import { extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
+import { extractBodyFromEvent, extractQueryFromEvent, getHeaderValue } from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
 import PasswordsService from "../services/PasswordsService";
@@ -9,13 +9,16 @@ import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
 import { welcomeEmailTemplate } from "../utils/emailTemplates";
+import AuthService from "../services/AuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
+  private authService: AuthService;
   private sessionService: SessionService;
 
   constructor() {
     super(new UserService());
     this.sessionService = new SessionService();
+    this.authService = new AuthService();
   }
 
   private validateUserAccess(user: IUser | null): APIGatewayProxyResult | null {
@@ -35,7 +38,7 @@ export class UserController extends BaseController<IUser, UserService> {
 
       if (user) {
         const phoneNumber = user.phone.replace(/\D/g, "");
-        await PasswordsService.hashPassword(user._id.toString(), phoneNumber);
+        await new PasswordsService().hashPassword(user._id.toString(), phoneNumber);
 
         const mailOptions = {
           to: user.email,
@@ -117,20 +120,16 @@ export class UserController extends BaseController<IUser, UserService> {
   };
 
   register = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const {
+      email,
+      password,
+      error: bodyError,
+    } = this.getParamsOrError(event, ["email", "password"], "body");
+
+    if (bodyError) return bodyError;
+
     try {
-      const {
-        email,
-        password,
-        error: bodyError,
-      } = this.getParamsOrError(event, ["email", "password"], "body");
-
-      if (bodyError) return bodyError;
-      const user = await this.service.findOne({ email: email.toLowerCase() });
-
-      const error = this.validateUserAccess(user);
-      if (error) return error;
-
-      await PasswordsService.updatePassword(user._id.toString(), password);
+      const user = await this.authService.register(email, password);
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -138,37 +137,28 @@ export class UserController extends BaseController<IUser, UserService> {
         message: "סיסמה נשמרה במערכת!",
       });
     } catch (err: any) {
-      return this.errorResponse(err);
+      return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
 
   logIn = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { email, password, isAdminApp, error } = this.getParamsOrError(
+      event,
+      ["email", "password"],
+      "body"
+    );
+
+    if (error) return error;
+
     try {
-      const { email, password, isAdminApp, error } = this.getParamsOrError(
-        event,
-        ["email", "password"],
-        "body"
-      );
-      if (error) return error;
+      const ip = event.requestContext?.identity?.sourceIp;
+      const headers = event.headers || {};
+      const device = getHeaderValue(headers, "User-Agent");
 
-      const user = await this.service.findOne({ email: email.toLowerCase() });
-      const isSamePassword =
-        user && (await PasswordsService.comparePasswords(user._id.toString(), password));
-
-      if (!user || !isSamePassword) {
-        return this.errorResponse(`מייל או סיסמא שגויים!`, StatusCode.NOT_FOUND);
-      }
-
-      if (isAdminApp && !user.isAdmin) {
-        return this.errorResponse("אין הרשאה להתחבר כמנהל!", StatusCode.FORBIDDEN);
-      }
-
-      const sessionData = {
-        userId: user._id.toString(),
-        data: { user },
-        type: "login",
-      };
-      const session = await this.sessionService.create(sessionData as ISession);
+      const session = await this.authService.login(email, password, isAdminApp, {
+        ip,
+        device,
+      });
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -176,7 +166,7 @@ export class UserController extends BaseController<IUser, UserService> {
         message: "התחברות בוצעה בהצלחה!",
       });
     } catch (err: any) {
-      return this.errorResponse(err);
+      return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
 
@@ -189,7 +179,13 @@ export class UserController extends BaseController<IUser, UserService> {
       const userId = token.data.user._id;
       const user = await this.service.findById(userId);
 
-      await this.sessionService.refreshSession(token._id);
+      if (session) {
+        await this.sessionService.refreshSession(token._id);
+      }
+      
+      if (!user) {
+        return this.errorResponse("User not found!", StatusCode.NOT_FOUND);
+      }
 
       if (!user.hasAccess) {
         await this.sessionService.deleteById(token._id);
