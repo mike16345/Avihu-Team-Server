@@ -1,65 +1,38 @@
 import bcrypt from "bcryptjs";
-import { Password } from "../models/passwordModel";
+import { IPassword } from "../models/passwordModel";
+import { BaseService } from "./BaseService";
+import PasswordRepository from "../repositories/Password/PasswordRepository";
 
-const saltRounds = 10;
+const SALT_ROUNDS = 10;
 
-class PasswordsService {
-  // find password by user id
-  static async findPasswordByUserId(userId: string) {
-    try {
-      return await Password.findOne({ userId });
-    } catch (err: any) {
-      throw err;
-    }
+class PasswordsService extends BaseService<IPassword, PasswordRepository> {
+  constructor() {
+    super(new PasswordRepository(), "passwords");
   }
 
-  static async hashPassword(userId: string, password: string) {
-    try {
-      const encryptedPassword = await bcrypt.hash(password, saltRounds);
-      const encrypted = await Password.findOneAndUpdate({ userId, hash: encryptedPassword });
+  async hashPassword(userId: string, plainPassword: string) {
+    const hash = await bcrypt.hash(plainPassword, SALT_ROUNDS);
 
-      return encrypted;
-    } catch (e: any) {
-      throw e;
-    }
+    return this.repository.updateOne({
+      filter: { userId },
+      update: { hash },
+    });
   }
 
-  static async updatePassword(userId: string, newPassword: string) {
-    try {
-      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+  async updatePassword(userId: string, newPassword: string) {
+    const hash = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
-      return await Password.findOneAndUpdate(
-        { userId },
-        { hash: hashedPassword },
-        { upsert: true, new: true } // upsert creates if not found
-      );
-    } catch (err: any) {
-      throw err;
-    }
+    return this.repository.createByUser({ userId, hash }, userId);
   }
 
-  static async comparePasswords(userId: string, providedPassword: string) {
-    try {
-      const hashedPassword = await Password.findOne({ userId });
+  async comparePasswords(userId: string, providedPassword: string) {
+    const passwordDoc = await this.repository.findOne({ query: { userId } });
 
-      if (!hashedPassword) {
-        return null;
-      }
-
-      const match = await bcrypt.compare(providedPassword, hashedPassword.hash);
-
-      return match;
-    } catch (err: any) {
-      throw err;
-    }
+    return bcrypt.compare(providedPassword, passwordDoc.hash);
   }
 
-  static async deletePasswordByUserId(userId: string) {
-    try {
-      return await Password.findOneAndDelete({ userId });
-    } catch (err: any) {
-      throw err;
-    }
+  async deletePasswordByUserId(userId: string) {
+    return this.repository.delete({ userId });
   }
 }
 
