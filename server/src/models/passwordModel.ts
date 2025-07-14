@@ -1,6 +1,11 @@
 import { Schema, model } from "mongoose";
 
-export const passwordSchema = new Schema({
+export interface IPassword {
+  hash: string;
+  userId: string;
+}
+
+export const passwordSchema = new Schema<IPassword>({
   hash: {
     type: String,
     required: true,
