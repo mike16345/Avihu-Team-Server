@@ -1,4 +1,4 @@
-import { IUserImageUrls, UserImageUrlsModel } from "../models/urlModel";
+import { IUserImageUrls } from "../models/urlModel";
 import UserImageUrlsRepository from "../repositories/UserImageUrls/UserImageUrlsRepository";
 import { BaseService } from "./BaseService";
 
@@ -20,6 +20,10 @@ export class UserImageUrlService extends BaseService<IUserImageUrls, UserImageUr
   }
 
   async findOne(filter: Partial<Record<keyof IUserImageUrls, any>>): Promise<any> {
-    return (await super.findOne(filter)).imageUrls;
+    const doc = await super.findOne(filter);
+
+    if (!doc) return [];
+
+    return doc.imageUrls || [];
   }
 }
