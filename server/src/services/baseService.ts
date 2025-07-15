@@ -1,5 +1,5 @@
 import { UpdateWriteOpResult } from "mongoose";
-import { Cache } from "../utils/cache";
+import { Cache, getSharedCache } from "../utils/cache";
 import {
   generatePaginationCacheKey,
   PaginationParams,
@@ -9,13 +9,14 @@ import { stableStringify } from "../utils/utils";
 import { BaseRepository } from "../repositories/BaseRepository";
 
 export class BaseService<T, R extends BaseRepository<T>> {
-  protected cache = new Cache<any>();
+  protected cache: Cache<any>;
   protected repository: R;
   protected baseCacheKey: string;
 
   constructor(repository: R, baseCacheKey: string) {
     this.repository = repository;
     this.baseCacheKey = baseCacheKey;
+    this.cache = getSharedCache(baseCacheKey);
   }
 
   protected generateCacheKey(prefix: string, identifier: string): string {
@@ -90,7 +91,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const updated = await this.repository.updateOne({
       filter,
       update,
-      options: { new: true }, // You can lock these defaults
+      options: { new: true },
     });
 
     this.cache.invalidateAll();

@@ -16,6 +16,7 @@ class PasswordsService extends BaseService<IPassword, PasswordRepository> {
     return this.repository.updateOne({
       filter: { userId },
       update: { hash },
+      options: { upsert: true, new: true },
     });
   }
 
@@ -27,6 +28,7 @@ class PasswordsService extends BaseService<IPassword, PasswordRepository> {
 
   async comparePasswords(userId: string, providedPassword: string) {
     const passwordDoc = await this.repository.findOne({ query: { userId } });
+    if (!passwordDoc) return false;
 
     return bcrypt.compare(providedPassword, passwordDoc.hash);
   }
