@@ -133,7 +133,7 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
   await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
-  await PasswordsService.deletePasswordByUserId(userId).catch((err) => console.log(err));
+  await new PasswordsService().deletePasswordByUserId(userId).catch((err) => console.log(err));
   await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
 };
 
@@ -153,4 +153,12 @@ export function stableStringify(obj: any): string {
 
 export const createMissingParamErrorMessage = (paramNames: string[]) => {
   return `"${paramNames.join(" ")}" params are required!`;
+};
+
+export const getHeaderValue = (
+  headers: Record<string, any> = {},
+  key: string
+): string | undefined => {
+  const lower = key.toLowerCase();
+  return Object.entries(headers).find(([k]) => k.toLowerCase() === lower)?.[1];
 };

@@ -1,21 +1,7 @@
-import {
-  FilterQuery,
-  Model,
-  ObjectId,
-  QueryOptions,
-  UpdateQuery,
-  UpdateWriteOpResult,
-} from "mongoose";
+import { FilterQuery, Model, ObjectId, QueryOptions, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions, FindOptionsNoQuery, UpdateOptions } from "../types/mongooseTypes";
-import {
-  CREATE_FAILURE,
-  DELETE_FAILURE,
-  FIND_FAILURE,
-  FIND_ONE_FAILURE,
-  NOT_FOUND_FAILURE,
-  UPDATE_FAILURE,
-} from "../constants/repository";
+import { CREATE_FAILURE, FIND_ONE_FAILURE } from "../constants/repository";
 
 export class BaseRepository<T> {
   protected model: Model<T>;
@@ -27,16 +13,12 @@ export class BaseRepository<T> {
   async create(doc: T): Promise<T> {
     const newDoc = await this.model.create(doc);
 
-    if (!newDoc) throw new Error(CREATE_FAILURE);
-
     return newDoc;
   }
 
   async find(options: FindOptions<T> = { query: {} }) {
     const { query, projection, queryOptions } = options;
-    let data = await this.model.find(query, projection, queryOptions);
-
-    if (!data) throw new Error(FIND_FAILURE);
+    const data = await this.model.find(query, projection, queryOptions);
 
     return data;
   }
@@ -45,8 +27,6 @@ export class BaseRepository<T> {
     const { projection = {}, queryOptions = {} } = options || {};
     const item = await this.model.findById(id, projection, queryOptions);
 
-    if (!item) throw new Error(FIND_ONE_FAILURE);
-
     return item;
   }
 
@@ -54,8 +34,6 @@ export class BaseRepository<T> {
     const { projection, queryOptions, query } = options;
 
     const item = await this.model.findOne(query, projection, queryOptions);
-
-    if (!item) throw new Error(FIND_ONE_FAILURE);
 
     return item;
   }
@@ -89,8 +67,6 @@ export class BaseRepository<T> {
     const { options, filter, update } = updateOptions;
     const updatedDoc = await this.model.findOneAndUpdate(filter, update, options);
 
-    if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
-
     return updatedDoc;
   }
 
@@ -98,15 +74,11 @@ export class BaseRepository<T> {
     const { options, update } = updateOptions;
     const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
 
-    if (!updatedDoc) throw new Error(NOT_FOUND_FAILURE);
-
     return updatedDoc;
   }
 
   async updateMany(query: FilterQuery<T>, data: any): Promise<UpdateWriteOpResult> {
     const updateResult = await this.model.updateMany(query, data);
-
-    if (!updateResult) throw new Error(UPDATE_FAILURE);
 
     return updateResult;
   }
@@ -114,23 +86,17 @@ export class BaseRepository<T> {
   async deleteById(id: string, options?: QueryOptions<T>) {
     const deletedDoc = await this.model.findByIdAndDelete(id, options).lean().exec();
 
-    if (!deletedDoc) throw new Error(NOT_FOUND_FAILURE);
-
     return deletedDoc;
   }
 
   async delete(query: FilterQuery<T>) {
     const deletedDoc = await this.model.findOneAndDelete(query).lean().exec();
 
-    if (!deletedDoc) throw new Error(NOT_FOUND_FAILURE);
-
     return deletedDoc;
   }
 
   async deleteMany(query: FilterQuery<T>): Promise<{ deletedCount?: number }> {
     const deleteResult = await this.model.deleteMany(query);
-
-    if (!deleteResult) throw new Error(DELETE_FAILURE);
 
     return deleteResult;
   }

@@ -1,5 +1,5 @@
 import { UpdateWriteOpResult } from "mongoose";
-import { Cache } from "../utils/cache";
+import { Cache, getSharedCache } from "../utils/cache";
 import {
   generatePaginationCacheKey,
   PaginationParams,
@@ -9,13 +9,14 @@ import { stableStringify } from "../utils/utils";
 import { BaseRepository } from "../repositories/BaseRepository";
 
 export class BaseService<T, R extends BaseRepository<T>> {
-  protected cache = new Cache<any>();
+  protected cache: Cache<any>;
   protected repository: R;
   protected baseCacheKey: string;
 
   constructor(repository: R, baseCacheKey: string) {
     this.repository = repository;
     this.baseCacheKey = baseCacheKey;
+    this.cache = getSharedCache(baseCacheKey);
   }
 
   protected generateCacheKey(prefix: string, identifier: string): string {
@@ -62,27 +63,25 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return data;
   }
 
-  async findById(id: string): Promise<T> {
+  async findById(id: string): Promise<T | null> {
     const key = this.generateCacheKey("id", id);
     const cached = this.cache.get(key);
 
     if (cached) return cached;
     const item = await this.repository.findById(id);
 
-    if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
     return item;
   }
 
-  async findOne(filter: Partial<Record<keyof T, any>>): Promise<T> {
+  async findOne(filter: Partial<Record<keyof T, any>>): Promise<T | null> {
     const key = this.generateCacheKey("one", stableStringify(filter));
     const cached = this.cache.get(key);
 
     if (cached) return cached;
     const item = await this.repository.findOne({ query: filter });
 
-    if (!item) throw new Error("Could not retrieve item!");
     this.cache.set(key, item);
 
     return item;
@@ -92,7 +91,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const updated = await this.repository.updateOne({
       filter,
       update,
-      options: { new: true }, // You can lock these defaults
+      options: { new: true },
     });
 
     this.cache.invalidateAll();
@@ -106,7 +105,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
       options: { new: true },
     });
 
-    this.cache.invalidateAll()
+    this.cache.invalidateAll();
 
     return updated;
   }

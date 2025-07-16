@@ -43,7 +43,7 @@ export default class SessionService extends BaseService<ISession, SessionReposit
 
   async getSessionById(sessionId: string) {
     try {
-      let session = await this.repository.findById(sessionId);
+      let session = await this.repository.getSessionById(sessionId);
 
       if (!session) return null;
       if (isSessionExpired(session)) {

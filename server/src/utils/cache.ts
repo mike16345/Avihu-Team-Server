@@ -21,7 +21,10 @@ export class Cache<T> {
   get(key: string): T | null {
     const cacheEntry = this.cache[key];
 
-    if (!cacheEntry) return null;
+    if (!cacheEntry) {
+      console.log("Cache miss for KEY:", key);
+      return null;
+    }
 
     // Check if the cache entry has expired
     if (cacheEntry.expiresAt && Date.now() > cacheEntry.expiresAt) {
@@ -29,6 +32,7 @@ export class Cache<T> {
       delete this.cache[key];
       return null;
     }
+    console.log("Returning cached data for KEY:", key);
 
     return cacheEntry.data;
   }
@@ -48,6 +52,19 @@ export class Cache<T> {
 
   // Invalidate all cache entries
   invalidateAll(): void {
+    console.log("Invalidating all cache entries");
     this.cache = {};
   }
+}
+
+const cacheMap: Record<string, Cache<any>> = {};
+
+export function getSharedCache<T = any>(key: string): Cache<T> {
+  const namespacedKey = `global:${key}`;
+
+  if (!cacheMap[namespacedKey]) {
+    cacheMap[namespacedKey] = new Cache<T>();
+  }
+
+  return cacheMap[namespacedKey];
 }

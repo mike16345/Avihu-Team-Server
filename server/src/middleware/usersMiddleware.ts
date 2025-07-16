@@ -2,17 +2,18 @@ import { UserSchemaValidation } from "../models/userModel";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { Context } from "aws-sdk/clients/autoscaling";
 import UserService from "../services/userService";
+import { extractBodyFromEvent } from "../utils/utils";
 
 export const validateUser = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<{ isValid: boolean; message?: string }> => {
-  const body = JSON.parse(event.body || "{}"); // Parse the JSON body
+  const body = extractBodyFromEvent(event);
   const email = body.email;
   const phone = body.phone;
 
   try {
-    const users = await UserService.getUsersByParameter({ email, phone });
+    const users = await new UserService().find({ email, phone });
 
     for (const user of users) {
       if (user.email === email) return { isValid: false, message: "כתובת מייל בשימוש!" };

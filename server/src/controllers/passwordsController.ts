@@ -1,92 +1,102 @@
 import { type APIGatewayEvent } from "aws-lambda";
 import PasswordsService from "../services/PasswordsService";
-import {
-  createResponse,
-  createResponseWithData,
-  createServerErrorResponse,
-  extractBodyFromEvent,
-  isSessionExpired,
-} from "../utils/utils";
-import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
 import SessionService from "../services/sessionService";
-import { ONE_MINUTE_IN_MILLISECONDS, ONE_WEEK_IN_SECONDS } from "../constants/Constants";
+import { createResponse, createServerErrorResponse, isSessionExpired } from "../utils/utils";
+import { StatusCode } from "../enums/StatusCode";
+import { ONE_MINUTE_IN_MILLISECONDS } from "../constants/Constants";
+import { IPassword } from "../models/passwordModel";
+import BaseController from "./BaseController";
 
-class PasswordsController {
-  static async hashPassword(event: APIGatewayEvent) {
-    try {
-      const { email, password } = extractBodyFromEvent(event);
+class PasswordsController extends BaseController<IPassword, PasswordsService> {
+  private userService: UserService;
+  private sessionService: SessionService;
 
-      if (!email || !password) {
-        return createResponse(StatusCode.BAD_REQUEST, "Missing email or password");
-      }
-
-      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
-      if (!user) {
-        return createResponse(StatusCode.NOT_FOUND, `User with email ${email} does not exist`);
-      }
-      await PasswordsService.hashPassword(user?._id.toString(), password);
-
-      return createResponse(StatusCode.OK, "Encrypted password!");
-    } catch (err: any) {
-      return createServerErrorResponse(err);
-    }
+  constructor() {
+    super(new PasswordsService());
+    this.userService = new UserService();
+    this.sessionService = new SessionService();
   }
 
-  static async updatePassword(event: APIGatewayEvent) {
-    const { email, password, sessionId } = extractBodyFromEvent(event);
+  hashPassword = async (event: APIGatewayEvent) => {
+    try {
+      const { email, password, error } = this.getParamsOrError(
+        event,
+        ["email", "password"],
+        "body"
+      );
 
-    if (!sessionId) {
-      return createResponse(StatusCode.UNAUTHORIZED, "");
+      if (error) return error;
+
+      const user = await this.userService.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        return this.errorResponse("משתמש לא נמצא במערכת!", StatusCode.NOT_FOUND);
+      }
+
+      await this.service.hashPassword(user._id.toString(), password);
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        message: "Encrypted password!",
+      });
+    } catch (error: any) {
+      return this.errorResponse(error);
     }
+  };
 
-    const session = await SessionService.getSessionById(sessionId);
+  updatePassword = async (event: APIGatewayEvent) => {
+    const { email, password, sessionId, error } = this.getParamsOrError(
+      event,
+      ["email", "password", "sessionId"],
+      "body"
+    );
+
+    if (error) return error;
+
+    const session = await this.sessionService.getSessionById(sessionId);
 
     if (!session) {
-      return createResponse(StatusCode.UNAUTHORIZED, "");
+      return this.errorResponse("נא לבקש קוד חדש", StatusCode.UNAUTHORIZED);
     }
 
     if (isSessionExpired(session, ONE_MINUTE_IN_MILLISECONDS * 10)) {
-      return createResponse(StatusCode.UNAUTHORIZED, "OTP is expired");
+      return this.errorResponse("קוד לא פעיל!", StatusCode.UNAUTHORIZED);
     }
 
     try {
-      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
+      const user = await this.userService.findOne({ email: email.toLowerCase() });
 
       if (!user) {
-        return createResponse(StatusCode.NOT_FOUND, `User with email ${email} does not exist`);
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא במערכת! ${email}`);
       }
-      await PasswordsService.updatePassword(user._id.toString(), password);
-      await SessionService.endSession(sessionId);
 
-      return createResponse(StatusCode.OK, `Password updated successfully`);
+      await this.service.updatePassword(user._id.toString(), password);
+      await this.sessionService.deleteById(sessionId);
+
+      return createResponse(StatusCode.OK, "סיסמא הוחלפה בהצלחה!");
     } catch (error: any) {
       return createServerErrorResponse(error);
     }
-  }
+  };
 
-  static async comparePasswords(event: APIGatewayEvent) {
-    const { email, password } = extractBodyFromEvent(event);
+  comparePasswords = async (event: APIGatewayEvent) => {
+    const { email, password, error } = this.getParamsOrError(event, ["email", "password"], "body");
 
-    if (!email || !password) {
-      return createResponse(StatusCode.BAD_REQUEST, "Missing email or password");
-    }
+    if (error) return error;
 
     try {
-      const match = await PasswordsService.comparePasswords(email, password);
+      const match = await this.service.comparePasswords(email, password);
 
-      if (!match) {
-        return createResponse(
-          StatusCode.UNAUTHORIZED,
-          `Did not find password for user with email: ${email}`
-        );
-      }
-
-      return createResponseWithData(StatusCode.OK, true, "Passwords match!");
-    } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.successResponse({
+        status: match ? StatusCode.OK : StatusCode.UNAUTHORIZED,
+        data: match,
+        message: match ? "סיסמאות תואמות!" : "סיסמאות אינן תואמות!",
+      });
+    } catch (error: any) {
+      return this.errorResponse(error);
     }
-  }
+  };
 }
 
 export default PasswordsController;
