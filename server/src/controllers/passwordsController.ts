@@ -31,7 +31,7 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
       const user = await this.userService.findOne({ email: email.toLowerCase() });
 
       if (!user) {
-        return this.errorResponse("User not found", StatusCode.NOT_FOUND);
+        return this.errorResponse("משתמש לא נמצא במערכת!", StatusCode.NOT_FOUND);
       }
 
       await this.service.hashPassword(user._id.toString(), password);
@@ -57,24 +57,24 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
     const session = await this.sessionService.getSessionById(sessionId);
 
     if (!session) {
-      return this.errorResponse("Session not found!", StatusCode.UNAUTHORIZED);
+      return this.errorResponse("נא לבקש קוד חדש", StatusCode.UNAUTHORIZED);
     }
 
     if (isSessionExpired(session, ONE_MINUTE_IN_MILLISECONDS * 10)) {
-      return this.errorResponse("OTP is expired", StatusCode.UNAUTHORIZED);
+      return this.errorResponse("קוד לא פעיל!", StatusCode.UNAUTHORIZED);
     }
 
     try {
       const user = await this.userService.findOne({ email: email.toLowerCase() });
 
       if (!user) {
-        return createResponse(StatusCode.NOT_FOUND, `User with email ${email} does not exist`);
+        return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא במערכת! ${email}`);
       }
 
       await this.service.updatePassword(user._id.toString(), password);
       await this.sessionService.deleteById(sessionId);
 
-      return createResponse(StatusCode.OK, "Password updated successfully");
+      return createResponse(StatusCode.OK, "סיסמא הוחלפה בהצלחה!");
     } catch (error: any) {
       return createServerErrorResponse(error);
     }
@@ -91,7 +91,7 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
       return this.successResponse({
         status: match ? StatusCode.OK : StatusCode.UNAUTHORIZED,
         data: match,
-        message: match ? "Passwords match!" : "Passwords do not match!",
+        message: match ? "סיסמאות תואמות!" : "סיסמאות אינן תואמות!",
       });
     } catch (error: any) {
       return this.errorResponse(error);
