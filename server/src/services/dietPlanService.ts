@@ -4,52 +4,34 @@ import { DietPlanRepository } from "../repositories/DietPlan/DietPlanRepository"
 import { stableStringify } from "../utils/utils";
 import { BaseService } from "./BaseService";
 
+const baseKey = "diet-plan";
 
-
-
-const baseKey='diet-plan'; 
-
-export class DietPlanService extends BaseService<IDietPlan,DietPlanRepository> {
-  constructor(){
-    super(new DietPlanRepository(),baseKey)
+export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> {
+  constructor() {
+    super(new DietPlanRepository(), baseKey);
   }
 
+  protected getDietPlan = async (query: FilterQuery<IDietPlan>, populate: boolean) => {
+    if (!populate) return await this.findOne(query);
+    const key = this.generateCacheKey("one", stableStringify({ ...query, populate }));
+    const cached = this.cache.get(key);
 
- protected getDietPlan=async(query:FilterQuery<IDietPlan>,populate:boolean)=>{
+    if (cached) return cached;
+    const dietPlan = await this.repository.getPopulatedDietPlan(query);
+    this.cache.set(key, dietPlan);
 
-    if(populate){
-      const key= this.generateCacheKey('one',stableStringify({...query,populate}))
-  
-       const cached=this.cache.get(key);
-  
-       if(cached) return cached;
-  
-       const dietPlan=await this.repository.getPopulatedDietPlan(query);
-  
-       this.cache.set(key,dietPlan)
-  
-       return dietPlan
-      }else{
-  
-        
-        return await this.findOne(query)
-      }
-  }
-  
+    return dietPlan;
+  };
 
+  getDietPlanById = async (planId: string, populate: boolean = true) => {
+    const query = { _id: planId };
 
-
-   getDietPlanById=async( planId: string, populate: boolean = true)=> {
-    const query={_id:planId};
-    
     try {
-
-   return await this.getDietPlan(query,populate);
-  
+      return await this.getDietPlan(query, populate);
     } catch (error) {
       throw error;
     }
-  }
+  };
 
   async getDietPlanByUserId(userId: string, populate: boolean = true) {
     try {
@@ -58,14 +40,4 @@ export class DietPlanService extends BaseService<IDietPlan,DietPlanRepository> {
       throw error;
     }
   }
-
- 
-
- 
-
- 
-
-  
 }
-
-

@@ -1,19 +1,23 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import {  WorkoutPlanService } from "../services/workoutPlanService";
+import { WorkoutPlanService } from "../services/workoutPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { createResponse, createResponseWithData, createServerErrorResponse, extractBodyFromEvent } from "../utils/utils";
+import {
+  createResponse,
+  createResponseWithData,
+  createServerErrorResponse,
+  extractBodyFromEvent,
+} from "../utils/utils";
 import BaseController from "./BaseController";
 import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 
-
-class WorkoutPlanController extends BaseController<IFullWorkoutPlan,WorkoutPlanService> {
-  constructor(){
+class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlanService> {
+  constructor() {
     super(new WorkoutPlanService());
   }
 
-   addWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  addWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const userId = event?.queryStringParameters?.id;
-    const body=extractBodyFromEvent(event)
+    const body = extractBodyFromEvent(event);
 
     const workoutPlan = { ...body, userId: userId };
 
@@ -33,9 +37,6 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan,WorkoutPlanS
       return createServerErrorResponse(err);
     }
   };
-
-
- 
 }
 
 export default WorkoutPlanController;
