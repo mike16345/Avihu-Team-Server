@@ -1,7 +1,8 @@
 import { FilterQuery, Model, ObjectId, QueryOptions, UpdateWriteOpResult } from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions, FindOptionsNoQuery, UpdateOptions } from "../types/mongooseTypes";
-import { CREATE_FAILURE, FIND_ONE_FAILURE } from "../constants/repository";
+import { FIND_FAILURE, FIND_ONE_FAILURE, UPDATE_FAILURE } from "../constants/repository";
+import { StatusCode } from "../enums/StatusCode";
 
 export class BaseRepository<T> {
   protected model: Model<T>;
@@ -20,12 +21,20 @@ export class BaseRepository<T> {
     const { query, projection, queryOptions } = options;
     const data = await this.model.find(query, projection, queryOptions);
 
+    if (!data || data.length === 0) {
+      throw { status: StatusCode.NOT_FOUND, message: FIND_FAILURE };
+    }
+
     return data;
   }
 
   async findById(id: string, options?: FindOptionsNoQuery<T>) {
     const { projection = {}, queryOptions = {} } = options || {};
     const item = await this.model.findById(id, projection, queryOptions);
+
+    if (!item) {
+      throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
+    }
 
     return item;
   }
@@ -34,6 +43,10 @@ export class BaseRepository<T> {
     const { projection, queryOptions, query } = options;
 
     const item = await this.model.findOne(query, projection, queryOptions);
+
+    if (!item) {
+      throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
+    }
 
     return item;
   }
@@ -67,6 +80,10 @@ export class BaseRepository<T> {
     const { options, filter, update } = updateOptions;
     const updatedDoc = await this.model.findOneAndUpdate(filter, update, options);
 
+    if (!updatedDoc) {
+      throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
+    }
+
     return updatedDoc;
   }
 
@@ -74,11 +91,19 @@ export class BaseRepository<T> {
     const { options, update } = updateOptions;
     const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
 
+    if (!updatedDoc) {
+      throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
+    }
+
     return updatedDoc;
   }
 
   async updateMany(query: FilterQuery<T>, data: any): Promise<UpdateWriteOpResult> {
     const updateResult = await this.model.updateMany(query, data);
+
+    if (updateResult.modifiedCount === 0) {
+      throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
+    }
 
     return updateResult;
   }

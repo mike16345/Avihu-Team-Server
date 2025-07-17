@@ -65,6 +65,13 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     try {
       const updatedDietPlan = await this.service.updateOne({ userId: id }, newDietPlan);
 
+      if (!updatedDietPlan) {
+        return this.errorResponse({
+          status: StatusCode.NOT_FOUND,
+          message: "Diet plan not found for the given user ID.",
+        });
+      }
+
       return this.successResponse({
         status: StatusCode.OK,
         data: updatedDietPlan,
@@ -102,6 +109,13 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     try {
       const dietPlan = await this.service.getDietPlanById(id, populate === "true");
 
+      if (!dietPlan) {
+        return this.errorResponse({
+          status: StatusCode.NOT_FOUND,
+          message: "Diet plan not found for the given ID.",
+        });
+      }
+
       return this.successResponse({
         status: StatusCode.OK,
         data: dietPlan,
@@ -120,6 +134,12 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
 
     try {
       const dietPlan = await this.service.getDietPlanByUserId(userId, populate === "true");
+      if (!dietPlan) {
+        return this.errorResponse({
+          status: StatusCode.NOT_FOUND,
+          message: "Diet plan not found for the given user ID.",
+        });
+      }
 
       return this.successResponse({
         status: StatusCode.OK,
