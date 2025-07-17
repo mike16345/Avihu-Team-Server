@@ -5,10 +5,10 @@ import { ISession } from "../models/sessionModel";
 import { API_HEADERS } from "../constants/Constants";
 import { DietPlanService } from "../services/dietPlanService";
 import { RecordedSetsService } from "../services/recordedSetsService";
-import { weighInServices } from "../services/weighInService";
 import { UserImageUrlService } from "../services/UserImageUrlService";
 import PasswordsService from "../services/PasswordsService";
 import { WorkoutPlanService } from "../services/workoutPlanService";
+import WeighInService from "../services/weighInService";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -131,7 +131,7 @@ export const returnStringVal = (arr: any[]) => {
 export const deleteUserDataFromAllCollections = async (userId: string) => {
   await new DietPlanService().delete({ userId }).catch((err) => console.log(err));
   await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
-  await weighInServices.deleteUserWeighIns(userId).catch((err) => console.log(err));
+  await new WeighInService().delete({ userId }).catch((err) => console.log(err));
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await new PasswordsService().deletePasswordByUserId(userId).catch((err) => console.log(err));
   await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));

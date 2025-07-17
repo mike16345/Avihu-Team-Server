@@ -1,6 +1,4 @@
-import { WeighIns } from "../models/weighInModel";
 import { IWeighIn, IWeighIns } from "../interfaces/IWeighIns";
-import { Cache } from "../utils/cache";
 import { HALF_DAY_IN_MILLISECONDS } from "../constants/Constants";
 import { BaseService } from "./BaseService";
 import WeighInsRepository from "../repositories/WeighIns/WeighInRepository";
