@@ -5,14 +5,16 @@ import { validateWeighIn } from "../../middleware/weighInsMiddleware";
 
 const BASE_PATH = "/weighIns/weights";
 
+const weighInsController = new WeighInsController();
+
 const weighInApiHandlers = {
-  [`GET ${BASE_PATH}/one`]: WeighInsController.getWeighInsById, // Get weigh ins by ID
-  [`GET ${BASE_PATH}/user`]: WeighInsController.getWeighInsByUserId, // Get user by ID
-  [`PUT ${BASE_PATH}/one`]: WeighInsController.updateWeighIn, // Update user by ID
-  [`POST ${BASE_PATH}/bulk`]: WeighInsController.addManyWeighIns, // Update users (bulk)
-  [`POST ${BASE_PATH}`]: WeighInsController.addWeighIn, // Add new user
-  [`DELETE ${BASE_PATH}/user`]: WeighInsController.deleteUserWeighIns, // Delete user by ID
-  [`DELETE ${BASE_PATH}/one`]: WeighInsController.deleteWeighInById, // Delete user by ID
+  [`GET ${BASE_PATH}/one`]: weighInsController.getById,
+  [`GET ${BASE_PATH}/user`]: weighInsController.getWeighInsByUserId,
+  [`PUT ${BASE_PATH}/one`]: weighInsController.updateWeighIn,
+  [`POST ${BASE_PATH}/bulk`]: weighInsController.addManyWeighIns,
+  [`POST ${BASE_PATH}`]: weighInsController.addWeighIn,
+  [`DELETE ${BASE_PATH}/user`]: weighInsController.delete,
+  [`DELETE ${BASE_PATH}/one`]: weighInsController.delete,
 };
 
 const weighInApiValidators = {
