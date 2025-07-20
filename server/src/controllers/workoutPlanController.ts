@@ -26,7 +26,7 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
     }
 
     try {
-      const workoutPlanResult = await this.create(workoutPlan);
+      const workoutPlanResult = await this.service.create(workoutPlan);
 
       return createResponseWithData(
         StatusCode.CREATED,
