@@ -16,25 +16,25 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
   }
 
   addWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const userId = event?.queryStringParameters?.id;
+    const { error, id: userId } = this.getParamsOrError(event, ["id"]);
     const body = extractBodyFromEvent(event);
 
     const workoutPlan = { ...body, userId: userId };
 
-    if (!body) {
-      return createResponse(StatusCode.BAD_REQUEST, "Workout plan data is required.");
+    if (!body || error) {
+      return error || this.errorResponse("Workout plan data is required!", StatusCode.BAD_REQUEST);
     }
 
     try {
       const workoutPlanResult = await this.service.create(workoutPlan);
 
-      return createResponseWithData(
-        StatusCode.CREATED,
-        workoutPlanResult,
-        "Successfully added workout plan!"
-      );
+      return this.successResponse({
+        status: StatusCode.CREATED,
+        data: workoutPlanResult,
+        message: "Successfully added workout plan!",
+      });
     } catch (err: any) {
-      return createServerErrorResponse(err);
+      return this.errorResponse(err);
     }
   };
 }
