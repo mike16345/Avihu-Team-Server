@@ -12,9 +12,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
   }
 
   addDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, data } = this.getParamsOrError(event, ["data"], "body");
-
-    if (error) return error;
+    const data = extractBodyFromEvent(event);
 
     try {
       data.totalCalories = calculateTotalCalories(data.meals, data.fatsPerDay);
