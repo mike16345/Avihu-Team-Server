@@ -16,7 +16,7 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
   }
 
   async addManyWeighIns(data: IWeighIn[], id: string) {
-    const weighInsDocs = await Promise.all(data.map((weighIn) => this.addWeighIn(weighIn, id)));
+    const weighInsDocs = this.repository.addManyWeighIns(data, id);
 
     return weighInsDocs;
   }
@@ -54,5 +54,12 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
 
     // Return the updated subdocument
     return parentDoc.weighIns[subDocIndex];
+  }
+
+  async deleteWeighInById(id: string) {
+    const result = await this.repository.deleteWeighInById(id);
+    this.cache.invalidateAll();
+
+    return result;
   }
 }

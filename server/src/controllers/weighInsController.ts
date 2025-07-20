@@ -85,6 +85,19 @@ class WeighInsController extends BaseController<IWeighIns, WeighInService> {
       return this.errorResponse(err);
     }
   };
+
+  deleteWeighInById = async (event: APIGatewayProxyEvent) => {
+    const { error, id } = this.getParamsOrError(event, ["id"]);
+
+    if (error) return error;
+
+    try {
+      const result = await this.service.deleteWeighInById(id);
+      return this.successResponse({ data: result, message: "משקל נמחק בהתצלחה!" });
+    } catch (error: any) {
+      return this.errorResponse(error);
+    }
+  };
 }
 
 export default WeighInsController;

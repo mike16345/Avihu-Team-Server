@@ -14,7 +14,7 @@ const weighInApiHandlers = {
   [`POST ${BASE_PATH}/bulk`]: weighInsController.addManyWeighIns,
   [`POST ${BASE_PATH}`]: weighInsController.addWeighIn,
   [`DELETE ${BASE_PATH}/user`]: weighInsController.delete,
-  [`DELETE ${BASE_PATH}/one`]: weighInsController.delete,
+  [`DELETE ${BASE_PATH}/one`]: weighInsController.deleteWeighInById,
 };
 
 const weighInApiValidators = {

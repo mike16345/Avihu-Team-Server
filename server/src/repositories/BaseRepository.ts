@@ -115,6 +115,9 @@ export class BaseRepository<T> {
   }
 
   async delete(query: FilterQuery<T>) {
+    if (!query || Object.keys(query).length === 0) {
+      throw new Error("Empty query would result in unintended delete.");
+    }
     const deletedDoc = await this.model.findOneAndDelete(query).lean().exec();
 
     return deletedDoc;
