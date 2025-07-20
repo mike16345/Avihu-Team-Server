@@ -1,6 +1,5 @@
-import { Document, FilterQuery, Types } from "mongoose";
+import { FilterQuery } from "mongoose";
 import { IUserImageUrls, UserImageUrlsModel } from "../../models/urlModel";
-import { UpdateOptions } from "../../types/mongooseTypes";
 import { BaseRepository } from "../BaseRepository";
 
 export default class UserImageUrlsRepository extends BaseRepository<IUserImageUrls> {
