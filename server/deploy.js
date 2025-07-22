@@ -4,7 +4,7 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const path = require("path");
 const { setupAliases } = require("./scripts/setupAliases");
-const sleep=require('./scripts/utils')
+const sleep = require("./scripts/utils");
 
 const { lambdaConfig } = require("./config/lambdaConfig");
 
@@ -20,7 +20,8 @@ const lambdaFolder = "./src/functions";
 // ENV variables
 
 // DB
-const DB_NAME = `DB_NAME=${process.env.DB_NAME}`;
+const DB_NAME_DEV = `DB_NAME=${process.env.DB_NAME_DEV}`;
+const DB_NAME_PROD = `DB_NAME=${process.env.DB_NAME_PROD}`;
 const MONGO_URI = `MONGO_URI=${process.env.MONGO_URI}`;
 
 // AWS
@@ -34,7 +35,7 @@ const EMAIL = `EMAIL=${process.env.EMAIL}`;
 const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 
 const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
-const apiEnv = `${DB_NAME},${MONGO_URI}`;
+const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI}`;
 const envMap = {
   signedUrl: signedUrlEnv,
   api: apiEnv,
@@ -84,7 +85,7 @@ async function deploy({ functionName, handlerPath }, envKey = null) {
     console.log(`Uploading code with lambda-build...`);
     execSync(uploadCommand, { stdio: "inherit" });
 
-    await sleep(2000)
+    await sleep(2000);
 
     setupAliases(functionName, promote);
 
