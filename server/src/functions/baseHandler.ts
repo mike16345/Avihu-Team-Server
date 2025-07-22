@@ -3,6 +3,7 @@ import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
 import { createResponse } from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
+import { getDbName } from "../utils/lambdaHelpers";
 
 export type ApiHandlers = {
   [key: string]: Function;
@@ -31,7 +32,8 @@ export const handleApiCall = async (
         headers: API_HEADERS,
       };
     }
-    await connectToDB();
+    const dbName = getDbName(event);
+    await connectToDB(dbName);
 
     if (apiValidators && apiValidators[routeKey]) {
       console.log("Performing validations");

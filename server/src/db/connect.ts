@@ -1,29 +1,40 @@
 import mongoose from "mongoose";
 
-let conn: Promise<mongoose.Mongoose> | null = null;
+let conn: Promise<typeof mongoose> | null = null;
 
-const dbName = process.env.DB_NAME;
 const uri = process.env.MONGO_URI;
 
-export default async function () {
-  if (!uri || !dbName) throw new Error("URI or DB name is undefined! Please check env variables.");
+export default async function connectToDB(dbName: string) {
+  if (!uri) throw new Error("MONGO_URI is undefined");
+  if (!dbName) throw new Error("dbName is undefined");
+  console.log("Connecting to database...");
+
+  const isAlreadyConnected = conn && mongoose.connection.name === dbName;
 
   try {
-    console.log("connecting to database");
-    if (conn == null) {
-      conn = mongoose
-        .connect(uri, {
-          serverSelectionTimeoutMS: 5000,
-          dbName: dbName,
-        })
-        .then(() => mongoose);
-      await conn;
+    if (isAlreadyConnected) {
+      console.log("Already connected!");
+      return conn;
     }
 
-    console.log("Connected to database!");
+    if (mongoose.connection.readyState === 1) {
+      console.log("Connection was live, disconnecting...");
+      await mongoose.disconnect();
+    }
+
+    console.log("Creating new connection...");
+    conn = mongoose
+      .connect(uri, {
+        dbName,
+        serverSelectionTimeoutMS: 5000,
+      })
+      .then((mongoose) => mongoose);
+
+    await conn;
+    console.log(`Connected to MongoDB: ${dbName}`);
+
     return conn;
-  } catch (e) {
-    throw e;
+  } catch (error) {
+    throw error;
   }
 }
-export { conn };
