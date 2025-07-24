@@ -20,8 +20,8 @@ const lambdaFolder = "./src/functions";
 // ENV variables
 
 // DB
-const DB_NAME_DEV = `DB_NAME=${process.env.DB_NAME_DEV}`;
-const DB_NAME_PROD = `DB_NAME=${process.env.DB_NAME_PROD}`;
+const DB_NAME_DEV = `DB_NAME_DEV=${process.env.DB_NAME_DEV}`;
+const DB_NAME_PROD = `DB_NAME_PROD=${process.env.DB_NAME_PROD}`;
 const MONGO_URI = `MONGO_URI=${process.env.MONGO_URI}`;
 
 // AWS
