@@ -1,8 +1,6 @@
 import { IWorkoutPlanPreset, WorkoutPlanPreset } from "../../models/workoutPlanPresetModel";
-import { BaseRepository } from "../BaseRepository";
+import { WorkoutPlanRepository } from "../workoutPlan/WorkoutPlanRepository";
 
-export class WorkoutPlanPresetRepository extends BaseRepository<IWorkoutPlanPreset> {
-  constructor() {
-    super(WorkoutPlanPreset);
-  }
-}
+export const WorkoutPlanPresetRepository = new WorkoutPlanRepository<IWorkoutPlanPreset>(
+  WorkoutPlanPreset
+);

@@ -8,7 +8,7 @@ import {
 } from "./workoutPlanModel";
 import Joi from "joi";
 
-export interface IWorkoutPlanPreset extends IFullWorkoutPlan {
+export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
 }
 

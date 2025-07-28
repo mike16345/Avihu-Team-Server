@@ -1,13 +1,16 @@
 import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
-import { WorkoutPlanRepository } from "../repositories/workoutPlan/WorkoutPlanRepository";
+import { workoutPlanRepository } from "../repositories/workoutPlan/WorkoutPlanRepository";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
 import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = `workout-plan`;
 
-export class WorkoutPlanService extends BaseService<IFullWorkoutPlan, WorkoutPlanRepository> {
+export class WorkoutPlanService extends BaseService<
+  IFullWorkoutPlan,
+  typeof workoutPlanRepository
+> {
   constructor() {
-    super(new WorkoutPlanRepository(), RESOURCE_NAME);
+    super(workoutPlanRepository, RESOURCE_NAME);
   }
 
   addWorkoutPlan = async (workoutPlan: IFullWorkoutPlan) => {

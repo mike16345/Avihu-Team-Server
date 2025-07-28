@@ -6,9 +6,9 @@ const baseKey = "workout-plan-preset";
 
 export class WorkoutPlanPresetService extends BaseService<
   IWorkoutPlanPreset,
-  WorkoutPlanPresetRepository
+  typeof WorkoutPlanPresetRepository
 > {
   constructor() {
-    super(new WorkoutPlanPresetRepository(), baseKey);
+    super(WorkoutPlanPresetRepository, baseKey);
   }
 }

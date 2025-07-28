@@ -7,11 +7,7 @@ import { BaseRepository } from "../BaseRepository";
 import { FIND_ONE_FAILURE } from "../../constants/repository";
 import { StatusCode } from "../../enums/StatusCode";
 
-export class WorkoutPlanRepository extends BaseRepository<IFullWorkoutPlan> {
-  constructor() {
-    super(WorkoutPlan);
-  }
-
+export class WorkoutPlanRepository<T> extends BaseRepository<T> {
   private populateWorkoutPlan(
     query: ReturnType<
       typeof this.model.find | typeof this.model.findOne | typeof this.model.findById
@@ -54,3 +50,5 @@ export class WorkoutPlanRepository extends BaseRepository<IFullWorkoutPlan> {
     return plans;
   }
 }
+
+export const workoutPlanRepository = new WorkoutPlanRepository<IFullWorkoutPlan>(WorkoutPlan);
