@@ -1,5 +1,4 @@
-import {   IWorkoutPlanPreset } from "../../interfaces/IWorkoutPlan";
-import { WorkoutPlanPreset } from "../../models/workoutPlanPresetModel";
+import { IWorkoutPlanPreset, WorkoutPlanPreset } from "../../models/workoutPlanPresetModel";
 import { BaseRepository } from "../BaseRepository";
 
 export class WorkoutPlanPresetRepository extends BaseRepository<IWorkoutPlanPreset> {
