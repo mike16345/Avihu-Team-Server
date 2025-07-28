@@ -1,14 +1,18 @@
 import { FullWorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
 import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
-import {  createValidatorResponse } from "../utils/utils";
+import {
+  createValidatorResponse,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+} from "../utils/utils";
 import { APIGatewayEvent } from "aws-lambda";
 
 export const validateWorkoutPlan = (event: APIGatewayEvent) => {
-  const { id, userId } = event?.queryStringParameters || {};
-  const body = JSON.parse(event?.body || "{}");
+  const { id, userId } = extractQueryFromEvent(event);
+  const body = extractBodyFromEvent(event);
 
   if (!id && !userId) {
-    return createValidatorResponse(true, "User ID is required!");
+    return createValidatorResponse(false, "User ID is required!");
   }
 
   const { error } = FullWorkoutPlanSchemaValidation.validate(body);
