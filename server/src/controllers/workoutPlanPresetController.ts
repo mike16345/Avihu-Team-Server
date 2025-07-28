@@ -1,9 +1,9 @@
 import { WorkoutPlanPresetService } from "../services/workoutPlanPresetService";
 import BaseController from "./BaseController";
-import { IWorkoutPlanPreset } from "../interfaces/IWorkoutPlan";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { extractBodyFromEvent } from "../utils/utils";
+import { IWorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 
 export class WorkoutPlanPresetsController extends BaseController<
   IWorkoutPlanPreset,

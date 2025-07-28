@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import {
   IMuscleGroupWorkoutPlan,
   IDetailedWorkoutPlan,
-  IWorkout,
+  IExercise,
   IFullWorkoutPlan,
 } from "../interfaces/IWorkoutPlan";
 import Joi from "joi";
@@ -21,19 +21,15 @@ export const setSchema: Schema<ISet> = new Schema({
   },
 });
 
-export const workoutSchema: Schema<IWorkout> = new Schema({
-  name: {
-    type: String,
+export const exerciseSchema: Schema<IExercise> = new Schema({
+  exerciseId: {
+    type: Schema.Types.ObjectId,
     required: true,
+    ref: "exercisePresets",
   },
   sets: {
     type: [setSchema],
     required: true,
-  },
-  linkToVideo: {
-    type: String,
-    required: false,
-    default: "",
   },
   tipFromTrainer: {
     type: String,
@@ -42,6 +38,7 @@ export const workoutSchema: Schema<IWorkout> = new Schema({
   exerciseMethod: {
     type: String,
     minlength: 1,
+    required: false,
   },
   restTime: {
     type: Number,
@@ -55,13 +52,13 @@ export const muscleGroupWorkoutPlanSchema: Schema<IMuscleGroupWorkoutPlan> = new
     required: true,
   },
   exercises: {
-    type: [workoutSchema],
+    type: [exerciseSchema],
     required: true,
     validate: {
-      validator: function (v: IWorkout[]) {
+      validator: function (v: IExercise[]) {
         return v.length > 0;
       },
-      message: "Workouts array cannot be empty",
+      message: "Exercises array cannot be empty",
     },
   },
 });
@@ -78,7 +75,7 @@ export const workoutPlanSchema: Schema<IDetailedWorkoutPlan> = new Schema({
       validator: function (v: IMuscleGroupWorkoutPlan[]) {
         return v.length > 0;
       },
-      message: "Workouts array cannot be empty",
+      message: "Muscle Groups array cannot be empty",
     },
     required: true,
   },
@@ -155,6 +152,7 @@ export const workoutValidationSchema = Joi.object({
   tipFromTrainer: Joi.string().allow("").optional(),
   exerciseMethod: Joi.string().min(1).optional().allow(""),
   restTime: Joi.number().min(1).max(300),
+  exerciseId: Joi.string().required(),
 });
 
 export const muscleGroupWorkoutPlanValidationSchema = Joi.object({
