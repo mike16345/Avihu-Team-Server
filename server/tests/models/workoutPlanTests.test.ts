@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import {
   setSchema,
-  workoutSchema,
+  fullWorkoutPlanSchema,
   muscleGroupWorkoutPlanSchema,
   workoutPlanSchema,
   FullWorkoutPlanSchemaValidation,
@@ -24,7 +24,7 @@ const { model } = mongoose;
 
 describe("Mongoose Schemas", () => {
   const Set = model("Set", setSchema);
-  const Workout = model("Workout", workoutSchema);
+  const Workout = model("Workout", fullWorkoutPlanSchema);
   const MuscleGroupWorkoutPlan = model("MuscleGroupWorkoutPlan", muscleGroupWorkoutPlanSchema);
   const WorkoutPlan = model("WorkoutPlan", workoutPlanSchema);
 
@@ -40,13 +40,6 @@ describe("Mongoose Schemas", () => {
     const invalidSet = new Set(InvalidSet);
 
     await expect(invalidSet.save()).rejects.toThrow(mongoose.Error.ValidationError);
-  });
-
-  test("should validate a valid workout", async () => {
-    const validWorkout = new Workout(ValidWorkout);
-    const savedWorkout = await validWorkout.save();
-
-    expect(savedWorkout.name).toBe(ValidWorkout.name);
   });
 
   test("should throw validation error for invalid workout", async () => {

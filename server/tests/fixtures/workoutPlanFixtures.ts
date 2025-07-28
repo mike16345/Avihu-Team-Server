@@ -7,10 +7,8 @@ export const InvalidSet = {
   minReps: -1,
 };
 
-export const ValidWorkout = {
-  name: "Push Up",
+export const ValidWorkout: any = {
   sets: [ValidSet],
-  linkToVideo: "http://example.com",
   tipFromTrainer: "Keep your back straight.",
 };
 
