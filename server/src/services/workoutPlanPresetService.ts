@@ -1,5 +1,6 @@
 import { IWorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 import { WorkoutPlanPresetRepository } from "../repositories/Presets/WorkoutPlanPresetRepository";
+import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
 import { BaseService } from "./BaseService";
 
 const baseKey = "workout-plan-preset";
@@ -11,4 +12,18 @@ export class WorkoutPlanPresetService extends BaseService<
   constructor() {
     super(WorkoutPlanPresetRepository, baseKey);
   }
+
+  addWorkoutPlanPreset = async (workoutPlan: IWorkoutPlanPreset) => {
+    const plan = (await sanitizeWorkoutPlanForInsert(workoutPlan)) as IWorkoutPlanPreset;
+    const newPlan = await this.repository.create(plan);
+
+    return newPlan;
+  };
+
+  updateWorkoutPlanPreset = async (workoutPlan: IWorkoutPlanPreset, id: string) => {
+    const plan = (await sanitizeWorkoutPlanForInsert(workoutPlan)) as IWorkoutPlanPreset;
+    const updatedPlan = await this.repository.updateById(id, { update: plan });
+
+    return updatedPlan;
+  };
 }

@@ -91,7 +91,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const updated = await this.repository.updateOne({
       filter,
       update,
-      options: { new: true },
+      options: { new: true, lean: true },
     });
 
     this.cache.invalidateAll();

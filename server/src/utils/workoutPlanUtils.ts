@@ -4,10 +4,11 @@ import {
   IMuscleGroupWorkoutPlan,
   IExercise,
 } from "../interfaces/IWorkoutPlan";
+import { IWorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 
 export async function sanitizeWorkoutPlanForInsert(
-  workoutPlan: IFullWorkoutPlan
-): Promise<IFullWorkoutPlan> {
+  workoutPlan: IFullWorkoutPlan | IWorkoutPlanPreset
+): Promise<IFullWorkoutPlan | IWorkoutPlanPreset> {
   const sanitizedPlans = await Promise.all(workoutPlan.workoutPlans.map(sanitizeWorkoutPlan));
 
   return {
@@ -35,9 +36,17 @@ async function sanitizeMuscleGroup(group: IMuscleGroupWorkoutPlan) {
 }
 
 async function sanitizeExercise(exercise: IExercise) {
-  const { name, linkToVideo, ...rest } = exercise;
+  const { name, linkToVideo, exerciseId, ...rest } = exercise;
+  if (exerciseId.linkToVideo) {
+    delete exerciseId.linkToVideo;
+  }
+
+  if (exerciseId.name) {
+    delete exerciseId.name;
+  }
 
   return {
     ...rest,
+    exerciseId,
   };
 }

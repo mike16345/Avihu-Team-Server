@@ -14,9 +14,16 @@ export class WorkoutPlanService extends BaseService<
   }
 
   addWorkoutPlan = async (workoutPlan: IFullWorkoutPlan) => {
-    const plan = await sanitizeWorkoutPlanForInsert(workoutPlan);
+    const plan = (await sanitizeWorkoutPlanForInsert(workoutPlan)) as IFullWorkoutPlan;
     const newPlan = await this.repository.create(plan);
 
     return newPlan;
+  };
+
+  updateWorkoutPlan = async (workoutPlan: IFullWorkoutPlan, userId: string) => {
+    const plan = await sanitizeWorkoutPlanForInsert(workoutPlan);
+    const updatedPlan = await this.repository.updateOne({ filter: { userId }, update: plan });
+
+    return updatedPlan;
   };
 }
