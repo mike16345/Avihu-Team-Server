@@ -146,13 +146,22 @@ export const setValidationSchema = Joi.object({
 });
 
 export const workoutValidationSchema = Joi.object({
-  name: Joi.string().required(),
+  name: Joi.string().optional(),
   sets: Joi.array().items(setValidationSchema).required(),
   linkToVideo: Joi.string().optional(),
   tipFromTrainer: Joi.string().allow("").optional(),
   exerciseMethod: Joi.string().min(1).optional().allow(""),
   restTime: Joi.number().min(1).max(300),
-  exerciseId: Joi.string().required(),
+  exerciseId: Joi.alternatives()
+    .try(
+      Joi.string().required(),
+      Joi.object({
+        name: Joi.string(),
+        linkToVideo: Joi.string(),
+        _id: Joi.string(),
+      })
+    )
+    .required(),
 });
 
 export const muscleGroupWorkoutPlanValidationSchema = Joi.object({

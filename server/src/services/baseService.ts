@@ -37,15 +37,13 @@ export class BaseService<T, R extends BaseRepository<T>> {
     if (cached) return cached;
     const data = await this.repository.find({ query: filter });
 
-    if (!data) throw new Error("Data could not be retrieved!");
-
     this.cache.set(key, data);
 
     return data;
   }
 
   async findPaginated(
-    params: Omit<PaginationParams, "model">,
+    params: PaginationParams,
     resource: string = ""
   ): Promise<PaginationResult<T>> {
     const cacheKey = this.generateCacheKey(
@@ -57,7 +55,6 @@ export class BaseService<T, R extends BaseRepository<T>> {
     if (cached) return cached;
 
     const data = await this.repository.getPaginated(params);
-    if (!data) throw new Error("Error retrieving page!");
 
     this.cache.set(cacheKey, data);
     return data;

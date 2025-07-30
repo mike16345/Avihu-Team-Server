@@ -57,7 +57,7 @@ export class WorkoutPlanPresetsController extends BaseController<
     if (error) return error;
 
     try {
-      const updatedWorkoutPlanPreset = await this.service.updateWorkoutPlanPreset(presetId, data);
+      const updatedWorkoutPlanPreset = await this.service.updateWorkoutPlanPreset(data, presetId);
 
       return this.successResponse({ status: StatusCode.OK, data: updatedWorkoutPlanPreset });
     } catch (err: any) {

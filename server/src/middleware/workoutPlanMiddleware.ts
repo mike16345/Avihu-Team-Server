@@ -4,12 +4,13 @@ import {
   createValidatorResponse,
   extractBodyFromEvent,
   extractQueryFromEvent,
+  removeNestedIds,
 } from "../utils/utils";
 import { APIGatewayEvent } from "aws-lambda";
 
 export const validateWorkoutPlan = (event: APIGatewayEvent) => {
   const { id, userId } = extractQueryFromEvent(event);
-  const body = extractBodyFromEvent(event);
+  const body = removeNestedIds(extractBodyFromEvent(event));
 
   if (!id && !userId) {
     return createValidatorResponse(false, "User ID is required!");
@@ -21,7 +22,7 @@ export const validateWorkoutPlan = (event: APIGatewayEvent) => {
 };
 
 export const validateWorkoutPlanPreset = (event: APIGatewayEvent) => {
-  const body = JSON.parse(event?.body || "{}");
+  const body = removeNestedIds(extractBodyFromEvent(event));
 
   const { error } = WorkoutPlanPresetSchemaValidation.validate(body);
   const isValid = !error;

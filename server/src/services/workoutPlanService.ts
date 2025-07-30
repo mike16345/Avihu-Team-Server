@@ -1,5 +1,6 @@
 import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 import { workoutPlanRepository } from "../repositories/workoutPlan/WorkoutPlanRepository";
+import { removeNestedIds } from "../utils/utils";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
 import { BaseService } from "./baseService";
 
@@ -14,15 +15,20 @@ export class WorkoutPlanService extends BaseService<
   }
 
   addWorkoutPlan = async (workoutPlan: IFullWorkoutPlan) => {
-    const plan = (await sanitizeWorkoutPlanForInsert(workoutPlan)) as IFullWorkoutPlan;
-    const newPlan = await this.repository.create(plan);
+    const plan = sanitizeWorkoutPlanForInsert(workoutPlan) as IFullWorkoutPlan;
+    const cleanedPlan = removeNestedIds(plan);
+    const newPlan = await this.repository.create(cleanedPlan);
 
     return newPlan;
   };
 
   updateWorkoutPlan = async (workoutPlan: IFullWorkoutPlan, userId: string) => {
-    const plan = await sanitizeWorkoutPlanForInsert(workoutPlan);
-    const updatedPlan = await this.repository.updateOne({ filter: { userId }, update: plan });
+    const plan = sanitizeWorkoutPlanForInsert(workoutPlan);
+    const cleanedPlan = removeNestedIds(plan);
+    const updatedPlan = await this.repository.updateOne({
+      filter: { userId },
+      update: cleanedPlan,
+    });
 
     return updatedPlan;
   };
