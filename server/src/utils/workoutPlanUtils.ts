@@ -3,17 +3,33 @@ import {
   IDetailedWorkoutPlan,
   IMuscleGroupWorkoutPlan,
   IExercise,
+  ICardioPlan,
+  ISimpleCardioType,
 } from "../interfaces/IWorkoutPlan";
 import { IWorkoutPlanPreset } from "../models/workoutPlanPresetModel";
+
+export function sanitizeCardioPlan(cardio: ICardioPlan): ICardioPlan {
+  if (cardio.type === "simple") {
+    const { weeks, ...rest } = cardio.plan as ISimpleCardioType & { weeks?: any };
+    return {
+      type: "simple",
+      plan: rest,
+    };
+  }
+
+  return cardio;
+}
 
 export function sanitizeWorkoutPlanForInsert(
   workoutPlan: IFullWorkoutPlan | IWorkoutPlanPreset
 ): IFullWorkoutPlan | IWorkoutPlanPreset {
   const sanitizedPlans = workoutPlan.workoutPlans.map(sanitizeWorkoutPlan);
+  const sanitizedCardio = sanitizeCardioPlan(workoutPlan.cardio);
 
   return {
     ...workoutPlan,
     workoutPlans: sanitizedPlans,
+    cardio: sanitizedCardio,
   };
 }
 

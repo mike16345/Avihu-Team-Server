@@ -30,6 +30,16 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return newDoc;
   }
 
+  async isExists(fields: Partial<T>): Promise<boolean> {
+    const conditions = Object.entries(fields).map(([key, value]) => ({
+      [key as any]: value as any,
+    }));
+
+    if (conditions.length === 0) return false;
+
+    return await this.repository.isExists({ $or: conditions });
+  }
+
   async find(filter: Partial<Record<keyof T, any>> = {}): Promise<T[]> {
     const key = this.generateCacheKey("query", stableStringify(filter));
     const cached = this.cache.get(key);
