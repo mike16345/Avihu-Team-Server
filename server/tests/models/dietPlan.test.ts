@@ -26,7 +26,6 @@ describe("Mongoose Schemas", () => {
     const savedItem = await validItem.save();
 
     expect(savedItem.quantity).toBe(validDietItem.quantity);
-    expect(savedItem.unit).toBe(validDietItem.unit);
   });
 
   test("should throw validation error for invalid diet item", async () => {

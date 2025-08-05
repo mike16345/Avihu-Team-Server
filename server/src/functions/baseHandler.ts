@@ -41,6 +41,7 @@ export const handleApiCall = async (
       const validationResult = await validatorFunction(event, context);
       console.log("Validation result: ", validationResult);
       if (!validationResult.isValid) {
+        console.log("JOI Validation middleware failed:", validationResult.message);
         return {
           ...createResponse(StatusCode.BAD_REQUEST, validationResult.message),
           headers: API_HEADERS,

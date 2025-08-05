@@ -35,7 +35,7 @@ export class OTPController {
       if (!isValidOtp) {
         return createResponse(StatusCode.NOT_ACCEPTABLE, "Invalid OTP");
       }
-      const session = await SessionService.startSession({ userId: email, type: "otp" });
+      const session = await new SessionService().create({ userId: email, type: "otp" } as any);
 
       cache.invalidate(cacheKey);
 
@@ -59,7 +59,7 @@ export class OTPController {
           body: JSON.stringify({ message: "Email is required" }),
         };
       }
-      const user = (await UserService.getUsersByParameter({ email: email.toLowerCase() })).at(0);
+      const user = await new UserService().findOne({ email: email.toLowerCase() });
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");

@@ -7,6 +7,6 @@ export interface IWeighIn {
 
 export interface IWeighIns {
   id: ObjectId;
-  userId: ObjectId;
+  userId: string;
   weighIns: IWeighIn[];
 }

@@ -1,5 +1,5 @@
 import { IDietPlanPreset } from "../interfaces/IDietPlan";
-import { DietPlanPresetRepository } from "../repositories/Presets/dietPlanPresetRepository";
+import { DietPlanPresetRepository } from "../repositories/Presets/DietPlanPresetRepository";
 import { BaseService } from "./BaseService";
 
 

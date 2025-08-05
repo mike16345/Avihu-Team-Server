@@ -5,16 +5,16 @@ import { validateWorkoutPlan } from "../../middleware/workoutPlanMiddleware";
 
 const BASE_PATH = "/workoutPlans";
 
-const workoutPlanController=new WorkoutPlanController();
+const workoutPlanController = new WorkoutPlanController();
 
 const workoutPlanApiHandlers = {
-  [`GET ${BASE_PATH}`]: workoutPlanController.getAll, 
-  [`GET ${BASE_PATH}/one`]:workoutPlanController.getById, 
-  [`GET ${BASE_PATH}/user`]: workoutPlanController.getOne, 
-  [`PUT ${BASE_PATH}/one`]:workoutPlanController.updateById,
-  [`PUT ${BASE_PATH}/one/user`]: workoutPlanController.update, 
-  [`POST ${BASE_PATH}`]:workoutPlanController.addWorkoutPlan,
-  [`DELETE ${BASE_PATH}/one`]:workoutPlanController.deleteById,  
+  [`GET ${BASE_PATH}`]: workoutPlanController.getAll,
+  [`GET ${BASE_PATH}/one`]: workoutPlanController.getById,
+  [`GET ${BASE_PATH}/user`]: workoutPlanController.getOne,
+  [`PUT ${BASE_PATH}/one`]: workoutPlanController.updateById,
+  [`PUT ${BASE_PATH}/one/user`]: workoutPlanController.update,
+  [`POST ${BASE_PATH}`]: workoutPlanController.addWorkoutPlan,
+  [`DELETE ${BASE_PATH}/one`]: workoutPlanController.deleteById,
 };
 
 const workoutPlanMiddleware = {

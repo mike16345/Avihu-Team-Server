@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "nodemon",
-    "start": "ts-node -T ./src/app.ts",
     "test": "jest",
     "create-lambda": "node ./scripts/createLambda.js",
     "configure-api-gateway": "node ./scripts/configureApiGateway.js",
@@ -17,26 +15,21 @@
   "dependencies": {
     "aws-sdk": "^2.1690.0",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.1",
-    "express": "^4.18.1",
     "joi": "^17.6.0",
-    "mongoose": "^6.3.2"
+    "mongoose": "^8.16.5",
+    "nodemailer": "^7.0.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/gridfs-stream": "^0.5.39",
     "@types/jest": "^29.5.12",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/multer": "^1.4.11",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^20.10.7",
+    "@types/nodemailer": "^6.4.17",
+    "dotenv": "^17.2.1",
     "inquirer": "^10.2.0",
     "jest": "^29.7.0",
     "mongodb-memory-server": "^9.4.0",
-    "nodemon": "^3.0.2",
     "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

@@ -13,9 +13,6 @@ export const exercisePresetSchema = new Schema<IExercisePreset>({
     required: true,
     minlength: 27,
   },
-  tipFromTrainer: {
-    type: String,
-  },
   muscleGroup: {
     type: String,
     required: true,
@@ -30,6 +27,5 @@ const youtubeUrlPattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$
 export const exercisePresetValidationSchema = Joi.object({
   name: Joi.string().min(1).required(),
   linkToVideo: Joi.string().min(27).pattern(youtubeUrlPattern).required(),
-  tipFromTrainer: Joi.string().min(1).optional().allow(""),
   muscleGroup: Joi.string().min(1).required(),
 });

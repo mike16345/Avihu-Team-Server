@@ -1,21 +1,23 @@
+import { Types } from "mongoose";
 import { ISet } from "./ISet";
 
 export interface IMuscleGroupWorkoutPlan {
   muscleGroup: string;
-  exercises: IWorkout[];
+  exercises: IExercise[];
 }
 
-export interface IWorkout {
+export interface IExercise {
+  exerciseId: Types.ObjectId;
   tipFromTrainer?: string;
-  linkToVideo?: string;
   exerciseMethod?: string;
-  name: string;
+  linkToVideo?: string;
+  name?: string;
   sets: ISet[];
   restTime: number;
 }
 
-export interface IExercisePreset extends Omit<IWorkout, 'sets' | 'restTime'|'exerciseMethod'>{
-muscleGroup:string;
+export interface IExercisePreset extends Omit<IExercise,"tipFromTrainer"| "sets" | "restTime" | "exerciseMethod"> {
+  muscleGroup: string;
 }
 
 export interface IDetailedWorkoutPlan {
@@ -59,7 +61,7 @@ export interface IComplexCardioType {
   tips?: string;
 }
 
-export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
+export interface IExercisePlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
 }
 
@@ -71,6 +73,6 @@ export interface IExerciseMethod {
 export interface ICardioWorkout {
   name: string;
 }
-export interface IMuscleGroup{
+export interface IMuscleGroup {
   name: string;
 }

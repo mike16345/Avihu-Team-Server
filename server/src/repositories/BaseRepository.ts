@@ -1,4 +1,11 @@
-import { FilterQuery, Model, ObjectId, QueryOptions, UpdateWriteOpResult } from "mongoose";
+import {
+  FilterQuery,
+  Model,
+  ObjectId,
+  QueryOptions,
+  RootFilterQuery,
+  UpdateWriteOpResult,
+} from "mongoose";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { FindOptions, FindOptionsNoQuery, UpdateOptions } from "../types/mongooseTypes";
 import { FIND_FAILURE, FIND_ONE_FAILURE, UPDATE_FAILURE } from "../constants/repository";
@@ -17,6 +24,12 @@ export class BaseRepository<T> {
     return newDoc;
   }
 
+  async isExists(filter: RootFilterQuery<T>): Promise<boolean> {
+    const count = await this.model.exists(filter);
+
+    return count !== null;
+  }
+  
   async find(options: FindOptions<T> = { query: {} }) {
     const { query, projection, queryOptions } = options;
     const data = await this.model.find(query, projection, queryOptions);
