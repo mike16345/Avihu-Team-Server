@@ -24,9 +24,9 @@ export const leadEmailTemplate = (name: string, phone: string, email: string) =>
   text: `${name} השאיר לך פרטים.\n\nמספר טלפון: ${phone}\n\nכתובת מייל: ${email}`,
   html: `
     <div dir="rtl" style="font-family: Arial, sans-serif; background-color: #f3f4f6; padding: 20px; border-radius: 8px;">
-      <h2 style="color: #2c3e50;">"משתמש חדש השאיר לך פרטים!</h2>
+      <h2 style="color: #2c3e50;">משתמש חדש השאיר לך פרטים!</h2>
       <p style="font-size: 16px; color: #333;">
-        ${name} התרשם מהאפליקציה והשאיר לך את הפרטים שךו בכדי שיחזרו אליו.
+        ${name} התרשם מהאפליקציה והשאיר לך את הפרטים שלו בכדי שיחזרו אליו.
       </p>
       <p style="font-size: 18px; color: #000; font-weight: bold; background-color: #e8f0fe; padding: 10px; border-radius: 5px; display: inline-block;">
         ${email}
