@@ -38,7 +38,7 @@ async function deployAllLambdas() {
     }
 
     try {
-      deploy({ functionName, handlerPath: selectedHandlerPath }, envToUse);
+      await deploy({ functionName, handlerPath: selectedHandlerPath }, envToUse);
     } catch (e) {
       console.log("Error deploying Lambda: ", e.message);
     }
