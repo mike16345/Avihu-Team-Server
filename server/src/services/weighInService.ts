@@ -11,12 +11,14 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
 
   async addWeighIn(data: any, userId: string) {
     const weighInsDoc = this.repository.addWeighIn(data, userId);
+    this.cache.invalidateAllContaining(userId);
 
     return weighInsDoc;
   }
 
   async addManyWeighIns(data: IWeighIn[], id: string) {
     const weighInsDocs = this.repository.addManyWeighIns(data, id);
+    this.cache.invalidateAllContaining(id);
 
     return weighInsDocs;
   }
@@ -50,7 +52,7 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
     // Update the specific subdocument
     parentDoc.weighIns[subDocIndex].weight = newWeighIn;
     await parentDoc.save();
-    this.cache.invalidate(parentDoc.userId);
+    this.cache.invalidateAllContaining(parentDoc.userId);
 
     // Return the updated subdocument
     return parentDoc.weighIns[subDocIndex];
