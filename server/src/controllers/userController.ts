@@ -8,7 +8,7 @@ import PasswordsService from "../services/PasswordsService";
 import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
-import { welcomeEmailTemplate } from "../utils/emailTemplates";
+import { leadEmailTemplate, welcomeEmailTemplate } from "../utils/emailTemplates";
 import AuthService from "../services/AuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
@@ -182,7 +182,7 @@ export class UserController extends BaseController<IUser, UserService> {
       if (session) {
         await this.sessionService.refreshSession(token._id);
       }
-      
+
       if (!user) {
         return this.errorResponse("User not found!", StatusCode.NOT_FOUND);
       }
@@ -197,6 +197,31 @@ export class UserController extends BaseController<IUser, UserService> {
           isValid: !!session,
           hasAccess: user.hasAccess,
         },
+      });
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
+
+  saveLead = async (event: APIGatewayEvent) => {
+    try {
+      const { email, phone, name, error } = this.getParamsOrError(
+        event,
+        ["email", "name", "phone"],
+        "body"
+      );
+
+      if (error) return error;
+
+      const mailOptions = {
+        to: "noammz101@gmail.com",
+        ...leadEmailTemplate(name, phone, email),
+      };
+
+      await new EmailService().sendEmail(mailOptions);
+
+      return this.successResponse({
+        status: StatusCode.OK,
       });
     } catch (error) {
       return this.errorResponse(error);
