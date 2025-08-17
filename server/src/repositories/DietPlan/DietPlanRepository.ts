@@ -3,7 +3,6 @@ import { IDietPlan } from "../../interfaces/IDietPlan";
 import { DietPlan } from "../../models/dietPlanModel";
 import { BaseRepository } from "../BaseRepository";
 import { fullMenuItemPresets } from "../../models/menuItemModel";
-import { FIND_FAILURE } from "../../constants/repository";
 
 export class DietPlanRepository extends BaseRepository<IDietPlan> {
   constructor() {
