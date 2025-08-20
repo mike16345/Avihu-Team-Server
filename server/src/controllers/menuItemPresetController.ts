@@ -33,8 +33,12 @@ export class MenuItemPresetController extends BaseController<
 
   getAllMenuItems = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-      const { dietaryTypes } = this.getParamsOrError(event, ["dietaryTypes"], "body");
-      const allMenuItems = await this.service.getAllMenuItems(dietaryTypes);
+      const { "dietaryRestrictions[]": dietaryRestrictions } =
+        event.multiValueQueryStringParameters || {};
+      const dietaryRestrictionsArray = dietaryRestrictions
+        ? dietaryRestrictions.map((str) => decodeURIComponent(str))
+        : undefined;
+      const allMenuItems = await this.service.getAllMenuItems(dietaryRestrictionsArray);
 
       return createResponseWithData(
         StatusCode.OK,
