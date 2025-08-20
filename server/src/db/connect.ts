@@ -13,7 +13,7 @@ export default async function connectToDB(dbName: string) {
 
   try {
     if (isAlreadyConnected) {
-      console.log("Already connected!");
+      console.log("Already connected!", mongoose.connection.name);
       return conn;
     }
 

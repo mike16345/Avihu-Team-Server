@@ -1,7 +1,8 @@
-// src/utils/getDbName.ts
 import { APIGatewayProxyEvent } from "aws-lambda";
 
 export function getDbName(event: APIGatewayProxyEvent): string {
+  return process.env.DB_NAME_PROD!;
+
   const alias = event?.stageVariables?.lambdaAlias || "prod";
 
   switch (alias) {
