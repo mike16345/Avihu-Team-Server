@@ -22,6 +22,11 @@ const userSchema = new Schema<IUser>({
     required: true,
     unique: true,
   },
+  profileImage: {
+    type: String,
+    required: false,
+    unique: true,
+  },
   dietaryType: {
     type: [String],
     required: true,
@@ -84,5 +89,6 @@ export const UserSchemaValidation = Joi.object({
   isChecked: Joi.boolean(),
   hasAccess: Joi.boolean(),
   imagesUploaded: Joi.boolean(),
+  profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean(),
 });

@@ -15,4 +15,5 @@ export interface IUser {
   imagesUploaded: boolean;
   hasAccess: boolean;
   isAdmin: boolean;
+  profileImage?: string;
 }
