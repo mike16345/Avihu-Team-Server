@@ -78,4 +78,34 @@ export default class ProgressNotesController extends BaseController<
       return this.errorResponse(error);
     }
   };
+
+  updateProgressNote = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { error, userId, date, content, cardio, workouts, diet, trainer, noteId } =
+      this.getParamsOrError(
+        event,
+        ["userId", "date", "content", "cardio", "workouts", "diet", "trainer", "noteId"],
+        "body"
+      );
+
+    if (error) return error;
+
+    try {
+      const response = await this.service.updateProgressNote(userId, noteId, {
+        date,
+        content,
+        cardio,
+        workouts,
+        trainer,
+        diet,
+      });
+
+      return this.successResponse({
+        data: response,
+        message: "Successfully created progress note",
+        status: StatusCode.OK,
+      });
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
 }

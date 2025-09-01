@@ -17,7 +17,20 @@ export class ProgressNotesRepository extends BaseRepository<IProgressNotes> {
 
   appendProgressNote(record: HydratedDocument<IProgressNotes>, note: IProgressNote) {
     record.progressNotes.push(note);
-    record.markModified("userProgressNote");
+    record.markModified("progressNotes");
+  }
+
+  updateProgressNote(
+    record: HydratedDocument<IProgressNotes>,
+    noteId: mongoose.Types.ObjectId,
+    note: IProgressNote
+  ) {
+    const target = record.progressNotes.find((progressNote) => progressNote._id?.equals(noteId));
+
+    if (target) {
+      Object.assign(target, note);
+      record.markModified("progressNotes");
+    }
   }
 
   removeProgressNote = async (

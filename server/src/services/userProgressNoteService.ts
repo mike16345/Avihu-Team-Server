@@ -25,6 +25,22 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
     }
   }
 
+  async updateProgressNote(userId: string, noteId: string, note: IProgressNote) {
+    try {
+      const objectUserId = new mongoose.mongo.ObjectId(userId);
+      const objectNoteId = new mongoose.mongo.ObjectId(noteId);
+      const progressNotesRecord = await this.repository.findOrCreate(objectUserId);
+      this.repository.updateProgressNote(progressNotesRecord, objectNoteId, note);
+      await progressNotesRecord.save();
+
+      this.cache.invalidateAllContaining(userId);
+
+      return progressNotesRecord;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getProgressNotesByUserId(userId: string) {
     try {
       const cacheKey = userId;

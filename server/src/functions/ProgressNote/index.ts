@@ -10,11 +10,13 @@ const progressNoteController = new ProgressNotesController();
 const progressNoteApiHandlers = {
   [`GET ${BASE_PATH}/one`]: progressNoteController.getProgressNotesByUserId,
   [`POST ${BASE_PATH}`]: progressNoteController.addProgressNote,
+  [`PUT ${BASE_PATH}`]: progressNoteController.updateProgressNote,
   [`DELETE ${BASE_PATH}`]: progressNoteController.removeProgressNote,
 };
 
 export const progressNoteMiddleWare = {
   [`POST ${BASE_PATH}`]: validateUserProgressNote,
+  [`PUT ${BASE_PATH}`]: validateUserProgressNote,
 };
 
 export const handler = async (

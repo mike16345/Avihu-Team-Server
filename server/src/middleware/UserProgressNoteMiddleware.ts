@@ -3,7 +3,7 @@ import { createValidatorResponse, extractBodyFromEvent, removeNestedIds } from "
 import { progressNoteSchemaValidator } from "../models/progressNotes";
 
 export const validateUserProgressNote = (event: APIGatewayEvent) => {
-  const { userId, progressNote } = extractBodyFromEvent(event);
+  const { userId, noteId, progressNote } = extractBodyFromEvent(event);
   const data = removeNestedIds(progressNote);
   let message = "";
 
