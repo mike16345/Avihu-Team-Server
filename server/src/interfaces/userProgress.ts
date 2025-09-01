@@ -12,7 +12,7 @@ export interface IProgressNote {
   content: string;
 }
 
-export interface IUserProgressNotes {
+export interface IProgressNotes {
   _id?: ObjectId;
   userId: ObjectId;
   progressNotes: IProgressNote[];

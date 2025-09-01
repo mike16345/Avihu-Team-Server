@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { IProgressNote, IUserProgressNotes } from "../interfaces/userProgress";
+import { IProgressNote, IProgressNotes } from "../interfaces/userProgress";
 import Joi from "joi";
 
 const progressOptions = {
@@ -7,7 +7,7 @@ const progressOptions = {
   enum: [25, 50, 75, 100],
 };
 
-export const progressNote = new Schema<IProgressNote>({
+const progressNote = new Schema<IProgressNote>({
   date: {
     type: Date,
     required: true,
@@ -24,12 +24,12 @@ export const progressNote = new Schema<IProgressNote>({
   },
 });
 
-export const userProgressNotes = new Schema<IUserProgressNotes>({
+const progressNotes = new Schema<IProgressNotes>({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   progressNotes: [progressNote],
 });
 
-export const UserProgressNote = model(`userProgressNote`, userProgressNotes);
+export const ProgressNote = model(`progressNotes`, progressNotes);
 
 export const progressOptionsValidator = Joi.number().valid([25, 50, 75, 100]);
 

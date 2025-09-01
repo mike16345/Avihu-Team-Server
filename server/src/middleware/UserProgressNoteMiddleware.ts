@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { createValidatorResponse, extractBodyFromEvent, removeNestedIds } from "../utils/utils";
-import { progressNoteSchemaValidator } from "../models/userProgressNotes";
+import { progressNoteSchemaValidator } from "../models/progressNotes";
 
 export const validateUserProgressNote = (event: APIGatewayEvent) => {
   const { userId, progressNote } = extractBodyFromEvent(event);

@@ -1,15 +1,15 @@
 import BaseController from "./BaseController";
-import { IUserProgressNotes } from "../interfaces/userProgress";
-import { UserProgressNoteService } from "../services/userProgressNoteService";
+import { IProgressNotes } from "../interfaces/userProgress";
+import { ProgressNoteService } from "../services/userProgressNoteService";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 
-export default class UserProgressNotesController extends BaseController<
-  IUserProgressNotes,
-  UserProgressNoteService
+export default class ProgressNotesController extends BaseController<
+  IProgressNotes,
+  ProgressNoteService
 > {
   constructor() {
-    super(new UserProgressNoteService());
+    super(new ProgressNoteService());
   }
 
   getProgressNotesByUserId = async (

@@ -1,16 +1,13 @@
 import { BaseService } from "./BaseService";
-import { IProgressNote, IUserProgressNotes } from "../interfaces/userProgress";
-import { UserProgressNotesRepository } from "../repositories/UserProgressNotes/UserProgressNotesRepository";
+import { IProgressNote, IProgressNotes } from "../interfaces/userProgress";
+import { ProgressNotesRepository } from "../repositories/ProgressNotes/ProgressNotesRepository";
 import mongoose from "mongoose";
 
-const RESOURCE_NAME = "user-progress-note";
+const RESOURCE_NAME = "progress-note";
 
-export class UserProgressNoteService extends BaseService<
-  IUserProgressNotes,
-  UserProgressNotesRepository
-> {
+export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNotesRepository> {
   constructor() {
-    super(new UserProgressNotesRepository(), RESOURCE_NAME);
+    super(new ProgressNotesRepository(), RESOURCE_NAME);
   }
 
   async addProgressNote(userId: string, note: IProgressNote) {

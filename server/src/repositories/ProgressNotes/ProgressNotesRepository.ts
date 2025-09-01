@@ -1,11 +1,11 @@
 import mongoose, { HydratedDocument } from "mongoose";
-import { IProgressNote, IUserProgressNotes } from "../../interfaces/userProgress";
-import { UserProgressNote } from "../../models/userProgressNotes";
+import { IProgressNote, IProgressNotes } from "../../interfaces/userProgress";
+import { ProgressNote } from "../../models/progressNotes";
 import { BaseRepository } from "../BaseRepository";
 
-export class UserProgressNotesRepository extends BaseRepository<IUserProgressNotes> {
+export class ProgressNotesRepository extends BaseRepository<IProgressNotes> {
   constructor() {
-    super(UserProgressNote);
+    super(ProgressNote);
   }
 
   async findOrCreate(userId: mongoose.Types.ObjectId) {
@@ -15,16 +15,16 @@ export class UserProgressNotesRepository extends BaseRepository<IUserProgressNot
     return record;
   }
 
-  appendProgressNote(record: HydratedDocument<IUserProgressNotes>, note: IProgressNote) {
+  appendProgressNote(record: HydratedDocument<IProgressNotes>, note: IProgressNote) {
     record.progressNotes.push(note);
     record.markModified("userProgressNote");
   }
 
   removeProgressNote = async (
-    record: HydratedDocument<IUserProgressNotes>,
+    record: HydratedDocument<IProgressNotes>,
     progressNoteId: mongoose.Types.ObjectId
   ) => {
-    record.progressNotes.filter((note) => note._id !== progressNoteId);
+    record.progressNotes.filter((note: IProgressNote) => note._id !== progressNoteId);
     record.markModified("userProgressNote");
   };
 }
