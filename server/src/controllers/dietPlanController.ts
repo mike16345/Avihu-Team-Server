@@ -15,9 +15,11 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     const data = extractBodyFromEvent(event);
 
     try {
-      data.totalCalories = calculateTotalCalories(data.meals, data.fatsPerDay);
+      const totalCalories = calculateTotalCalories(data.meals, data.fatsPerDay);
 
-      const dietPlanResult = await this.service.create(data);
+      console.log("total calories", totalCalories);
+
+      const dietPlanResult = await this.service.create({ ...data, totalCalories: totalCalories });
 
       return this.successResponse({
         status: StatusCode.CREATED,
@@ -36,11 +38,15 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
 
-    newDietPlan.totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
+    console.log("total calories", totalCalories);
 
     try {
-      const updatedDietPlan = await this.service.updateById(id, newDietPlan);
+      const updatedDietPlan = await this.service.updateById(id, {
+        ...newDietPlan,
+        totalCalories: totalCalories,
+      });
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -59,9 +65,14 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
 
+    console.log("total calories", totalCalories);
     try {
-      const updatedDietPlan = await this.service.updateOne({ userId: id }, newDietPlan);
+      const updatedDietPlan = await this.service.updateOne(
+        { userId: id },
+        { ...newDietPlan, totalCalories }
+      );
 
       if (!updatedDietPlan) {
         return this.errorResponse({
