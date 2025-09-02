@@ -31,7 +31,7 @@ const progressNotes = new Schema<IProgressNotes>({
 
 export const ProgressNote = model(`progressNotes`, progressNotes);
 
-export const progressOptionsValidator = Joi.number().valid([25, 50, 75, 100]);
+export const progressOptionsValidator = Joi.number().valid(25, 50, 75, 100);
 
 export const progressNoteSchemaValidator = Joi.object<IProgressNote>({
   date: Joi.date().required(),
