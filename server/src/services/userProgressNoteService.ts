@@ -45,7 +45,7 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
     try {
       const cacheKey = userId;
       const progressNotesRecord =
-        this.cache.get(cacheKey) || (await this.repository.find({ query: { userId } }));
+        this.cache.get(cacheKey) || (await this.repository.findOne({ query: { userId } }));
 
       this.cache.set(cacheKey, progressNotesRecord);
 
