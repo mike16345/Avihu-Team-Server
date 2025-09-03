@@ -53,7 +53,7 @@ export default class ProgressNotesController extends BaseController<
   addProgressNote = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { error, userId, date, content, cardio, workouts, diet, trainer } = this.getParamsOrError(
       event,
-      ["userId", "date", "content", "cardio", "workouts", "diet", "trainer"],
+      ["userId", "date", "content", "trainer"],
       "body"
     );
 
@@ -81,11 +81,7 @@ export default class ProgressNotesController extends BaseController<
 
   updateProgressNote = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { error, userId, date, content, cardio, workouts, diet, trainer, noteId } =
-      this.getParamsOrError(
-        event,
-        ["userId", "date", "content", "cardio", "workouts", "diet", "trainer", "noteId"],
-        "body"
-      );
+      this.getParamsOrError(event, ["userId", "date", "content", "trainer", "noteId"], "body");
 
     if (error) return error;
 
