@@ -37,7 +37,11 @@ export class ProgressNotesRepository extends BaseRepository<IProgressNotes> {
     record: HydratedDocument<IProgressNotes>,
     progressNoteId: mongoose.Types.ObjectId
   ) => {
-    record.progressNotes.filter((note: IProgressNote) => note._id !== progressNoteId);
-    record.markModified("userProgressNote");
+    const newProgressNotes = record.progressNotes.filter(
+      (note: IProgressNote) => note._id?.toString() !== progressNoteId.toString()
+    );
+
+    record.progressNotes = newProgressNotes;
+    record.markModified("progressNotes");
   };
 }

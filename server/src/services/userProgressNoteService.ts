@@ -60,9 +60,10 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
       const objectId = new mongoose.mongo.ObjectId(noteId);
       const cacheKey = userId;
       const progressNotesRecord =
-        this.cache.get(cacheKey) || (await this.repository.find({ query: { userId } }));
+        this.cache.get(cacheKey) || (await this.repository.findOne({ query: { userId } }));
 
       this.repository.removeProgressNote(progressNotesRecord, objectId);
+      await progressNotesRecord.save();
 
       this.cache.invalidateAllContaining(userId);
     } catch (error) {
