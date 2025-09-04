@@ -44,10 +44,15 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
   async getProgressNotesByUserId(userId: string) {
     try {
       const cacheKey = userId;
-      const progressNotesRecord =
-        this.cache.get(cacheKey) || (await this.repository.findOne({ query: { userId } }));
+      const progressNotesRecord: IProgressNotes =
+        this.cache.get(cacheKey) ||
+        (await this.repository.findOne({
+          query: { userId },
+        }));
 
       this.cache.set(cacheKey, progressNotesRecord);
+
+      progressNotesRecord.progressNotes.sort((a, b) => b.date - a.date);
 
       return progressNotesRecord;
     } catch (err: any) {

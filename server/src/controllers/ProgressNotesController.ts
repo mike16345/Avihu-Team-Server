@@ -1,6 +1,6 @@
 import BaseController from "./BaseController";
 import { IProgressNotes } from "../interfaces/userProgress";
-import { ProgressNoteService } from "../services/userProgressNoteService";
+import { ProgressNoteService } from "../services/progressNoteService";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 
