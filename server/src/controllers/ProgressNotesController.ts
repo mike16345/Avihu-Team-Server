@@ -51,7 +51,7 @@ export default class ProgressNotesController extends BaseController<
   };
 
   addProgressNote = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, userId, date, content, cardio, workouts, diet, trainer } = this.getParamsOrError(
+    const { error, userId, ...note } = this.getParamsOrError(
       event,
       ["userId", "date", "content", "trainer"],
       "body"
@@ -60,14 +60,7 @@ export default class ProgressNotesController extends BaseController<
     if (error) return error;
 
     try {
-      const response = await this.service.addProgressNote(userId, {
-        date,
-        content,
-        cardio,
-        workouts,
-        trainer,
-        diet,
-      });
+      const response = await this.service.addProgressNote(userId, note);
 
       return this.successResponse({
         data: response,
@@ -80,24 +73,20 @@ export default class ProgressNotesController extends BaseController<
   };
 
   updateProgressNote = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, userId, date, content, cardio, workouts, diet, trainer, noteId } =
-      this.getParamsOrError(event, ["userId", "date", "content", "trainer", "noteId"], "body");
+    const { error, userId, noteId, ...note } = this.getParamsOrError(
+      event,
+      ["userId", "date", "content", "trainer", "noteId"],
+      "body"
+    );
 
     if (error) return error;
 
     try {
-      const response = await this.service.updateProgressNote(userId, noteId, {
-        date,
-        content,
-        cardio,
-        workouts,
-        trainer,
-        diet,
-      });
+      const response = await this.service.updateProgressNote(userId, noteId, note);
 
       return this.successResponse({
         data: response,
-        message: "Successfully created progress note",
+        message: "Successfully updated progress note",
         status: StatusCode.OK,
       });
     } catch (error) {

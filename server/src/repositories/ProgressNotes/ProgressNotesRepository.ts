@@ -2,46 +2,42 @@ import mongoose, { HydratedDocument } from "mongoose";
 import { IProgressNote, IProgressNotes } from "../../interfaces/userProgress";
 import { ProgressNote } from "../../models/progressNotes";
 import { BaseRepository } from "../BaseRepository";
+import { StatusCode } from "../../enums/StatusCode";
+import { DELETE_FAILURE } from "../../constants/repository";
 
 export class ProgressNotesRepository extends BaseRepository<IProgressNotes> {
   constructor() {
     super(ProgressNote);
   }
 
-  async findOrCreate(userId: mongoose.Types.ObjectId) {
-    let record =
-      (await this.model.findOne({ userId })) || new this.model({ userId, progressNotes: [] });
-
-    return record;
-  }
-
-  appendProgressNote(record: HydratedDocument<IProgressNotes>, note: IProgressNote) {
-    record.progressNotes.push(note);
-    record.markModified("progressNotes");
-  }
-
-  updateProgressNote(
-    record: HydratedDocument<IProgressNotes>,
-    noteId: mongoose.Types.ObjectId,
-    note: IProgressNote
-  ) {
-    const target = record.progressNotes.find((progressNote) => progressNote._id?.equals(noteId));
-
-    if (target) {
-      Object.assign(target, note);
-      record.markModified("progressNotes");
-    }
-  }
-
-  removeProgressNote = async (
-    record: HydratedDocument<IProgressNotes>,
-    progressNoteId: mongoose.Types.ObjectId
-  ) => {
-    const newProgressNotes = record.progressNotes.filter(
-      (note: IProgressNote) => note._id?.toString() !== progressNoteId.toString()
+  async addProgressNote(userId: string, note: IProgressNote) {
+    const progressNoteDoc = await this.model.findOneAndUpdate(
+      { userId },
+      { $push: { progressNotes: note } },
+      { new: true, upsert: true }
     );
 
-    record.progressNotes = newProgressNotes;
-    record.markModified("progressNotes");
+    return progressNoteDoc;
+  }
+
+  async updateProgressNote(userId: string, noteId: mongoose.Types.ObjectId, note: IProgressNote) {
+    const progressNoteDoc = await this.model.findOneAndUpdate(
+      { userId, "progressNotes._id": noteId },
+      { $set: { "progressNotes.$": note } },
+      { new: true }
+    );
+
+    return progressNoteDoc;
+  }
+
+  removeProgressNote = async (userId: string, progressNoteId: mongoose.Types.ObjectId) => {
+    const result = await this.model.findOneAndUpdate(
+      { userId },
+      { $pull: { progressNotes: { _id: progressNoteId } } },
+      { new: true }
+    );
+    if (!result) throw { status: StatusCode.NOT_FOUND, message: DELETE_FAILURE };
+
+    return result;
   };
 }

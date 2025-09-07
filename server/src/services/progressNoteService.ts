@@ -12,10 +12,7 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
 
   async addProgressNote(userId: string, note: IProgressNote) {
     try {
-      const objectId = new mongoose.mongo.ObjectId(userId);
-      const progressNotesRecord = await this.repository.findOrCreate(objectId);
-      this.repository.appendProgressNote(progressNotesRecord, note);
-      await progressNotesRecord.save();
+      const progressNotesRecord = await this.repository.addProgressNote(userId, note);
 
       this.cache.invalidateAllContaining(userId);
 
@@ -27,32 +24,30 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
 
   async updateProgressNote(userId: string, noteId: string, note: IProgressNote) {
     try {
-      const objectUserId = new mongoose.mongo.ObjectId(userId);
-      const objectNoteId = new mongoose.mongo.ObjectId(noteId);
-      const progressNotesRecord = await this.repository.findOrCreate(objectUserId);
-      this.repository.updateProgressNote(progressNotesRecord, objectNoteId, note);
-      await progressNotesRecord.save();
+      const objectId = new mongoose.mongo.ObjectId(noteId);
+
+      const progressNoteDoc = await this.repository.updateProgressNote(userId, objectId, note);
 
       this.cache.invalidateAllContaining(userId);
 
-      return progressNotesRecord;
+      return progressNoteDoc;
     } catch (error) {
       throw error;
     }
   }
 
   async getProgressNotesByUserId(userId: string) {
-    try {
-      const cacheKey = userId;
-      const progressNotesRecord: IProgressNotes =
-        this.cache.get(cacheKey) ||
-        (await this.repository.findOne({
-          query: { userId },
-        }));
+    const cached = this.cache.get(userId);
 
-      this.cache.set(cacheKey, progressNotesRecord);
+    if (cached) return;
+
+    try {
+      const progressNotesRecord: IProgressNotes = await this.repository.findOne({
+        query: { userId },
+      });
 
       progressNotesRecord.progressNotes.sort((a, b) => b.date - a.date);
+      this.cache.set(userId, progressNotesRecord);
 
       return progressNotesRecord;
     } catch (err: any) {
@@ -63,14 +58,11 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
   async removeProgressNote(userId: string, noteId: string) {
     try {
       const objectId = new mongoose.mongo.ObjectId(noteId);
-      const cacheKey = userId;
-      const progressNotesRecord =
-        this.cache.get(cacheKey) || (await this.repository.findOne({ query: { userId } }));
-
-      this.repository.removeProgressNote(progressNotesRecord, objectId);
-      await progressNotesRecord.save();
+      const deletedProgressNote = this.repository.removeProgressNote(userId, objectId);
 
       this.cache.invalidateAllContaining(userId);
+
+      return deletedProgressNote;
     } catch (error) {
       throw error;
     }
