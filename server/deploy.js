@@ -13,6 +13,7 @@ dotenv.config({ path: "./.env.local" });
 const args = process.argv.slice(2);
 const envArg = args.find((arg) => arg.startsWith("env="));
 const promote = args.includes("promote");
+const ignoreDev = args.includes("ignoreDev");
 
 const REGION = "il-central-1";
 const lambdaFolder = "./src/functions";
@@ -87,7 +88,7 @@ async function deploy({ functionName, handlerPath }, envKey = null) {
 
     await sleep(2000);
 
-    setupAliases(functionName, promote);
+    setupAliases(functionName, promote, ignoreDev);
 
     console.log("✅ Deployment complete.");
   } catch (error) {
