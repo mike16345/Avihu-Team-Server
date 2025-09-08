@@ -42,13 +42,13 @@ function updateAlias(functionName, aliasName, version) {
 }
 
 // Main function
-function setupAliases(functionName, promote = false) {
+function setupAliases(functionName, promote = false, ignoreDev = false) {
   const version = publishVersion(functionName);
 
   // dev always points to latest version
   if (!aliasExists(functionName, "dev")) {
     createAlias(functionName, "dev", version);
-  } else {
+  } else if (!ignoreDev) {
     updateAlias(functionName, "dev", version);
   }
 
