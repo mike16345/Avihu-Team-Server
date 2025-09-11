@@ -4,7 +4,7 @@ import { IUserMuscleMeasurements } from "../interfaces/IMuscleMeasurment";
 
 const RESOURCE_NAME = "muscle-measurement";
 
-export class muscleMeasurementService extends BaseService<
+export class MuscleMeasurementService extends BaseService<
   IUserMuscleMeasurements,
   MuscleMeasurementsRepository
 > {
