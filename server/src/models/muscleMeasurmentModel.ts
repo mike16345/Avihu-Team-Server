@@ -2,12 +2,13 @@ import mongoose, { Schema, model } from "mongoose";
 import { IMuscleMeasurement, IUserMuscleMeasurements } from "../interfaces/IMuscleMeasurment";
 
 const MuscleMeasurementSchema = new Schema<IMuscleMeasurement>({
-  date: { type: String, required: true }, // or Date
+  date: { type: String, required: true },
   chest: { type: Number, required: true },
-  bicep: { type: Number, required: true },
-  shoulder: { type: Number, required: true },
-  back: { type: Number, required: true },
-  leg: { type: Number, required: true },
+  arm: { type: Number, required: true },
+  calf: { type: Number, required: true },
+  glutes: { type: Number, required: true },
+  thigh: { type: Number, required: true },
+  waist: { type: Number, required: true },
 });
 
 const MuscleMeasurementsSchema = new Schema<IUserMuscleMeasurements>({
@@ -15,7 +16,7 @@ const MuscleMeasurementsSchema = new Schema<IUserMuscleMeasurements>({
   measurements: { type: [MuscleMeasurementSchema], default: [] },
 });
 
-const MuscleMeasurementsModel = model<MuscleMeasurementsDocument>(
+const MuscleMeasurementsModel = model<IUserMuscleMeasurements>(
   "MuscleMeasurements",
   MuscleMeasurementsSchema
 );

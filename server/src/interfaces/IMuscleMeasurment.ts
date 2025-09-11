@@ -1,10 +1,11 @@
 export interface IMuscleMeasurement {
   date: string;
   chest: number;
-  bicep: number;
-  shoulder: number;
-  back: number;
-  leg: number;
+  arm: number;
+  waist: number;
+  glutes: number;
+  thigh: number;
+  calf: number;
 }
 
 export interface IUserMuscleMeasurements {
