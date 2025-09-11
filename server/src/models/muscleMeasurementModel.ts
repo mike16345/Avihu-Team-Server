@@ -16,9 +16,7 @@ const MuscleMeasurementsSchema = new Schema<IUserMuscleMeasurements>({
   measurements: { type: [MuscleMeasurementSchema], default: [] },
 });
 
-const MuscleMeasurementsModel = model<IUserMuscleMeasurements>(
+export const MuscleMeasurements = model<IUserMuscleMeasurements>(
   "MuscleMeasurements",
   MuscleMeasurementsSchema
 );
-
-export default MuscleMeasurementsModel;
