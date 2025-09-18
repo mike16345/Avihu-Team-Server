@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { handleApiCall } from "../baseHandler";
 import MuscleMeasurementController from "../../controllers/MuscleMeasurementController";
 
-const BASE_PATH = "/muscleMeasurements";
+const BASE_PATH = "/measurements";
 
 const muscleMeasurementController = new MuscleMeasurementController();
 
