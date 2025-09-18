@@ -32,7 +32,7 @@ export class MuscleMeasurementService extends BaseService<
   async getUsersMuscleMeasurements(userId: string) {
     const cached = this.cache.get(userId);
 
-    if (cached) return;
+    if (cached) return cached;
 
     try {
       const measurementRecord: IUserMuscleMeasurements = await this.repository.findOne({
