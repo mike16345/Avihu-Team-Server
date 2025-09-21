@@ -39,6 +39,9 @@ export class MuscleMeasurementService extends BaseService<
         query: { userId },
       });
 
+      measurementRecord.measurements.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
       this.cache.set(userId, measurementRecord);
 
       return measurementRecord;
