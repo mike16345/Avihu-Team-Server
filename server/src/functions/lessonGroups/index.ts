@@ -5,12 +5,15 @@ import { validateLessonGroup } from "../../middleware/lessonGroupsMiddleware";
 
 const BASE_PATH = "/lessonGroups";
 
+const lessonGroupController = new LessonGroupsController();
+
 const lessonGroupsApiHandler = {
-  [`GET ${BASE_PATH}`]: LessonGroupsController.getLessonGroups,
-  [`GET ${BASE_PATH}/one`]: LessonGroupsController.getLessonGroupById,
-  [`PUT ${BASE_PATH}/one`]: LessonGroupsController.updateLessonGroup,
-  [`POST ${BASE_PATH}`]: LessonGroupsController.addLessonGroup,
-  [`DELETE ${BASE_PATH}/one`]: LessonGroupsController.deleteLessonGroup,
+  [`GET ${BASE_PATH}`]: lessonGroupController.getAll,
+  [`GET ${BASE_PATH}/paginated`]: lessonGroupController.getPaginated,
+  [`GET ${BASE_PATH}/one`]: lessonGroupController.getById,
+  [`PUT ${BASE_PATH}/one`]: lessonGroupController.updateById,
+  [`POST ${BASE_PATH}`]: lessonGroupController.create,
+  [`DELETE ${BASE_PATH}/one`]: lessonGroupController.deleteById,
 };
 
 const lessonGroupsApiMiddleware = {

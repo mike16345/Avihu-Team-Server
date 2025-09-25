@@ -1,47 +1,11 @@
-import mongoose from "mongoose";
-import { LessonGroup } from "../models/lessonGroupsModel";
+import { ILessonGroup } from "../models/lessonGroupsModel";
+import { BaseService } from "./BaseService";
+import { LessonGroupRepository } from "../repositories/LessonGroups/LessonGroupRepository";
 
-export class LessonGroupService {
-  static async addLessonGroup(lessonGroup: string) {
-    try {
-      return await LessonGroup.create({ name: lessonGroup });
-    } catch (e) {
-      throw e;
-    }
-  }
+const baseKey = "lesson-groups";
 
-  static async updateLessonGroup(id: string, lessonGroup: string) {
-    try {
-      return await LessonGroup.updateOne(
-        { _id: new mongoose.mongo.ObjectId(id) },
-        { name: lessonGroup }
-      );
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  static async deleteLessonGroup(id: string) {
-    try {
-      return await LessonGroup.deleteOne({ _id: new mongoose.mongo.ObjectId(id) });
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  static async getLessonGroups() {
-    try {
-      return await LessonGroup.find({});
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  static async getLessonGroupById(id: string) {
-    try {
-      return await LessonGroup.findById(id);
-    } catch (e) {
-      throw e;
-    }
+export class LessonGroupService extends BaseService<ILessonGroup, LessonGroupRepository> {
+  constructor() {
+    super(new LessonGroupRepository(), baseKey);
   }
 }

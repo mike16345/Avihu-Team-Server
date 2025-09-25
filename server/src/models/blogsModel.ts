@@ -27,7 +27,6 @@ export const blogSchema = new Schema<IBlog>({
   },
   group: {
     type: String,
-    default: "general",
   },
 });
 
@@ -38,7 +37,7 @@ export const blogPostSchemaValidator = Joi.object({
   content: Joi.string().required(),
   imageUrl: Joi.string().allow(""),
   date: Joi.date(),
-  group: Joi.string().optional(),
+  group: Joi.string(),
   planType: Joi.string().optional(),
   link: Joi.string().optional(),
 });

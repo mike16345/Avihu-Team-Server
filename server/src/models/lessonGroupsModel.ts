@@ -1,7 +1,7 @@
 import joi from "joi";
 import { model, Schema } from "mongoose";
 
-interface ILessonGroup {
+export interface ILessonGroup {
   name: string;
 }
 
