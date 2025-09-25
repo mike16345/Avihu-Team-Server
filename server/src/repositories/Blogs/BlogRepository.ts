@@ -6,6 +6,7 @@ import { FindOptions } from "../../types/mongooseTypes";
 import { BaseRepository } from "../BaseRepository";
 import { StatusCode } from "../../enums/StatusCode";
 import { FIND_ONE_FAILURE } from "../../constants/repository";
+import { PaginationParams, PaginationResult } from "../../utils/pagination";
 
 export class BlogRepository extends BaseRepository<IBlog> {
   constructor() {
@@ -51,6 +52,12 @@ export class BlogRepository extends BaseRepository<IBlog> {
     const blogs = await this.populateBlogs(this.model.find(query, projection, queryOptions));
 
     return blogs;
+  };
+
+  getPaginated = async (paginationParams: PaginationParams): Promise<PaginationResult<IBlog>> => {
+    const paginated = await this.getPaginated(paginationParams);
+
+    return await this.populateBlogs(paginated);
   };
 
   addViewer = async (id: string, userId: string) => {

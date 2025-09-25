@@ -50,6 +50,6 @@ export const blogPostSchemaValidator = Joi.object({
   group: Joi.string(),
   planType: Joi.string().optional(),
   link: Joi.string().optional(),
-  views: Joi.array().allow([]),
-  likes: Joi.array().allow([]),
+  views: Joi.array(),
+  likes: Joi.array(),
 });
