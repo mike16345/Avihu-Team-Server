@@ -56,4 +56,38 @@ export class BlogController extends BaseController<IBlog, BlogService> {
       return this.errorResponse(error);
     }
   };
+
+  changeLikedStatus = async (event: APIGatewayProxyEvent) => {
+    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"]);
+
+    if (error) return error;
+    try {
+      const blog = await this.service.changeLikedStatus(id, userId);
+
+      return this.successResponse({
+        data: blog,
+        message: "Blog updated successfully",
+        status: StatusCode.OK,
+      });
+    } catch (error) {
+      this.errorResponse(error);
+    }
+  };
+
+  addViewer = async (event: APIGatewayProxyEvent) => {
+    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"]);
+
+    if (error) return error;
+    try {
+      const blog = await this.service.addViewer(id, userId);
+
+      return this.successResponse({
+        data: blog,
+        message: "Viewer addedd successfully",
+        status: StatusCode.OK,
+      });
+    } catch (error) {
+      this.errorResponse(error);
+    }
+  };
 }

@@ -11,6 +11,8 @@ const blogApiHandlers = {
   [`GET ${BASE_PATH}`]: blogController.getAll,
   [`GET ${BASE_PATH}/paginate`]: blogController.getPaginated,
   [`PUT ${BASE_PATH}/one`]: blogController.updateBlog,
+  [`PUT ${BASE_PATH}/one/like`]: blogController.changeLikedStatus,
+  [`PUT ${BASE_PATH}/one/viewer`]: blogController.addViewer,
   [`POST ${BASE_PATH}`]: blogController.addBlog,
   [`GET ${BASE_PATH}/one`]: blogController.getById,
   [`DELETE ${BASE_PATH}/one`]: blogController.deleteById,
