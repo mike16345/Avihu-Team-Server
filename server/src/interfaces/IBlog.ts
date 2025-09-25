@@ -6,4 +6,6 @@ export interface IBlog {
   group?: string;
   planType?: string;
   link?: string;
+  views: string[];
+  likes: string[];
 }

@@ -28,6 +28,14 @@ export const blogSchema = new Schema<IBlog>({
   group: {
     type: String,
   },
+  views: {
+    type: [String],
+    default: [],
+  },
+  likes: {
+    type: [String],
+    default: [],
+  },
 });
 
 export const BlogModel = model("blogs", blogSchema);
@@ -40,4 +48,6 @@ export const blogPostSchemaValidator = Joi.object({
   group: Joi.string(),
   planType: Joi.string().optional(),
   link: Joi.string().optional(),
+  views: Joi.array().allow([]),
+  likes: Joi.array().allow([]),
 });
