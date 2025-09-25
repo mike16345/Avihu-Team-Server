@@ -3,4 +3,7 @@ export interface IBlog {
   content: string;
   imageUrl?: string;
   date: Date;
+  group?: string;
+  planType?: string;
+  link?: string;
 }

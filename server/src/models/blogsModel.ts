@@ -18,6 +18,17 @@ export const blogSchema = new Schema<IBlog>({
     type: Date,
     default: Date.now,
   },
+  link: {
+    type: String,
+  },
+  planType: {
+    type: String,
+    default: "כללי",
+  },
+  group: {
+    type: String,
+    default: "general",
+  },
 });
 
 export const BlogModel = model("blogs", blogSchema);
@@ -27,4 +38,7 @@ export const blogPostSchemaValidator = Joi.object({
   content: Joi.string().required(),
   imageUrl: Joi.string().allow(""),
   date: Joi.date(),
+  group: Joi.string().optional(),
+  planType: Joi.string().optional(),
+  link: Joi.string().optional(),
 });

@@ -25,6 +25,7 @@ const lambdaFunctionsMap = {
   Sessions: { path: "sessions/index.ts", envToUse: "api" },
   S3Actions: { path: "S3/index.ts", envToUse: "signedUrl" },
   ProgressNotes: { path: "ProgressNote/index.ts", envToUse: "api" },
+  LessonGroups: { path: "lessonGroups/index.ts", envToUse: "api" },
 };
 
 async function deployAllLambdas() {
