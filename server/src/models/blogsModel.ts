@@ -26,7 +26,9 @@ export const blogSchema = new Schema<IBlog>({
     default: "כללי",
   },
   group: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "lessonGroups",
   },
   views: {
     type: [String],
