@@ -1,7 +1,8 @@
 import joi from "joi";
-import { model, Schema } from "mongoose";
+import { model, ObjectId, Schema, Types } from "mongoose";
 
 export interface ILessonGroup {
+  _id?: Types.ObjectId;
   name: string;
 }
 

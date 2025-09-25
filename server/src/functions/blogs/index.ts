@@ -10,8 +10,8 @@ const blogController = new BlogController();
 const blogApiHandlers = {
   [`GET ${BASE_PATH}`]: blogController.getAll,
   [`GET ${BASE_PATH}/paginate`]: blogController.getPaginated,
-  [`PUT ${BASE_PATH}/one`]: blogController.updateById,
-  [`POST ${BASE_PATH}`]: blogController.create,
+  [`PUT ${BASE_PATH}/one`]: blogController.updateBlog,
+  [`POST ${BASE_PATH}`]: blogController.addBlog,
   [`GET ${BASE_PATH}/one`]: blogController.getById,
   [`DELETE ${BASE_PATH}/one`]: blogController.deleteById,
 };
