@@ -13,15 +13,15 @@ export class BlogRepository extends BaseRepository<IBlog> {
     super(BlogModel);
   }
 
-  private populateBlogs(
-    query: ReturnType<
-      typeof this.model.find | typeof this.model.findOne | typeof this.model.findById
-    >
-  ) {
-    return query.populate({
-      path: "group",
-      model: LessonGroup,
-    });
+  private async populateBlogs(queryOrDocs: any) {
+    const options = { path: "group", model: LessonGroup };
+
+    if (typeof queryOrDocs.populate === "function") {
+      return queryOrDocs.populate(options);
+    }
+
+    // In the case that a query isnt being passed in
+    return this.model.populate(queryOrDocs, options);
   }
 
   findOne = async (options: FindOptions<IBlog>): Promise<any> => {
@@ -54,10 +54,13 @@ export class BlogRepository extends BaseRepository<IBlog> {
     return blogs;
   };
 
-  getPaginated = async (paginationParams: PaginationParams): Promise<PaginationResult<IBlog>> => {
+  getPaginatedBlogs = async (
+    paginationParams: PaginationParams
+  ): Promise<PaginationResult<IBlog>> => {
     const paginated = await this.getPaginated(paginationParams);
+    paginated.results = await this.populateBlogs(paginated.results);
 
-    return await this.populateBlogs(paginated);
+    return paginated;
   };
 
   addViewer = async (id: string, userId: string) => {

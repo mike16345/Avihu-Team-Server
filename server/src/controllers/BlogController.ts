@@ -83,7 +83,21 @@ export class BlogController extends BaseController<IBlog, BlogService> {
 
       return this.successResponse({
         data: blog,
-        message: "Viewer addedd successfully",
+        message: "Viewer added successfully",
+        status: StatusCode.OK,
+      });
+    } catch (error) {
+      this.errorResponse(error);
+    }
+  };
+
+  getBlogCountByGroup = async (event: APIGatewayProxyEvent) => {
+    try {
+      const blogCount = await this.service.getBlogCountsByGroup();
+
+      return this.successResponse({
+        data: blogCount,
+        message: "Blog count retrieved successfully",
         status: StatusCode.OK,
       });
     } catch (error) {

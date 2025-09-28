@@ -10,6 +10,7 @@ const blogController = new BlogController();
 const blogApiHandlers = {
   [`GET ${BASE_PATH}`]: blogController.getAll,
   [`GET ${BASE_PATH}/paginate`]: blogController.getPaginated,
+  [`GET ${BASE_PATH}/count`]: blogController.getBlogCountByGroup,
   [`PUT ${BASE_PATH}/one`]: blogController.updateBlog,
   [`PUT ${BASE_PATH}/one/like`]: blogController.changeLikedStatus,
   [`PUT ${BASE_PATH}/one/viewer`]: blogController.addViewer,
