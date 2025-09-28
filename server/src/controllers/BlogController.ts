@@ -66,7 +66,7 @@ export class BlogController extends BaseController<IBlog, BlogService> {
   };
 
   changeLikedStatus = async (event: APIGatewayProxyEvent) => {
-    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"]);
+    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"], "body");
 
     if (error) return error;
     try {
@@ -83,7 +83,7 @@ export class BlogController extends BaseController<IBlog, BlogService> {
   };
 
   addViewer = async (event: APIGatewayProxyEvent) => {
-    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"]);
+    const { error, id, userId } = this.getParamsOrError(event, ["id", "userId"], "body");
 
     if (error) return error;
     try {
