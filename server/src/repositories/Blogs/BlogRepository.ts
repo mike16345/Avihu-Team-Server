@@ -114,6 +114,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
         $project: {
           id: "$lessonGroup._id",
           name: "$lessonGroup.name", // pull just the name
+          description: "$lessonGroup.description",
           count: 1,
         },
       },
