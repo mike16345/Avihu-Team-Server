@@ -112,7 +112,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
       { $unwind: "$lessonGroup" }, // flatten the lessonGroup array
       {
         $project: {
-          _id: 0,
+          id: "$lessonGroup._id",
           name: "$lessonGroup.name", // pull just the name
           count: 1,
         },
