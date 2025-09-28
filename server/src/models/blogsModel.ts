@@ -47,7 +47,7 @@ export const blogPostSchemaValidator = Joi.object({
   content: Joi.string().required(),
   imageUrl: Joi.string().allow(""),
   date: Joi.date(),
-  group: Joi.string(),
+  group: Joi.any(),
   planType: Joi.string().optional(),
   link: Joi.string().optional(),
   views: Joi.array(),

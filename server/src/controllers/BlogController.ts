@@ -3,20 +3,28 @@ import { IBlog } from "../interfaces/IBlog";
 import BaseController from "./BaseController";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
-import { LessonGroupService } from "../services/LessonGroupService";
 import { StatusCode } from "../enums/StatusCode";
+import { LessonGroupService } from "../services/LessonGroupService";
 
 export class BlogController extends BaseController<IBlog, BlogService> {
   constructor() {
     super(new BlogService());
   }
 
-  private replaceGroupNameWithId = async (blog: IBlog): Promise<IBlog> => {
-    const group = await new LessonGroupService().findOne({ name: blog.group });
+  private sanitizeBlog = async (blog: IBlog): Promise<IBlog> => {
+    const isGroupAString = typeof blog.group === "string";
 
-    if (!group) throw new Error("Blog group not found");
+    if (isGroupAString) {
+      const group = await new LessonGroupService().findOne({ name: blog.group });
 
-    blog.group = group._id!;
+      if (!group) throw new Error("Could not find respective lesson group");
+
+      blog.group = group._id!;
+    } else {
+      const groupId = blog.group._id;
+
+      blog.group = groupId!;
+    }
 
     return blog;
   };
@@ -25,7 +33,7 @@ export class BlogController extends BaseController<IBlog, BlogService> {
     const data = extractBodyFromEvent(event);
 
     try {
-      const blog = await this.replaceGroupNameWithId(data);
+      const blog = await this.sanitizeBlog(data);
       const newBlog = await this.service.create(blog);
 
       return this.successResponse({
@@ -43,7 +51,7 @@ export class BlogController extends BaseController<IBlog, BlogService> {
     const { id } = extractQueryFromEvent(event);
 
     try {
-      const blog = await this.replaceGroupNameWithId(data);
+      const blog = await this.sanitizeBlog(data);
 
       const updatedBlog = await this.service.updateById(id, blog);
 
