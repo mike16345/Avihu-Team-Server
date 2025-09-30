@@ -3,7 +3,7 @@ const { setupAliases } = require("./setupAliases");
 const path = require("path");
 const dotenv = require("dotenv");
 
-const { lambdaConfig } = require("./config/lambdaConfig");
+const { lambdaConfig } = require("../config/lambdaConfig");
 
 dotenv.config({ path: "./.env.local" });
 
@@ -13,8 +13,6 @@ const HANDLER = "index.handler";
 const ZIP_FILE = path.resolve("./scripts/archive.zip");
 const ROLE_ARN = `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/BasicLambdaRole`;
 const REGION = process.env.AMAZON_REGION;
-
-const { lambdaConfig } = require("../config/lambdaConfig");
 
 // Get function name from command-line argument
 const args = process.argv.slice(2);
