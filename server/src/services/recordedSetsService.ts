@@ -7,12 +7,7 @@ import { RecordedSetsRepository } from "../repositories/RecordedSets/RecordedSet
 import { stableStringify } from "../utils/utils";
 import mongoose from "mongoose";
 import { FIND_ONE_FAILURE } from "../constants/repository";
-
-const calculateNextSetNumber = (activeSession: any, planName: string, exercise: string) => {
-  if (!activeSession) return 1;
-
-  return activeSession.data?.[planName]?.[exercise]?.setNumber + 1 || 1;
-};
+import { RecordedSet } from "../models/recordedSetsModel";
 
 export class RecordedSetsService extends BaseService<
   IMuscleGroupRecordedSets,
@@ -47,36 +42,50 @@ export class RecordedSetsService extends BaseService<
     return sessionDetails;
   }
 
-  async addRecordedSet(
+  async addRecordedSets(
     userId: string,
     muscleGroup: string,
     exercise: string,
-    sessionId: string,
-    recordedSet: IRecordedSet
+    sessionId: string | null,
+    recordedSets: IRecordedSet[]
   ) {
     try {
+      if (!recordedSets?.length) {
+        throw new Error("No recorded sets provided");
+      }
       const objectId = new mongoose.mongo.ObjectId(userId);
       const activeSession = sessionId ? await this.sessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
+
       const muscleGroupRecord = await this.repository.findOrCreate(objectId, muscleGroup);
-
       this.repository.initializeExerciseIfNecessary(muscleGroupRecord, exercise);
-      const nextSetNumber = calculateNextSetNumber(activeSession, recordedSet.plan, exercise);
-      recordedSet.setNumber = nextSetNumber;
-
-      this.repository.appendRecordedSet(muscleGroupRecord, exercise, recordedSet);
       await muscleGroupRecord.save();
 
+      const lastIndex = recordedSets.length - 1;
+      const nextSetNumber = recordedSets[lastIndex]?.setNumber + 1;
+
+      const normalizedSets: IRecordedSet[] = recordedSets.map(
+        (s, i) =>
+          new RecordedSet({
+            ...s,
+            setNumber: s.setNumber ?? nextSetNumber + i,
+          })
+      );
+
+      await this.repository.appendRecordedSetsById(objectId, muscleGroup, exercise, normalizedSets);
+
+      const last = normalizedSets[normalizedSets.length - 1];
       const sessionDetails: ISessionCreate = this.buildSessionDetails(
         userId,
         exercise,
         nextSetNumber,
-        recordedSet,
+        last,
         activeSession
       );
+
       const session = isNewSession
         ? await this.sessionService.create(sessionDetails as ISession)
-        : await this.sessionService.updateById(sessionId, sessionDetails);
+        : await this.sessionService.updateById(sessionId!, sessionDetails);
 
       this.cache.invalidateAllContaining(userId);
 
@@ -86,6 +95,24 @@ export class RecordedSetsService extends BaseService<
     } catch (e: any) {
       throw e;
     }
+  }
+
+  async addRecordedSet(
+    userId: string,
+    muscleGroup: string,
+    exercise: string,
+    sessionId: string,
+    recordedSet: IRecordedSet
+  ) {
+    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet]);
+  }
+
+  async updateRecordedSetById(setId: string, userId: string, exercise: string, set: IRecordedSet) {
+    return this.repository.updateRecordedSetBySetId(setId, userId, exercise, set);
+  }
+
+  async deleteRecordedSetById(setId: string, userId: string, exercise: string) {
+    return this.repository.deleteRecordedSetById(userId, exercise, setId);
   }
 
   async getRecordedSetsByUserId(query: Partial<RecordedSetsQueryParams>) {
