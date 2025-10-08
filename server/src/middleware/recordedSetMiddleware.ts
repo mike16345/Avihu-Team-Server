@@ -20,18 +20,15 @@ export const validateRecordedSet = (event: APIGatewayEvent) => {
     return createValidatorResponse(false, message);
   }
 
-  let error: Joi.ValidationError | undefined;
   const sets = Array.isArray(data) ? data : [data];
 
   for (const set of sets) {
-    const { error: joiError } = RecordedSetJoiSchema.validate({ set });
-    if (error) {
-      error = joiError;
-      break;
+    const { error: joiError } = RecordedSetJoiSchema.validate(set);
+
+    if (joiError) {
+      return createValidatorResponse(false, joiError?.message);
     }
   }
 
-  const isValid = !error;
-
-  return createValidatorResponse(isValid, error?.message);
+  return createValidatorResponse(true);
 };

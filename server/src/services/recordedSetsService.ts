@@ -83,6 +83,8 @@ export class RecordedSetsService extends BaseService<
         activeSession
       );
 
+      console.log("is new session", isNewSession);
+
       const session = isNewSession
         ? await this.sessionService.create(sessionDetails as ISession)
         : await this.sessionService.updateById(sessionId!, sessionDetails);
