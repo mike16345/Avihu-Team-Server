@@ -43,7 +43,8 @@ export class BlogService extends BaseService<IBlog, BlogRepository> {
     try {
       const updatedDoc = await this.repository.changeLikedStatus(id, userId);
 
-      const queryStr = stableStringify({ group: updatedDoc?.group.toString() });
+      const queryStr = stableStringify({ group: updatedDoc?.group });
+
       this.cache.invalidateAllContaining(queryStr);
       this.cache.invalidateAllContaining(id);
 
@@ -57,7 +58,7 @@ export class BlogService extends BaseService<IBlog, BlogRepository> {
     try {
       const updatedDoc = await this.repository.addViewer(id, userId);
 
-      const queryStr = stableStringify({ group: updatedDoc?.group.toString() });
+      const queryStr = stableStringify({ group: updatedDoc?.group });
       this.cache.invalidateAllContaining(queryStr);
       this.cache.invalidateAllContaining(id);
 
