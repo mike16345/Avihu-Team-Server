@@ -70,6 +70,10 @@ export class BlogRepository extends BaseRepository<IBlog> {
       { new: true }
     );
 
+    if (!blog) {
+      throw { status: StatusCode.NOT_FOUND, message: "Article not found" };
+    }
+
     return blog;
   };
 
@@ -77,7 +81,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
     const blog = await this.model.findById(id);
 
     if (!blog) {
-      throw new Error("Blog not found");
+      throw { status: StatusCode.NOT_FOUND, message: "Article not found" };
     }
 
     const hasLiked = blog.likes.includes(userId);
