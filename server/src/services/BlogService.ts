@@ -1,7 +1,6 @@
 import { IBlog } from "../interfaces/IBlog";
 import { BlogRepository } from "../repositories/Blogs/BlogRepository";
 import { generatePaginationCacheKey, PaginationParams } from "../utils/pagination";
-import { stableStringify } from "../utils/utils";
 import { BaseService } from "./BaseService";
 
 const baseKey = "blogs";
@@ -43,9 +42,7 @@ export class BlogService extends BaseService<IBlog, BlogRepository> {
     try {
       const updatedDoc = await this.repository.changeLikedStatus(id, userId);
 
-      const queryStr = stableStringify({ group: updatedDoc?.group });
-
-      this.cache.invalidateAllContaining(queryStr);
+      this.cache.invalidateAllContaining(JSON.stringify({ group: updatedDoc?.group.toString()! }));
       this.cache.invalidateAllContaining(id);
 
       return updatedDoc;
@@ -58,8 +55,7 @@ export class BlogService extends BaseService<IBlog, BlogRepository> {
     try {
       const updatedDoc = await this.repository.addViewer(id, userId);
 
-      const queryStr = stableStringify({ group: updatedDoc?.group });
-      this.cache.invalidateAllContaining(queryStr);
+      this.cache.invalidateAllContaining(updatedDoc?.group.toString()!);
       this.cache.invalidateAllContaining(id);
 
       return updatedDoc;
