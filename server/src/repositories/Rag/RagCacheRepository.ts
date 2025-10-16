@@ -31,11 +31,7 @@ export class RagCacheRepository extends BaseRepository<IRagCacheEntry> {
   upsertCacheEntry = async (doc: IRagCacheEntry) => {
     const { userId, normalizedQuestion } = doc;
     return await this.model
-      .findOneAndUpdate(
-        { userId, normalizedQuestion },
-        { $set: doc },
-        { upsert: true, new: true }
-      )
+      .findOneAndUpdate({ userId, normalizedQuestion }, { $set: doc }, { upsert: true, new: true })
       .lean();
   };
 

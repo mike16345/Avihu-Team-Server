@@ -34,8 +34,7 @@ export class RagController {
         stream: Boolean(body.stream),
         topK: typeof body.topK === "number" ? body.topK : undefined,
         threshold: typeof body.threshold === "number" ? body.threshold : undefined,
-        cacheThreshold:
-          typeof body.cacheThreshold === "number" ? body.cacheThreshold : undefined,
+        cacheThreshold: typeof body.cacheThreshold === "number" ? body.cacheThreshold : undefined,
         metadata: body.metadata,
       };
 

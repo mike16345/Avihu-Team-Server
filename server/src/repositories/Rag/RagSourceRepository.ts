@@ -13,11 +13,7 @@ export class RagSourceRepository extends BaseRepository<IRagSourceChunk> {
   async upsertChunk(doc: IRagSourceChunk) {
     const { userId, sourceId, chunkId } = doc;
     return await this.model
-      .findOneAndUpdate(
-        { userId, sourceId, chunkId },
-        { $set: doc },
-        { upsert: true, new: true }
-      )
+      .findOneAndUpdate({ userId, sourceId, chunkId }, { $set: doc }, { upsert: true, new: true })
       .lean();
   }
 }

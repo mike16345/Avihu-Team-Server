@@ -77,9 +77,7 @@ export type UpsertVector = {
   metadata?: Record<string, any>;
 };
 
-export const queryPinecone = async (
-  options: QueryOptions
-): Promise<PineconeMatch[]> => {
+export const queryPinecone = async (options: QueryOptions): Promise<PineconeMatch[]> => {
   const payload = {
     namespace: options.namespace,
     topK: options.topK,
@@ -91,10 +89,7 @@ export const queryPinecone = async (
   return (data?.matches as PineconeMatch[]) || [];
 };
 
-export const upsertVectors = async (
-  namespace: string,
-  vectors: UpsertVector[]
-) => {
+export const upsertVectors = async (namespace: string, vectors: UpsertVector[]) => {
   const payload = {
     namespace,
     vectors,

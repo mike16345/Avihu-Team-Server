@@ -35,8 +35,7 @@ const traceRepository = getRagTraceRepository();
 const rateLimitRepository = getRagRateLimitRepository();
 const sourceRepository = getRagSourceRepository();
 
-const toSseChunk = (payload: Record<string, any>) =>
-  `data: ${JSON.stringify(payload)}\n\n`;
+const toSseChunk = (payload: Record<string, any>) => `data: ${JSON.stringify(payload)}\n\n`;
 
 const buildCitations = (matches: PineconeMatch[]): Citation[] =>
   matches.map((match, index) => ({
@@ -64,9 +63,7 @@ const ensureRateLimit = async (userId: string) => {
     record = null;
   }
 
-  const filteredEvents = (record?.events || []).filter((event) =>
-    event > windowStart
-  );
+  const filteredEvents = (record?.events || []).filter((event) => event > windowStart);
 
   if (filteredEvents.length >= RAG_CONSTANTS.rateLimitMaxRequests) {
     throw { status: StatusCode.TOO_MANY_REQUESTS, message: "rate limit exceeded" };
@@ -75,10 +72,13 @@ const ensureRateLimit = async (userId: string) => {
   filteredEvents.push(now);
 
   if (record) {
-    await rateLimitRepository.updateOne({ userId } as any, {
-      events: filteredEvents,
-      updatedAt: now,
-    } as any);
+    await rateLimitRepository.updateOne(
+      { userId } as any,
+      {
+        events: filteredEvents,
+        updatedAt: now,
+      } as any
+    );
   } else {
     await rateLimitRepository.create({
       userId,
@@ -127,11 +127,7 @@ const findCacheHit = async (
   return null;
 };
 
-const storeCacheHit = async (
-  doc: IRagCacheEntry,
-  embedding: number[],
-  userId: string
-) => {
+const storeCacheHit = async (doc: IRagCacheEntry, embedding: number[], userId: string) => {
   const stored = await cacheRepository.upsertCacheEntry(doc);
   if (!stored) return;
   const cacheId = String((stored as any)?._id || doc.normalizedQuestion);
@@ -269,13 +265,11 @@ export class RagAnswerService {
       };
     }
 
-    const classification = classifyQuestion(
-      normalizedQuestion,
-      languageDetection.targetLanguage
-    );
+    const classification = classifyQuestion(normalizedQuestion, languageDetection.targetLanguage);
 
     if (!classification.isFitness) {
-      const message = classification.message || NOT_FITNESS_MESSAGES[languageDetection.targetLanguage];
+      const message =
+        classification.message || NOT_FITNESS_MESSAGES[languageDetection.targetLanguage];
       const response: RagResponse = {
         reason: "NOT_FITNESS",
         answer: message,
