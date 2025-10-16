@@ -30,9 +30,8 @@ export const validateExercise = async (
     // Validation passed
     return { isValid: true, validatedExercise: exercise };
   } catch (err: any) {
-    if(err.message==FIND_ONE_FAILURE) return {isValid:true} 
+    if (err.message == FIND_ONE_FAILURE) return { isValid: true };
 
     return { isValid: false, message: "An error occurred during validation" };
-
   }
 };

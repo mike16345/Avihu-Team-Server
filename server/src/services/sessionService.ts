@@ -43,10 +43,11 @@ export default class SessionService extends BaseService<ISession, SessionReposit
 
   async getSessionById(sessionId: string) {
     try {
-      let session = await this.repository.getSessionById(sessionId);
+      let session = this.cache.get(sessionId) || (await this.repository.getSessionById(sessionId));
 
       if (!session) return null;
       if (isSessionExpired(session)) {
+        this.cache.invalidate(sessionId);
         await this.repository.deleteById(String(session._id));
         return null;
       }
@@ -60,6 +61,7 @@ export default class SessionService extends BaseService<ISession, SessionReposit
         session = await this.repository.updateById(session._id.toString(), updateOptions);
       }
       this.cache.set(sessionId, session);
+      console.log("returning session", session);
 
       return session;
     } catch (err) {
