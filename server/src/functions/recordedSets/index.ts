@@ -10,10 +10,13 @@ const recordedSetsApiHandlers = {
   [`POST ${BASE_PATH}`]: recordedSetsController.addRecordedSet,
   [`GET ${BASE_PATH}/user`]: recordedSetsController.getRecordedSetsByUserId,
   [`GET ${BASE_PATH}/user/exercise`]: recordedSetsController.getUserRecordedSetsByExercise,
+  [`PUT ${BASE_PATH}/one`]: recordedSetsController.updateRecordedSetById,
+  [`DELETE ${BASE_PATH}/one`]: recordedSetsController.deleteRecordedSetById,
 };
 
 const recordedSetsMiddleware = {
   [`POST ${BASE_PATH}`]: validateRecordedSet,
+  [`PUT ${BASE_PATH}/one`]: validateRecordedSet,
 };
 
 export const handler = async (

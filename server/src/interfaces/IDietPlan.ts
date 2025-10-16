@@ -6,6 +6,7 @@ export interface IDietPlan {
   totalCalories?: number;
   freeCalories?: number;
   fatsPerDay?: number;
+  supplements: string[];
   veggiesPerDay?: number;
   customInstructions?: string[];
 }

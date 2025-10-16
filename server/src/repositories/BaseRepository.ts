@@ -29,7 +29,7 @@ export class BaseRepository<T> {
 
     return count !== null;
   }
-  
+
   async find(options: FindOptions<T> = { query: {} }) {
     const { query, projection, queryOptions } = options;
     const data = await this.model.find(query, projection, queryOptions);
@@ -71,10 +71,12 @@ export class BaseRepository<T> {
     sort = {},
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
+    const queryHasKeys = !!Object.keys(query).length;
+    const parsedQuery = queryHasKeys ? JSON.parse(query) : {};
 
     const [results, totalResults] = await Promise.all([
-      this.model.find(query).sort(sort).skip(skip).limit(limit),
-      this.model.countDocuments(query).exec(),
+      this.model.find(parsedQuery).sort(sort).skip(skip).limit(limit),
+      this.model.countDocuments(parsedQuery).exec(),
     ]);
 
     const totalPages = Math.ceil(totalResults / limit);

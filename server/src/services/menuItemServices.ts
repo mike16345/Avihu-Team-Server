@@ -21,9 +21,10 @@ export class MenuItemService extends BaseService<ICustomItemInstructions, MenuIt
     }
   }
 
-  async getAllMenuItems() {
+  async getAllMenuItems(dietaryType?: string[]) {
     try {
-      const allMenuItems = await this.find();
+      const filter = dietaryType && dietaryType.length > 0 ? { dietaryType: dietaryType } : {};
+      const allMenuItems = await this.find(filter);
 
       let mapped: { [key: string]: any[] } = {};
       allMenuItems.forEach((item: any) => {

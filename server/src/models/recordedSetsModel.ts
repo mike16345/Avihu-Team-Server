@@ -7,9 +7,9 @@ interface IMuscleGroupRecordedSetsDocument extends IMuscleGroupRecordedSets {}
 const recordedSetSchema = new Schema<IRecordedSet>({
   plan: { type: String, required: true },
   exercise: { type: String, required: true },
-  setNumber: { type: Number, required: true },
-  weight: { type: Number, required: true },
-  repsDone: { type: Number, required: true },
+  setNumber: { type: Number, min: 1, required: true },
+  weight: { type: Number, min: 1, required: true },
+  repsDone: { type: Number, min: 1, required: true },
   note: { type: String },
   date: { type: Date, default: Date.now },
 });
