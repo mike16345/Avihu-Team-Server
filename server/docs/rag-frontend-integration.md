@@ -4,10 +4,10 @@ This guide explains how client applications integrate with the Lambda-backed RAG
 
 ## Endpoints
 
-| Method & Path | Purpose |
-| --- | --- |
-| `POST /rag/query` | Submit a user question and receive either a JSON payload or a streaming SSE response. |
-| `POST /rag/ingest` | Admin-only ingestion of curated context chunks for a user’s private corpus. |
+| Method & Path      | Purpose                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `POST /rag/query`  | Submit a user question and receive either a JSON payload or a streaming SSE response. |
+| `POST /rag/ingest` | Admin-only ingestion of curated context chunks for a user’s private corpus.           |
 
 Attach the same authentication headers required by the rest of your API Gateway stack (JWT, API key, etc.). Every query must supply a `userId`; the backend enforces per-user rate limits entirely in MongoDB.
 
@@ -27,6 +27,7 @@ Attach the same authentication headers required by the rest of your API Gateway 
 ```
 
 Field notes:
+
 - `stream` toggles Server-Sent Events (default `false`).
 - `topK`, `threshold`, and `cacheThreshold` override the environment defaults when present.
 - `metadata` passes through to Pinecone filters alongside the built-in user/language filters.
@@ -41,9 +42,7 @@ When `stream` is `false`, the Lambda returns JSON:
 {
   "reason": "ANSWER_GENERATED",
   "answer": "...text with [^1] markers...",
-  "citations": [
-    { "marker": "[^1]", "sourceId": "plan-1", "page": 2, "score": 0.78 }
-  ],
+  "citations": [{ "marker": "[^1]", "sourceId": "plan-1", "page": 2, "score": 0.78 }],
   "usage": { "promptTokens": 123, "completionTokens": 98, "totalTokens": 221 },
   "cached": false,
   "notice": "optional fallback notice",
@@ -97,12 +96,12 @@ Before retrieval, the service embeds the normalized question and queries the sem
 
 ## Error Handling Summary
 
-| Status | Cause | UI Suggestion |
-| --- | --- | --- |
-| 400 | Missing `userId`/`question` or malformed ingest payload | Prompt user to correct the form. |
-| 403 | Ingest attempted without admin privileges | Show “Admins only” message. |
-| 429 | Rate limit exceeded in the current 60s window | Display a cooldown timer or retry CTA. |
-| 500 | Unexpected backend failure | Offer retry and log the incident. |
+| Status | Cause                                                   | UI Suggestion                          |
+| ------ | ------------------------------------------------------- | -------------------------------------- |
+| 400    | Missing `userId`/`question` or malformed ingest payload | Prompt user to correct the form.       |
+| 403    | Ingest attempted without admin privileges               | Show “Admins only” message.            |
+| 429    | Rate limit exceeded in the current 60s window           | Display a cooldown timer or retry CTA. |
+| 500    | Unexpected backend failure                              | Offer retry and log the incident.      |
 
 Source references: validation and rate limit enforcement in `RagAnswerService`, admin guard in `RagController`.【F:server/src/rag/answer.service.ts†L55-L90】【F:server/src/rag/answer.service.ts†L528-L559】【F:server/src/controllers/ragController.ts†L18-L101】
 

@@ -24,7 +24,8 @@ export const detectLanguage = (text: string): LanguageDetection => {
     detected = "en"; // default to en when no letters (e.g., numbers only)
   }
 
-  const targetLanguage: SupportedLanguage = detected === "he" ? "he" : detected === "en" ? "en" : "he";
+  const targetLanguage: SupportedLanguage =
+    detected === "he" ? "he" : detected === "en" ? "en" : "he";
   const needsFallbackNotice = detected === "other";
 
   return { inputLanguage: detected, targetLanguage, needsFallbackNotice };

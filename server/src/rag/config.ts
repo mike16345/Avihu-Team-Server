@@ -19,8 +19,7 @@ export const RAG_CONSTANTS = {
     : 0.9,
   maxContextChunks: 6,
   minContextSentences: 2,
-  languageFallbackNotice:
-    "השאלה זוהתה בשפה שאינה נתמכת, התשובה מסופקת בעברית בהתאם למדיניות.",
+  languageFallbackNotice: "השאלה זוהתה בשפה שאינה נתמכת, התשובה מסופקת בעברית בהתאם למדיניות.",
   rateLimitWindowMs: parsePositiveNumber(process.env.RAG_RATE_LIMIT_WINDOW_MS, 60_000),
   rateLimitMaxRequests: parsePositiveNumber(process.env.RAG_RATE_LIMIT_MAX_REQUESTS, 8),
   chatModel: process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini",

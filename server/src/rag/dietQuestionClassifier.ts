@@ -96,19 +96,37 @@ export const classifyQuestion = (
   const text = normalizeText(question).toLowerCase();
 
   if (!text) {
-    return { isFitness: false, reason: "NOT_FITNESS", message: NOT_FITNESS_MESSAGES[targetLanguage] };
+    return {
+      isFitness: false,
+      reason: "NOT_FITNESS",
+      message: NOT_FITNESS_MESSAGES[targetLanguage],
+    };
   }
 
   if (containsKeyword(text, NON_FITNESS_KEYWORDS)) {
-    return { isFitness: false, reason: "NOT_FITNESS", message: NOT_FITNESS_MESSAGES[targetLanguage] };
+    return {
+      isFitness: false,
+      reason: "NOT_FITNESS",
+      message: NOT_FITNESS_MESSAGES[targetLanguage],
+    };
   }
 
   const isFitnessRelated =
-    containsKeyword(text, FITNESS_KEYWORDS_EN.map((k) => k.toLowerCase())) ||
-    containsKeyword(text, FITNESS_KEYWORDS_HE.map((k) => k.toLowerCase()));
+    containsKeyword(
+      text,
+      FITNESS_KEYWORDS_EN.map((k) => k.toLowerCase())
+    ) ||
+    containsKeyword(
+      text,
+      FITNESS_KEYWORDS_HE.map((k) => k.toLowerCase())
+    );
 
   if (!isFitnessRelated) {
-    return { isFitness: false, reason: "NOT_FITNESS", message: NOT_FITNESS_MESSAGES[targetLanguage] };
+    return {
+      isFitness: false,
+      reason: "NOT_FITNESS",
+      message: NOT_FITNESS_MESSAGES[targetLanguage],
+    };
   }
 
   return { isFitness: true, reason: "FITNESS" };
