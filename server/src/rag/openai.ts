@@ -1,21 +1,23 @@
+import OpenAI from "openai";
 import { SYSTEM_PROMPT } from "./prompts";
 import { normalizeText } from "./text";
 import { RAG_CONSTANTS } from "./config";
 
-const OPENAI_API_URL = "https://api.openai.com/v1";
+let cachedClient: OpenAI | null = null;
 
-const getApiKey = () => {
+const getClient = () => {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing OPENAI_API_KEY");
   }
-  return apiKey;
-};
 
-const baseHeaders = () => ({
-  Authorization: `Bearer ${getApiKey()}`,
-  "Content-Type": "application/json",
-});
+  cachedClient = new OpenAI({ apiKey });
+  return cachedClient;
+};
 
 export type UsageMetrics = {
   promptTokens: number;
@@ -72,116 +74,87 @@ export const generateAnswer = async (
   const systemPrompt = buildSystemPrompt(targetLanguage);
   const prompt = buildPrompt(params);
 
-  const body = {
-    model: RAG_CONSTANTS.chatModel,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.2,
-    stream: Boolean(stream),
-    stream_options: stream ? { include_usage: true } : undefined,
-  };
-
-  const response = await fetch(`${OPENAI_API_URL}/chat/completions`, {
-    method: "POST",
-    headers: baseHeaders(),
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI error: ${errorText}`);
-  }
+  const client = getClient();
 
   if (stream) {
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("Streaming is not supported in this environment");
-    }
+    try {
+      const streamResponse = await client.chat.completions.create({
+        model: RAG_CONSTANTS.chatModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.2,
+        stream: true,
+        stream_options: { include_usage: true },
+      });
 
-    let answer = "";
-    let usage: UsageMetrics | undefined;
-    const decoder = new TextDecoder();
-    let buffer = "";
+      let answer = "";
+      let usage: UsageMetrics | undefined;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      buffer += decoder.decode(value, { stream: true });
-
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop() || "";
-
-      for (const part of parts) {
-        const trimmed = part.trim();
-        if (!trimmed || !trimmed.startsWith("data:")) continue;
-
-        const payload = trimmed.replace(/^data:\s*/, "");
-        if (payload === "[DONE]") {
-          continue;
+      for await (const part of streamResponse) {
+        const delta = part.choices?.[0]?.delta?.content || "";
+        if (delta) {
+          answer += delta;
+          callbacks?.onDelta?.(delta);
         }
 
-        try {
-          const json = JSON.parse(payload);
-          const delta = json?.choices?.[0]?.delta?.content || "";
-          if (delta) {
-            answer += delta;
-            callbacks?.onDelta?.(delta);
-          }
-          if (json?.usage) {
-            usage = {
-              promptTokens: json.usage.prompt_tokens,
-              completionTokens: json.usage.completion_tokens,
-              totalTokens: json.usage.total_tokens,
-            };
-          }
-        } catch (error) {
-          console.error("Failed to parse OpenAI stream chunk", error, payload);
+        const chunkUsage = part.usage;
+        if (chunkUsage) {
+          usage = {
+            promptTokens: chunkUsage.prompt_tokens,
+            completionTokens: chunkUsage.completion_tokens,
+            totalTokens: chunkUsage.total_tokens,
+          };
         }
       }
-    }
 
-    return { answer: answer.trim(), usage };
+      return { answer: answer.trim(), usage };
+    } catch (error: any) {
+      throw new Error(`OpenAI error: ${error?.message || error}`);
+    }
   }
 
-  const data = await response.json();
-  const answer = data.choices?.[0]?.message?.content?.trim?.() || "";
-  const usage: UsageMetrics | undefined = data.usage
-    ? {
-        promptTokens: data.usage.prompt_tokens,
-        completionTokens: data.usage.completion_tokens,
-        totalTokens: data.usage.total_tokens,
-      }
-    : undefined;
+  try {
+    const response = await client.chat.completions.create({
+      model: RAG_CONSTANTS.chatModel,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.2,
+    });
 
-  return { answer, usage };
+    const answer = response.choices?.[0]?.message?.content?.trim?.() || "";
+    const usage: UsageMetrics | undefined = response.usage
+      ? {
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+        }
+      : undefined;
+
+    return { answer, usage };
+  } catch (error: any) {
+    throw new Error(`OpenAI error: ${error?.message || error}`);
+  }
 };
 
 export const createEmbedding = async (text: string): Promise<number[]> => {
-  const payload = {
-    input: normalizeText(text),
-    model: RAG_CONSTANTS.embeddingModel,
-  };
+  const client = getClient();
+  try {
+    const response = await client.embeddings.create({
+      model: RAG_CONSTANTS.embeddingModel,
+      input: normalizeText(text),
+    });
 
-  const response = await fetch(`${OPENAI_API_URL}/embeddings`, {
-    method: "POST",
-    headers: baseHeaders(),
-    body: JSON.stringify(payload),
-  });
+    const embedding = response.data?.[0]?.embedding as number[] | undefined;
+    if (!embedding) {
+      throw new Error("Embedding not returned by OpenAI");
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI embedding error: ${errorText}`);
+    return embedding;
+  } catch (error: any) {
+    throw new Error(`OpenAI embedding error: ${error?.message || error}`);
   }
-
-  const data = await response.json();
-  const embedding = data?.data?.[0]?.embedding as number[] | undefined;
-  if (!embedding) {
-    throw new Error("Embedding not returned by OpenAI");
-  }
-
-  return embedding;
 };

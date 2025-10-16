@@ -52,3 +52,75 @@
 - Ingestion requires an `adminUserId` belonging to an admin user.
 - Rate limit exceedance returns HTTP 429 with `{ message: "rate limit exceeded" }`.
 - Language fallback notice: `השאלה זוהתה בשפה שאינה נתמכת, התשובה מסופקת בעברית בהתאם למדיניות.` prefixed to answers when input is neither HE nor EN.
+
+## Example Requests
+
+> Replace `YOUR_API_GATEWAY_URL` with the deployed base URL and set the `x-api-key`/authorization headers that your environment requires.
+
+### 1. English Fitness Question (JSON response)
+
+```bash
+curl -X POST "https://YOUR_API_GATEWAY_URL/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "userId": "64fabc12d9012f001234abcd",
+        "sessionId": "web-123",
+        "question": "What are three mobility drills to loosen tight hamstrings before a run?",
+        "stream": false,
+        "topK": 5,
+        "threshold": 0.55
+      }'
+```
+
+### 2. Hebrew Nutrition Question (streaming SSE)
+
+```bash
+curl -N -X POST "https://YOUR_API_GATEWAY_URL/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "userId": "64fabc12d9012f001234abcd",
+        "sessionId": "ios-442",
+        "question": "מה אפשר לאכול אחרי אימון כוח כדי לתמוך בהתאוששות?",
+        "stream": true,
+        "cacheThreshold": 0.9
+      }'
+```
+
+### 3. Non-supported Language (auto-fallback to Hebrew)
+
+```bash
+curl -X POST "https://YOUR_API_GATEWAY_URL/rag/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "userId": "64fabc12d9012f001234abcd",
+        "sessionId": "web-987",
+        "question": "Quels exercices doux puis-je faire pendant une semaine de récupération?",
+        "stream": false
+      }'
+```
+
+Expected behavior: the answer begins with the fallback notice and continues in Hebrew with `[^i]` citations.
+
+### 4. Content Ingestion (admin only)
+
+```bash
+curl -X POST "https://YOUR_API_GATEWAY_URL/rag/ingest" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "adminUserId": "64fa0000d9012f0098765432",
+        "userId": "64fabc12d9012f001234abcd",
+        "sourceId": "post-run-guide",
+        "chunks": [
+          {
+            "id": "post-run-guide-1",
+            "text": "Perform light dynamic stretches such as leg swings and walking lunges for 5-7 minutes to maintain mobility.",
+            "metadata": { "lang": "en", "tags": ["mobility", "running"] }
+          },
+          {
+            "id": "post-run-guide-2",
+            "text": "Refuel within 60 minutes with carbohydrates and 20-30 grams of protein to support glycogen replenishment and repair.",
+            "metadata": { "lang": "en", "tags": ["nutrition", "recovery"] }
+          }
+        ]
+      }'
+```

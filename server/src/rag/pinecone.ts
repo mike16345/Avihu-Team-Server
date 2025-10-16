@@ -1,60 +1,26 @@
+import { Pinecone } from "@pinecone-database/pinecone";
 import { getPineconeIndexName, RAG_CONSTANTS } from "./config";
 
-const PINECONE_CONTROL_URL = "https://api.pinecone.io";
+let cachedClient: Pinecone | null = null;
 
-const getApiKey = () => {
+const getClient = () => {
+  if (cachedClient) {
+    return cachedClient;
+  }
+
   const apiKey = process.env.PINECONE_API_KEY;
   if (!apiKey) {
     throw new Error("Missing PINECONE_API_KEY");
   }
-  return apiKey;
+
+  cachedClient = new Pinecone({ apiKey });
+  return cachedClient;
 };
 
-const baseHeaders = () => ({
-  "Api-Key": getApiKey(),
-  "Content-Type": "application/json",
-});
-
-let cachedHost: string | null = null;
-
-const fetchIndexHost = async (): Promise<string> => {
-  if (cachedHost) {
-    return cachedHost;
-  }
+const getIndex = () => {
+  const client = getClient();
   const indexName = getPineconeIndexName();
-  const response = await fetch(`${PINECONE_CONTROL_URL}/indexes/${indexName}`, {
-    method: "GET",
-    headers: baseHeaders(),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to fetch Pinecone host: ${errorText}`);
-  }
-
-  const payload = await response.json();
-  const host = payload?.index?.host || payload?.host || payload?.status?.host;
-  if (!host) {
-    throw new Error("Pinecone host not found in response");
-  }
-  cachedHost = host;
-  return host;
-};
-
-const pineconeFetch = async (path: string, body: any) => {
-  const host = await fetchIndexHost();
-  const response = await fetch(`https://${host}${path}`, {
-    method: "POST",
-    headers: baseHeaders(),
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Pinecone error: ${errorText}`);
-  }
-
-  return response.json();
+  return client.index(indexName);
 };
 
 export type PineconeMatch = {
@@ -78,31 +44,51 @@ export type UpsertVector = {
 };
 
 export const queryPinecone = async (options: QueryOptions): Promise<PineconeMatch[]> => {
-  const payload = {
-    namespace: options.namespace,
+  const index = getIndex();
+  const namespace = index.namespace(options.namespace);
+  const response = await namespace.query({
     topK: options.topK,
     vector: options.vector,
     filter: options.filter,
     includeMetadata: true,
-  };
-  const data = await pineconeFetch("/query", payload);
-  return (data?.matches as PineconeMatch[]) || [];
+  });
+
+  return (response.matches as PineconeMatch[]) || [];
 };
 
 export const upsertVectors = async (namespace: string, vectors: UpsertVector[]) => {
-  const payload = {
-    namespace,
-    vectors,
-  };
-  await pineconeFetch("/vectors/upsert", payload);
+  if (!vectors.length) {
+    return;
+  }
+
+  const index = getIndex();
+  const namespaceClient = index.namespace(namespace);
+  const payload = vectors.map((vector) => ({
+    id: vector.id,
+    values: vector.values,
+    metadata: vector.metadata,
+  }));
+
+  await namespaceClient.upsert(payload);
 };
 
 export const deleteVectors = async (namespace: string, ids: string[]) => {
-  const payload = {
-    namespace,
-    ids,
-  };
-  await pineconeFetch("/vectors/delete", payload);
+  if (!ids.length) {
+    return;
+  }
+
+  const index = getIndex();
+  const namespaceClient = index.namespace(namespace);
+  const deleteMany = (namespaceClient as any).deleteMany as
+    | ((ids: string[]) => Promise<void>)
+    | undefined;
+
+  if (deleteMany) {
+    await deleteMany(ids);
+    return;
+  }
+
+  await namespaceClient.delete({ ids });
 };
 
 export const buildMetadataFilter = (

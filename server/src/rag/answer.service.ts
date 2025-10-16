@@ -72,13 +72,13 @@ const ensureRateLimit = async (userId: string) => {
   filteredEvents.push(now);
 
   if (record) {
-    await rateLimitRepository.updateOne({
-      filter: { userId } as any,
-      update: {
+    await rateLimitRepository.updateOne(
+      { userId } as any,
+      {
         events: filteredEvents,
         updatedAt: now,
-      } as any,
-    });
+      } as any
+    );
   } else {
     await rateLimitRepository.create({
       userId,
