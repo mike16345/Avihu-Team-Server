@@ -69,7 +69,10 @@ export class OTPController {
       const otp = generateOTP();
       const cacheKey = `otp:${email.toLowerCase()}`;
 
+      console.log(`Setting OTP:${otp} with cache key:${cacheKey}`);
+
       cache.set(cacheKey, otp, { expireAfter: ONE_MINUTE_IN_MILLISECONDS * 5 });
+
       const mailOptions = {
         to: email,
         subject: "קוד אימות - AvihuTeam",

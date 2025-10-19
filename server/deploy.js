@@ -35,12 +35,19 @@ const ACCESS_SECRET = `SECRET_KEY=${process.env.SECRET_KEY}`;
 const EMAIL = `EMAIL=${process.env.EMAIL}`;
 const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 
+// RAG
+const OPEN_AI_KEY = `OPENAI_API_KEY=${process.env.OPENAI_API_KEY}`;
+const PINECONE_API_KEY = `PINECONE_API_KEY=${process.env.PINECONE_API_KEY}`;
+const PINECONE_INDEX = `PINECONE_INDEX=${process.env.PINECONE_INDEX}`;
+
 const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
 const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI}`;
+const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
   signedUrl: signedUrlEnv,
   api: apiEnv,
   otp: `${EMAIL},${APP_PASSWORD},${apiEnv}`,
+  rag: `${ragEnv},${apiEnv}`,
 };
 
 // Get all index.ts/js files in subfolders
