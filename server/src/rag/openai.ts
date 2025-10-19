@@ -146,6 +146,7 @@ export const createEmbedding = async (text: string): Promise<number[]> => {
     const response = await client.embeddings.create({
       model: RAG_CONSTANTS.embeddingModel,
       input: normalizeText(text),
+      dimensions: RAG_CONSTANTS.embeddingDimensions,
     });
 
     const embedding = response.data?.[0]?.embedding as number[] | undefined;

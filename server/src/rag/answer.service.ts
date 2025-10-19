@@ -35,7 +35,6 @@ export class RagAnswerService {
     if (!userId || !question) {
       throw { status: StatusCode.BAD_REQUEST, message: "userId and question are required" };
     }
-
     await ensureRateLimit(userId);
 
     const languageDetection = detectLanguage(question);
@@ -93,7 +92,7 @@ export class RagAnswerService {
 
     const filteredMatches = matches.filter((match) => (match.score || 0) >= effectiveThreshold);
 
-    if (!filteredMatches.length) {
+    if (!filteredMatches.length && !RAG_CONSTANTS.allowFallbackLLMWithoutContext) {
       return await Responder.retrievalEmpty(matches);
     }
 

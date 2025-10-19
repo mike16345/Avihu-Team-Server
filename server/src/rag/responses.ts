@@ -243,7 +243,6 @@ export class RagAnswerResponder {
     const lowerAnswer = finalAnswer.toLowerCase();
 
     if (
-      citations.length > 0 &&
       finalAnswer &&
       !finalAnswer.includes("אני לא יודע") &&
       !lowerAnswer.includes("i don't know")
