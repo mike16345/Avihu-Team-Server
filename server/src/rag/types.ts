@@ -4,8 +4,11 @@ import { SupportedLanguage } from "./language";
 
 export type RagReason =
   | "CACHE_HIT"
+  | "CACHE_REFUSAL"
   | "CACHE_MISS"
   | "CACHE_STORED"
+  | "GREETING"
+  | "BLOCKED"
   | "NOT_FITNESS"
   | "RETRIEVAL_EMPTY"
   | "ANSWER_GENERATED";
@@ -44,6 +47,8 @@ export type RagResponse = {
   usage?: UsageMetrics;
   cached?: boolean;
   notice?: string;
+  refusal?: boolean;
+  greeting?: boolean;
 };
 
 export type RagStreamTrailer = {

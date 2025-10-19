@@ -1,6 +1,6 @@
 import { ClassificationResult, NOT_FITNESS_MESSAGES } from "./dietQuestionClassifier";
 import { logTrace } from "./trace";
-import { Citation, RagResponse, RagStreamTrailer } from "./types";
+import { Citation, RagReason, RagResponse, RagStreamTrailer } from "./types";
 import { toSseChunk } from "./answer.service";
 import { LanguageDetection } from "./language";
 import { IRagCacheEntry } from "../models/ragCacheModel";
@@ -31,6 +31,52 @@ export class RagAnswerResponder {
     private readonly logger: (obj: any) => void = (o) => console.log(JSON.stringify(o))
   ) {}
 
+  async greeting(): Promise<BranchResult> {
+    const response: RagResponse = {
+      reason: "GREETING",
+      answer: "",
+      citations: [],
+      cached: false,
+      greeting: true,
+    };
+
+    const trailer: RagStreamTrailer = { done: true, citations: [] };
+    const events = this.stream ? [toSseChunk(trailer)] : [];
+
+    await this.traceFn(
+      this.userId,
+      this.question,
+      this.languageDetection.targetLanguage,
+      "GREETING",
+      "",
+      [],
+      undefined,
+      this.sessionId
+    );
+
+    this.logger({
+      evt: "rag.query",
+      reason: "GREETING",
+      userId: this.userId,
+      sessionId: this.sessionId,
+      language: this.languageDetection.targetLanguage,
+      cached: false,
+      latencyMs: Date.now() - this.start,
+      topScores: [],
+      retrievedIds: [],
+      usage: undefined,
+    });
+
+    return {
+      response,
+      stream: this.stream,
+      events,
+      trailer,
+      matches: [],
+      languageDetection: this.languageDetection,
+    };
+  }
+
   /** NOT_FITNESS branch */
   async notFitness(classification: ClassificationResult): Promise<BranchResult> {
     const message =
@@ -41,6 +87,7 @@ export class RagAnswerResponder {
       answer: message,
       citations: [],
       cached: false,
+      refusal: true,
     };
 
     const trailer: RagStreamTrailer = { done: true, citations: [] };
@@ -67,6 +114,7 @@ export class RagAnswerResponder {
       latencyMs: Date.now() - this.start,
       topScores: [],
       retrievedIds: [],
+      usage: undefined,
     });
 
     return {
@@ -81,13 +129,15 @@ export class RagAnswerResponder {
 
   /** CACHE_HIT branch */
   async cacheHit(cacheHit: IRagCacheEntry): Promise<BranchResult> {
+    const reason = cacheHit.refusal ? "CACHE_REFUSAL" : "CACHE_HIT";
     const response: RagResponse = {
-      reason: "CACHE_HIT",
+      reason,
       answer: cacheHit.answer,
       citations: cacheHit.citations,
       usage: undefined,
       cached: true,
       notice: cacheHit.notice,
+      refusal: cacheHit.refusal,
     };
 
     const trailer: RagStreamTrailer = { done: true, citations: cacheHit.citations };
@@ -102,7 +152,7 @@ export class RagAnswerResponder {
       this.userId,
       this.question,
       this.languageDetection.targetLanguage,
-      "CACHE_HIT",
+      reason,
       cacheHit.answer,
       cacheHit.retrievedIds,
       undefined,
@@ -111,14 +161,15 @@ export class RagAnswerResponder {
 
     this.logger({
       evt: "rag.query",
-      reason: "CACHE_HIT",
+      reason,
       userId: this.userId,
       sessionId: this.sessionId,
       language: this.languageDetection.targetLanguage,
       cached: true,
       latencyMs: Date.now() - this.start,
-      topScores: [cacheHit.topScore],
-      retrievedIds: cacheHit.retrievedIds,
+      topScores: typeof cacheHit.topScore === "number" ? [cacheHit.topScore] : [],
+      retrievedIds: cacheHit.retrievedIds || [],
+      usage: undefined,
     });
 
     return {
@@ -169,6 +220,61 @@ export class RagAnswerResponder {
       latencyMs: Date.now() - this.start,
       topScores: matches.map((m) => m.score),
       retrievedIds: [],
+      usage: undefined,
+    });
+
+    return {
+      response,
+      stream: this.stream,
+      events,
+      trailer,
+      matches: [],
+      languageDetection: this.languageDetection,
+    };
+  }
+
+  async refusal(args: {
+    reason: RagReason;
+    message: string;
+    cached: boolean;
+    notice?: string;
+  }): Promise<BranchResult> {
+    const { reason, message, cached, notice } = args;
+
+    const response: RagResponse = {
+      reason,
+      answer: message,
+      citations: [],
+      cached,
+      notice,
+      refusal: true,
+    };
+
+    const trailer: RagStreamTrailer = { done: true, citations: [] };
+    const events = this.stream ? [toSseChunk({ delta: message }), toSseChunk(trailer)] : [];
+
+    await this.traceFn(
+      this.userId,
+      this.question,
+      this.languageDetection.targetLanguage,
+      reason,
+      message,
+      [],
+      undefined,
+      this.sessionId
+    );
+
+    this.logger({
+      evt: "rag.query",
+      reason,
+      userId: this.userId,
+      sessionId: this.sessionId,
+      language: this.languageDetection.targetLanguage,
+      cached,
+      latencyMs: Date.now() - this.start,
+      topScores: [],
+      retrievedIds: [],
+      usage: undefined,
     });
 
     return {

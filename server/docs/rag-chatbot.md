@@ -7,6 +7,9 @@
 - **src/rag/pinecone.ts** — Minimal Pinecone REST helper that resolves the index host dynamically and exposes query/upsert/delete helpers plus metadata filters.
 - **src/rag/answer.service.ts** — Main orchestration for rate limiting, semantic cache reuse, Pinecone retrieval, OpenAI generation, cache persistence, logging, and MongoDB traces.
 - **src/rag/dietQuestionClassifier.ts** — Keyword-based fitness/health classifier that preserves the previous diet-only control flow semantics.
+- **src/rag/binaryClassifier.ts** — Cheap heuristic binary classifier with an OpenAI yes/no fallback used as a secondary fitness gate when the primary classifier rejects a prompt.
+- **src/rag/denylist.ts** — High-risk topic guard that blocks politics, extremism, hate, NSFW, and other disallowed themes before any retrieval.
+- **src/rag/greetings.ts** — Lightweight greeting detector used to short-circuit friendly salutations without invoking OpenAI.
 - **src/rag/language.ts** — HE/EN detector with fallback notice handling.
 - **src/rag/db.ts** — Singleton repository accessors for cache, traces, sources, and rate-limit documents.
 - **src/rag/index.ts** — Exports a shared `RagAnswerService` instance.
@@ -32,23 +35,25 @@
 
 1. Rate limit enforcement per user (Mongo sliding window).
 2. Language detection (HE/EN/other → HE) and fallback notice setup.
-3. Semantic cache lookup (Pinecone namespace `semantic-cache` + Mongo document) with 0.9 default threshold.
-4. Fitness/health classifier gate with localized rejection message when irrelevant.
-5. Pinecone retrieval (`corpus` namespace) with lang-preferring filter, threshold fallback, and trimmed context sentences.
-6. OpenAI generation at temperature 0.2 with streaming support, citations, and fallback message when no context meets threshold.
-7. Cache persistence (Mongo + Pinecone) for successful, cited answers and trace logging for observability.
-8. Structured console log `evt: "rag.query"` summarizing latency, tokens, retrieved IDs, and reason code.
+3. Greeting short-circuit: simple salutations return `reason: "GREETING"` with no model calls.
+4. High-risk topic denylist (politics, extremism, hate, NSFW, etc.) with localized refusal and optional cache stub.
+5. Semantic cache lookup (Pinecone namespace `semantic-cache` + Mongo document) with 0.88 default threshold, stale-vector cleanup, and refusal stub reuse.
+6. Fitness/health classifier gate with localized rejection message when irrelevant, backed by a binary heuristic override.
+7. Pinecone retrieval (`corpus` namespace) with lang-preferring filter, threshold fallback, and trimmed context sentences.
+8. OpenAI generation at temperature 0.2 with streaming support, citations, and a safety fallback prompt when no context is retrieved.
+9. Cache persistence (Mongo + Pinecone) for successful answers and refusal stubs plus trace logging for observability.
+10. Structured console log `evt: "rag.query"` summarizing latency, tokens, retrieved IDs, and reason code alongside branch-specific events (cache miss, stale cache, blocked topics, binary classifier).
 
 ## Tuning Knobs
 
-- Environment-driven: `RAG_RETRIEVAL_TOP_K`, `RAG_RETRIEVAL_THRESHOLD`, `RAG_CACHE_THRESHOLD`, `RAG_RATE_LIMIT_WINDOW_MS`, `RAG_RATE_LIMIT_MAX_REQUESTS`, `OPENAI_CHAT_MODEL`, `OPENAI_EMBEDDING_MODEL` (all optional).
+- Environment-driven: `RAG_RETRIEVAL_TOP_K`, `RAG_RETRIEVAL_THRESHOLD`, `RAG_CACHE_THRESHOLD` (default 0.88), `RAG_RATE_LIMIT_WINDOW_MS`, `RAG_RATE_LIMIT_MAX_REQUESTS`, `OPENAI_CHAT_MODEL`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_EMBEDDING_DIMENSIONS` (default 512), `RAG_ALLOW_FALLBACK_LLM`, `RAG_DENYLIST_ENABLED`, `RAG_BINARY_CLASSIFIER_ENABLED`, `RAG_CACHE_REFUSAL_STUBS`, `RAG_BINARY_CLASSIFIER_MODEL`, `RAG_BINARY_CLASSIFIER_MAX_TOKENS`.
 - Request-level: `topK`, `threshold`, `cacheThreshold`, `stream`, and metadata filters.
 - Pinecone namespaces: `semantic-cache` (cache) and `corpus` (canonical content).
 
 ## Operational Notes
 
 - Streaming responses emit `data: {"delta"}` chunks followed by a trailer `data: {"done":true,...}`.
-- Non-streaming responses return `{ reason, answer, citations, usage, cached, notice, language }`.
+- Non-streaming responses return `{ reason, answer, citations, usage, cached, notice, refusal, greeting, language }`.
 - Ingestion requires an `adminUserId` belonging to an admin user.
 - Rate limit exceedance returns HTTP 429 with `{ message: "rate limit exceeded" }`.
 - Language fallback notice: `השאלה זוהתה בשפה שאינה נתמכת, התשובה מסופקת בעברית בהתאם למדיניות.` prefixed to answers when input is neither HE nor EN.
