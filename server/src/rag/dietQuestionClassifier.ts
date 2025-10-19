@@ -126,7 +126,10 @@ export const classifyQuestion = (
   }
 
   const positiveMatches = Array.from(
-    new Set([...findMatches(text, FITNESS_KEYWORDS_EN_LC), ...findMatches(text, FITNESS_KEYWORDS_HE_LC)])
+    new Set([
+      ...findMatches(text, FITNESS_KEYWORDS_EN_LC),
+      ...findMatches(text, FITNESS_KEYWORDS_HE_LC),
+    ])
   );
 
   if (!positiveMatches.length) {
