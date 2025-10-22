@@ -1,5 +1,10 @@
 import OpenAI from "openai";
-import { SYSTEM_PROMPT } from "./prompts";
+import {
+  FITNESS_INTENT_CLASSIFIER_PROMPT,
+  buildSystemPrompt,
+  buildBinaryClassifierPrompt,
+  buildPrompt,
+} from "./prompts";
 import { normalizeText } from "./text";
 import { RAG_CONSTANTS } from "./config";
 
@@ -50,60 +55,11 @@ export type GenerateAnswerResult = {
   usage?: UsageMetrics;
 };
 
-const buildSystemPrompt = (targetLanguage: string) =>
-  SYSTEM_PROMPT.replace(/<targetLang>/g, targetLanguage);
-
-const BINARY_CLASSIFIER_SYSTEM_PROMPT = [
-  "You are a concise intent classifier for health, fitness, training, recovery, sleep, and nutrition questions.",
-  "Answer YES if the user is genuinely asking about exercise, diet, healthy lifestyle habits, or how behaviours impact those goals.",
-  "Answer NO if it is trolling, unrelated, or mostly about another topic.",
-  "Respond with a single word: YES or NO.",
-].join(" ");
-
-const buildBinaryClassifierPrompt = (question: string) =>
-  [
-    `Question: """${normalizeText(question)}"""`,
-    "Is this question about fitness, exercise, nutrition, recovery, or how lifestyle factors influence those areas?",
-    "Respond with YES if it is. Otherwise respond with NO.",
-  ].join("\n");
-
-const buildPrompt = (params: GenerateAnswerParams): string => {
-  const { contextBlocks, question, summary, noContextFallback } = params;
-  const promptParts: string[] = [];
-
-  if (noContextFallback) {
-    promptParts.push(
-      [
-        "No retrieved context is available.",
-        "Provide concise, fitness and wellness-relevant guidance only.",
-        "Do not diagnose; remind users to consult a professional for medical concerns.",
-        "Do not include citations or [^i] markers when no context is provided.",
-      ].join(" ")
-    );
-  }
-
-  if (summary) {
-    promptParts.push(`Conversation summary: ${summary}`);
-  }
-
-  if (contextBlocks.length > 0) {
-    promptParts.push(
-      contextBlocks
-        .map((block, index) => `Context [${index + 1}]: ${normalizeText(block)}`)
-        .join("\n")
-    );
-  }
-
-  promptParts.push(`Question: ${normalizeText(question)}`);
-
-  return promptParts.join("\n\n");
-};
-
 export const generateAnswer = async (
   params: GenerateAnswerParams
 ): Promise<GenerateAnswerResult> => {
-  const { stream, callbacks, targetLanguage } = params;
-  const systemPrompt = buildSystemPrompt(targetLanguage);
+  const { stream, callbacks, targetLanguage, contextBlocks } = params;
+  const systemPrompt = buildSystemPrompt(targetLanguage, contextBlocks);
   const prompt = buildPrompt(params);
 
   const client = getClient();
@@ -182,7 +138,7 @@ export const classifyFitnessIntent = async (
     const response = await client.chat.completions.create({
       model: RAG_CONSTANTS.binaryClassifierModel,
       messages: [
-        { role: "system", content: BINARY_CLASSIFIER_SYSTEM_PROMPT },
+        { role: "system", content: FITNESS_INTENT_CLASSIFIER_PROMPT },
         { role: "user", content: prompt },
       ],
       max_tokens: RAG_CONSTANTS.binaryClassifierMaxTokens,
