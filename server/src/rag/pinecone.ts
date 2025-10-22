@@ -45,10 +45,7 @@ const resolveIndexDimension = (description: any): number | undefined => {
   return undefined;
 };
 
-const ensureEmbeddingDimensionConsistency = async (
-  client: Pinecone,
-  indexName: string
-) => {
+const ensureEmbeddingDimensionConsistency = async (client: Pinecone, indexName: string) => {
   if (embeddingDimensionChecked) {
     return;
   }

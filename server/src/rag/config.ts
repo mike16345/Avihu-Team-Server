@@ -47,10 +47,7 @@ export const RAG_CONSTANTS = {
     process.env.OPENAI_EMBEDDING_DIMENSIONS,
     DEFAULT_EMBED_DIMENSION
   ),
-  allowFallbackLLMWithoutContext: parseBoolean(
-    process.env.RAG_ALLOW_FALLBACK_LLM,
-    true
-  ),
+  allowFallbackLLMWithoutContext: parseBoolean(process.env.RAG_ALLOW_FALLBACK_LLM, true),
   denylistEnabled: parseBoolean(process.env.RAG_DENYLIST_ENABLED, true),
   binaryClassifierEnabled: parseBoolean(process.env.RAG_BINARY_CLASSIFIER_ENABLED, true),
   cacheRefusalStubs: parseBoolean(process.env.RAG_CACHE_REFUSAL_STUBS, true),

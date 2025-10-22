@@ -1,12 +1,7 @@
 import { IRagCacheEntry } from "../models/ragCacheModel";
 import { RAG_CONSTANTS } from "./config";
 import { getRagCacheRepository } from "./db";
-import {
-  queryPinecone,
-  buildMetadataFilter,
-  upsertVectors,
-  deleteVectors,
-} from "./pinecone";
+import { queryPinecone, buildMetadataFilter, upsertVectors, deleteVectors } from "./pinecone";
 
 const cacheRepository = getRagCacheRepository();
 
