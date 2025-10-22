@@ -54,19 +54,6 @@ export class RagAnswerResponder {
       this.sessionId
     );
 
-    this.logger({
-      evt: "rag.query",
-      reason: "GREETING",
-      userId: this.userId,
-      sessionId: this.sessionId,
-      language: this.languageDetection.targetLanguage,
-      cached: false,
-      latencyMs: Date.now() - this.start,
-      topScores: [],
-      retrievedIds: [],
-      usage: undefined,
-    });
-
     return {
       response,
       stream: this.stream,

@@ -55,7 +55,7 @@ export const RAG_CONSTANTS = {
   binaryClassifierEnabled: parseBoolean(process.env.RAG_BINARY_CLASSIFIER_ENABLED, true),
   cacheRefusalStubs: parseBoolean(process.env.RAG_CACHE_REFUSAL_STUBS, true),
   binaryClassifierModel:
-    process.env.RAG_BINARY_CLASSIFIER_MODEL || "gpt-4o-mini",
+    process.env.RAG_BINARY_CLASSIFIER_MODEL || "gpt-3.5-turbo",
   binaryClassifierMaxTokens: parsePositiveNumber(
     process.env.RAG_BINARY_CLASSIFIER_MAX_TOKENS,
     4
