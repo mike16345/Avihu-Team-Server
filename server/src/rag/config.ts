@@ -55,6 +55,13 @@ export const RAG_CONSTANTS = {
   binaryClassifierMaxTokens: parsePositiveNumber(process.env.RAG_BINARY_CLASSIFIER_MAX_TOKENS, 4),
 };
 
+export const RAG_LIMITS = {
+  perUserDailyLimit: 50, // hard cap per user per UTC day
+} as const;
+
+// Cost note: if N users all hit 50 Q/day, that's N*50/day ≈ N*1,500 Q/month.
+// With gpt-4o-mini (~$0.000285 per non-cached Q, rough), 100 users ≈ 150k Q/mo ≈ $42.75 (before cache).
+
 export const getPineconeIndexName = () => process.env.PINECONE_INDEX || "diet-questions";
 
 export const EMBEDDING_CONFIG = {
