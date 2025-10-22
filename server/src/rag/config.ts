@@ -51,12 +51,8 @@ export const RAG_CONSTANTS = {
   denylistEnabled: parseBoolean(process.env.RAG_DENYLIST_ENABLED, true),
   binaryClassifierEnabled: parseBoolean(process.env.RAG_BINARY_CLASSIFIER_ENABLED, true),
   cacheRefusalStubs: parseBoolean(process.env.RAG_CACHE_REFUSAL_STUBS, true),
-  binaryClassifierModel:
-    process.env.RAG_BINARY_CLASSIFIER_MODEL || "gpt-3.5-turbo",
-  binaryClassifierMaxTokens: parsePositiveNumber(
-    process.env.RAG_BINARY_CLASSIFIER_MAX_TOKENS,
-    4
-  ),
+  binaryClassifierModel: process.env.RAG_BINARY_CLASSIFIER_MODEL || "gpt-3.5-turbo",
+  binaryClassifierMaxTokens: parsePositiveNumber(process.env.RAG_BINARY_CLASSIFIER_MAX_TOKENS, 4),
 };
 
 export const getPineconeIndexName = () => process.env.PINECONE_INDEX || "diet-questions";
