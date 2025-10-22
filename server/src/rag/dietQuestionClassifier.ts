@@ -1,7 +1,7 @@
 import { SupportedLanguage } from "./language";
 import { normalizeText } from "./text";
 
-const FITNESS_KEYWORDS_EN = [
+export const FITNESS_KEYWORDS_EN = [
   "diet",
   "nutrition",
   "protein",
@@ -31,7 +31,7 @@ const FITNESS_KEYWORDS_EN = [
   "cool down",
 ];
 
-const FITNESS_KEYWORDS_HE = [
+export const FITNESS_KEYWORDS_HE = [
   "תזונה",
   "תכנית",
   "תוכנית",
@@ -60,7 +60,7 @@ const FITNESS_KEYWORDS_HE = [
   "סיבולת",
 ];
 
-const NON_FITNESS_KEYWORDS = [
+export const NON_FITNESS_KEYWORDS = [
   "investment",
   "stock",
   "crypto",
@@ -84,10 +84,19 @@ export type ClassificationResult = {
   isFitness: boolean;
   reason: "FITNESS" | "NOT_FITNESS";
   message?: string;
+  positiveMatches: string[];
+  negativeMatches: string[];
 };
 
-const containsKeyword = (text: string, keywords: string[]) =>
-  keywords.some((keyword) => text.includes(keyword));
+const toLowercaseKeywords = (keywords: string[]) =>
+  keywords.map((keyword) => keyword.toLowerCase());
+
+const FITNESS_KEYWORDS_EN_LC = toLowercaseKeywords(FITNESS_KEYWORDS_EN);
+const FITNESS_KEYWORDS_HE_LC = toLowercaseKeywords(FITNESS_KEYWORDS_HE);
+const NON_FITNESS_KEYWORDS_LC = toLowercaseKeywords(NON_FITNESS_KEYWORDS);
+
+const findMatches = (text: string, keywords: string[]) =>
+  keywords.filter((keyword) => text.includes(keyword));
 
 export const classifyQuestion = (
   question: string,
@@ -100,34 +109,38 @@ export const classifyQuestion = (
       isFitness: false,
       reason: "NOT_FITNESS",
       message: NOT_FITNESS_MESSAGES[targetLanguage],
+      positiveMatches: [],
+      negativeMatches: [],
     };
   }
 
-  if (containsKeyword(text, NON_FITNESS_KEYWORDS)) {
+  const negativeMatches = findMatches(text, NON_FITNESS_KEYWORDS_LC);
+  if (negativeMatches.length) {
     return {
       isFitness: false,
       reason: "NOT_FITNESS",
       message: NOT_FITNESS_MESSAGES[targetLanguage],
+      positiveMatches: [],
+      negativeMatches,
     };
   }
 
-  const isFitnessRelated =
-    containsKeyword(
-      text,
-      FITNESS_KEYWORDS_EN.map((k) => k.toLowerCase())
-    ) ||
-    containsKeyword(
-      text,
-      FITNESS_KEYWORDS_HE.map((k) => k.toLowerCase())
-    );
+  const positiveMatches = Array.from(
+    new Set([
+      ...findMatches(text, FITNESS_KEYWORDS_EN_LC),
+      ...findMatches(text, FITNESS_KEYWORDS_HE_LC),
+    ])
+  );
 
-  if (!isFitnessRelated) {
+  if (!positiveMatches.length) {
     return {
       isFitness: false,
       reason: "NOT_FITNESS",
       message: NOT_FITNESS_MESSAGES[targetLanguage],
+      positiveMatches,
+      negativeMatches,
     };
   }
 
-  return { isFitness: true, reason: "FITNESS" };
+  return { isFitness: true, reason: "FITNESS", positiveMatches, negativeMatches };
 };

@@ -58,6 +58,8 @@ export class RagController {
         usage: result.response.usage,
         cached: result.response.cached,
         notice: result.response.notice,
+        refusal: result.response.refusal,
+        greeting: result.response.greeting,
         language: result.languageDetection.targetLanguage,
       };
 

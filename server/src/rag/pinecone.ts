@@ -1,7 +1,11 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { getPineconeIndexName, RAG_CONSTANTS } from "./config";
 
+type PineconeIndex = ReturnType<Pinecone["index"]>;
+
 let cachedClient: Pinecone | null = null;
+let cachedIndexPromise: Promise<PineconeIndex> | null = null;
+let embeddingDimensionChecked = false;
 
 const getClient = () => {
   if (cachedClient) {
@@ -17,10 +21,59 @@ const getClient = () => {
   return cachedClient;
 };
 
-const getIndex = () => {
-  const client = getClient();
-  const indexName = getPineconeIndexName();
-  return client.index(indexName);
+const resolveIndexDimension = (description: any): number | undefined => {
+  if (!description || typeof description !== "object") {
+    return undefined;
+  }
+
+  if (typeof description.dimension === "number") {
+    return description.dimension;
+  }
+
+  if (description.database && typeof description.database.dimension === "number") {
+    return description.database.dimension;
+  }
+
+  if (description.spec && typeof description.spec.dimension === "number") {
+    return description.spec.dimension;
+  }
+
+  if (description.status && typeof description.status.dimension === "number") {
+    return description.status.dimension;
+  }
+
+  return undefined;
+};
+
+const ensureEmbeddingDimensionConsistency = async (client: Pinecone, indexName: string) => {
+  if (embeddingDimensionChecked) {
+    return;
+  }
+
+  const description = await client.describeIndex(indexName);
+  const indexDimension = resolveIndexDimension(description);
+  const expected = RAG_CONSTANTS.embeddingDimensions;
+
+  if (typeof indexDimension === "number" && indexDimension !== expected) {
+    throw new Error(
+      `Pinecone index dimension (${indexDimension}) != embedding result dimension (${expected})`
+    );
+  }
+
+  embeddingDimensionChecked = true;
+};
+
+const getIndex = async (): Promise<PineconeIndex> => {
+  if (!cachedIndexPromise) {
+    cachedIndexPromise = (async () => {
+      const client = getClient();
+      const indexName = getPineconeIndexName();
+      await ensureEmbeddingDimensionConsistency(client, indexName);
+      return client.index(indexName);
+    })();
+  }
+
+  return cachedIndexPromise;
 };
 
 export type PineconeMatch = {
@@ -44,7 +97,7 @@ export type UpsertVector = {
 };
 
 export const queryPinecone = async (options: QueryOptions): Promise<PineconeMatch[]> => {
-  const index = getIndex();
+  const index = await getIndex();
   const namespace = index.namespace(options.namespace);
   const response = await namespace.query({
     topK: options.topK,
@@ -61,7 +114,7 @@ export const upsertVectors = async (namespace: string, vectors: UpsertVector[]) 
     return;
   }
 
-  const index = getIndex();
+  const index = await getIndex();
   const namespaceClient = index.namespace(namespace);
   const payload = vectors.map((vector) => ({
     id: vector.id,
@@ -77,7 +130,7 @@ export const deleteVectors = async (namespace: string, ids: string[]) => {
     return;
   }
 
-  const index = getIndex();
+  const index = await getIndex();
   const namespaceClient = index.namespace(namespace);
   const deleteMany = (namespaceClient as any).deleteMany as
     | ((ids: string[]) => Promise<void>)

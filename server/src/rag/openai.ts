@@ -25,6 +25,12 @@ export type UsageMetrics = {
   totalTokens: number;
 };
 
+export type BinaryClassifierLLMResult = {
+  isFitness: boolean;
+  raw: string;
+  usage?: UsageMetrics;
+};
+
 export type StreamCallbacks = {
   onDelta?: (delta: string) => void;
 };
@@ -36,6 +42,7 @@ export type GenerateAnswerParams = {
   summary?: string;
   stream?: boolean;
   callbacks?: StreamCallbacks;
+  noContextFallback?: boolean;
 };
 
 export type GenerateAnswerResult = {
@@ -46,9 +53,34 @@ export type GenerateAnswerResult = {
 const buildSystemPrompt = (targetLanguage: string) =>
   SYSTEM_PROMPT.replace(/<targetLang>/g, targetLanguage);
 
+const BINARY_CLASSIFIER_SYSTEM_PROMPT = [
+  "You are a concise intent classifier for health, fitness, training, recovery, sleep, and nutrition questions.",
+  "Answer YES if the user is genuinely asking about exercise, diet, healthy lifestyle habits, or how behaviours impact those goals.",
+  "Answer NO if it is trolling, unrelated, or mostly about another topic.",
+  "Respond with a single word: YES or NO.",
+].join(" ");
+
+const buildBinaryClassifierPrompt = (question: string) =>
+  [
+    `Question: """${normalizeText(question)}"""`,
+    "Is this question about fitness, exercise, nutrition, recovery, or how lifestyle factors influence those areas?",
+    "Respond with YES if it is. Otherwise respond with NO.",
+  ].join("\n");
+
 const buildPrompt = (params: GenerateAnswerParams): string => {
-  const { contextBlocks, question, summary } = params;
+  const { contextBlocks, question, summary, noContextFallback } = params;
   const promptParts: string[] = [];
+
+  if (noContextFallback) {
+    promptParts.push(
+      [
+        "No retrieved context is available.",
+        "Provide concise, fitness and wellness-relevant guidance only.",
+        "Do not diagnose; remind users to consult a professional for medical concerns.",
+        "Do not include citations or [^i] markers when no context is provided.",
+      ].join(" ")
+    );
+  }
 
   if (summary) {
     promptParts.push(`Conversation summary: ${summary}`);
@@ -140,6 +172,40 @@ export const generateAnswer = async (
   }
 };
 
+export const classifyFitnessIntent = async (
+  question: string
+): Promise<BinaryClassifierLLMResult> => {
+  const client = getClient();
+  const prompt = buildBinaryClassifierPrompt(question);
+
+  try {
+    const response = await client.chat.completions.create({
+      model: RAG_CONSTANTS.binaryClassifierModel,
+      messages: [
+        { role: "system", content: BINARY_CLASSIFIER_SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: RAG_CONSTANTS.binaryClassifierMaxTokens,
+      temperature: 0,
+    });
+
+    const raw = response.choices?.[0]?.message?.content?.trim?.() || "";
+    const normalized = raw.toUpperCase();
+    const isFitness = normalized.startsWith("Y");
+    const usage: UsageMetrics | undefined = response.usage
+      ? {
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+        }
+      : undefined;
+
+    return { isFitness, raw, usage };
+  } catch (error: any) {
+    throw new Error(`OpenAI binary classifier error: ${error?.message || error}`);
+  }
+};
+
 export const createEmbedding = async (text: string): Promise<number[]> => {
   const client = getClient();
   try {
@@ -152,6 +218,13 @@ export const createEmbedding = async (text: string): Promise<number[]> => {
     const embedding = response.data?.[0]?.embedding as number[] | undefined;
     if (!embedding) {
       throw new Error("Embedding not returned by OpenAI");
+    }
+
+    const expected = RAG_CONSTANTS.embeddingDimensions;
+    if (embedding.length !== expected) {
+      throw new Error(
+        `Pinecone index dimension (${expected}) != embedding result dimension (${embedding.length})`
+      );
     }
 
     return embedding;
