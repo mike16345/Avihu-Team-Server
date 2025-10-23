@@ -98,12 +98,12 @@ Before retrieval, the service embeds the normalized question and queries the sem
 
 | Status | Cause                                                                    | UI Suggestion                                                                 |
 | ------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| 400    | Missing `userId`/`question` or malformed ingest payload                  | Prompt user to correct the form.                                             |
-| 403    | Ingest attempted without admin privileges                                | Show “Admins only” message.                                                  |
-| 429    | Rate limit exceeded in the current 60s window                            | Display a cooldown timer or retry CTA.                                       |
+| 400    | Missing `userId`/`question` or malformed ingest payload                  | Prompt user to correct the form.                                              |
+| 403    | Ingest attempted without admin privileges                                | Show “Admins only” message.                                                   |
+| 429    | Rate limit exceeded in the current 60s window                            | Display a cooldown timer or retry CTA.                                        |
 | 429    | Daily question quota reached (see `limit` + `resetAt` fields in payload) | Surface a “Daily limit reached” banner, disable the form until the reset ETA. |
-| 503    | Backend placed in maintenance pause (`code: "SERVICE_PAUSED"`)          | Show the pause message returned by the server and hide/disable the ask form.  |
-| 500    | Unexpected backend failure                                               | Offer retry and log the incident.                                            |
+| 503    | Backend placed in maintenance pause (`code: "SERVICE_PAUSED"`)           | Show the pause message returned by the server and hide/disable the ask form.  |
+| 500    | Unexpected backend failure                                               | Offer retry and log the incident.                                             |
 
 Source references: validation and rate limit enforcement in `RagAnswerService`, admin guard in `RagController`.【F:server/src/rag/answer.service.ts†L55-L90】【F:server/src/rag/answer.service.ts†L528-L559】【F:server/src/controllers/ragController.ts†L18-L101】
 
