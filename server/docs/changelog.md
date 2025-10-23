@@ -3,11 +3,13 @@
 ## 2025-10-22 — Daily Quota & Pause Guards
 
 ### Backend Summary
+
 - Added a Mongo-backed per-user daily quota counter enforced ahead of the existing sliding-window limiter.
 - Introduced a Mongo-configurable pause switch with a 60s in-memory cache to short-circuit queries while maintenance is underway.
 - Surfaced structured error payloads for quota exhaustion (`code: "DAILY_LIMIT_REACHED"`) and system pauses (`code: "SERVICE_PAUSED"`).
 
 ### Frontend Implementation Notes
+
 1. **Daily quota handling**
    - Treat HTTP 429 responses that include `code: "DAILY_LIMIT_REACHED"` as a hard stop for the rest of the UTC day.
    - Read the `limit` integer and `resetAt` ISO timestamp from the payload; display both in your UI (banner, modal, or toast).
