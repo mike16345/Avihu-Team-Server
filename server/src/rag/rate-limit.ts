@@ -31,21 +31,14 @@ const ensureRateLimit = async (userId: string) => {
       {
         $set: {
           withinLimit: {
-            $lt: [
-              { $size: "$events" },
-              RAG_CONSTANTS.rateLimitMaxRequests,
-            ],
+            $lt: [{ $size: "$events" }, RAG_CONSTANTS.rateLimitMaxRequests],
           },
         },
       },
       {
         $set: {
           events: {
-            $cond: [
-              "$withinLimit",
-              { $concatArrays: ["$events", [now]] },
-              "$events",
-            ],
+            $cond: ["$withinLimit", { $concatArrays: ["$events", [now]] }, "$events"],
           },
           updatedAt: now,
         },
