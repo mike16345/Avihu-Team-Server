@@ -340,7 +340,20 @@ export class RagAnswerResponder {
       !finalAnswer.includes("אני לא יודע") &&
       !lowerAnswer.includes("i don't know")
     ) {
-      await storeCacheHit(cacheDoc, embedding, this.userId);
+      try {
+        await storeCacheHit(cacheDoc, embedding, this.userId);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stack = error instanceof Error ? error.stack : undefined;
+        this.logger({
+          evt: "rag.cache_write.error",
+          reason: "ANSWER_GENERATED",
+          userId: this.userId,
+          sessionId: this.sessionId,
+          message,
+          stack,
+        });
+      }
     }
 
     await this.traceFn(

@@ -1,45 +1,72 @@
 import { StatusCode } from "../enums/StatusCode";
-import RagRateLimitModel, { IRagRateLimit } from "../models/ragRateLimitModel";
+import RagRateLimitModel from "../models/ragRateLimitModel";
+import type { IRagRateLimit } from "../models/ragRateLimitModel";
 import { RAG_CONSTANTS } from "./config";
-import { getRagRateLimitRepository } from "./db";
-
-const rateLimitRepository = getRagRateLimitRepository();
 
 const ensureRateLimit = async (userId: string) => {
   const now = new Date();
   const windowStart = new Date(now.getTime() - RAG_CONSTANTS.rateLimitWindowMs);
 
-  let record: IRagRateLimit | null = null;
+  const updatedRecord = await RagRateLimitModel.findOneAndUpdate(
+    { userId },
+    [
+      {
+        $setOnInsert: {
+          userId,
+          events: [],
+          createdAt: now,
+        },
+      },
+      {
+        $set: {
+          events: {
+            $filter: {
+              input: "$events",
+              as: "event",
+              cond: { $gt: ["$$event", windowStart] },
+            },
+          },
+        },
+      },
+      {
+        $set: {
+          withinLimit: {
+            $lt: [
+              { $size: "$events" },
+              RAG_CONSTANTS.rateLimitMaxRequests,
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          events: {
+            $cond: [
+              "$withinLimit",
+              { $concatArrays: ["$events", [now]] },
+              "$events",
+            ],
+          },
+          updatedAt: now,
+        },
+      },
+      {
+        $set: {
+          createdAt: { $ifNull: ["$createdAt", now] },
+        },
+      },
+      {
+        $unset: "withinLimit",
+      },
+    ],
+    { new: true, upsert: true }
+  );
 
-  try {
-    record = await RagRateLimitModel.findOne({ userId }).lean();
-  } catch (error) {
-    record = null;
-  }
+  const events = ((updatedRecord as unknown as IRagRateLimit | null)?.events || []) as Date[];
+  const inserted = events.some((event) => new Date(event).getTime() === now.getTime());
 
-  const filteredEvents = (record?.events || []).filter((event) => event > windowStart);
-
-  if (filteredEvents.length >= RAG_CONSTANTS.rateLimitMaxRequests) {
+  if (!inserted) {
     throw { status: StatusCode.TOO_MANY_REQUESTS, message: "rate limit exceeded" };
-  }
-
-  filteredEvents.push(now);
-
-  if (record) {
-    await rateLimitRepository.updateOne({
-      filter: { userId } as any,
-      update: {
-        events: filteredEvents,
-        updatedAt: now,
-      } as any,
-    });
-  } else {
-    await rateLimitRepository.create({
-      userId,
-      events: filteredEvents,
-      createdAt: now,
-      updatedAt: now,
-    } as any);
   }
 };
 

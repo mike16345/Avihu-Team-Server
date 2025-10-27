@@ -142,29 +142,43 @@ export class RagAnswerService {
         const refusalMessage = BLOCKED_TOPIC_MESSAGES[languageDetection.targetLanguage];
 
         if (RAG_CONSTANTS.cacheRefusalStubs) {
-          const embedResult = await normalizeAndEmbed(question);
-          normalizedQuestion = embedResult.normalizedQuestion;
-          embedding = embedResult.embedding;
+          try {
+            const embedResult = await normalizeAndEmbed(question);
+            normalizedQuestion = embedResult.normalizedQuestion;
+            embedding = embedResult.embedding;
 
-          const refusalDoc: IRagCacheEntry = {
-            userId,
-            question,
-            normalizedQuestion,
-            answer: refusalMessage,
-            language: languageDetection.targetLanguage,
-            citations: [],
-            retrievedIds: [],
-            topScore: 1,
-            embedding,
-            refusal: true,
-            notice: languageDetection.needsFallbackNotice
-              ? RAG_CONSTANTS.languageFallbackNotice
-              : undefined,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
+            const refusalDoc: IRagCacheEntry = {
+              userId,
+              question,
+              normalizedQuestion,
+              answer: refusalMessage,
+              language: languageDetection.targetLanguage,
+              citations: [],
+              retrievedIds: [],
+              topScore: 1,
+              embedding,
+              refusal: true,
+              notice: languageDetection.needsFallbackNotice
+                ? RAG_CONSTANTS.languageFallbackNotice
+                : undefined,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
 
-          await storeCacheHit(refusalDoc, embedding, userId);
+            await storeCacheHit(refusalDoc, embedding, userId);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            const stack = error instanceof Error ? error.stack : undefined;
+            console.error(
+              JSON.stringify({
+                evt: "rag.cache_refusal.error",
+                userId,
+                sessionId,
+                message,
+                stack,
+              })
+            );
+          }
         }
 
         return await Responder.refusal({
