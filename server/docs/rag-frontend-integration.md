@@ -96,12 +96,14 @@ Before retrieval, the service embeds the normalized question and queries the sem
 
 ## Error Handling Summary
 
-| Status | Cause                                                   | UI Suggestion                          |
-| ------ | ------------------------------------------------------- | -------------------------------------- |
-| 400    | Missing `userId`/`question` or malformed ingest payload | Prompt user to correct the form.       |
-| 403    | Ingest attempted without admin privileges               | Show “Admins only” message.            |
-| 429    | Rate limit exceeded in the current 60s window           | Display a cooldown timer or retry CTA. |
-| 500    | Unexpected backend failure                              | Offer retry and log the incident.      |
+| Status | Cause                                                                    | UI Suggestion                                                                 |
+| ------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| 400    | Missing `userId`/`question` or malformed ingest payload                  | Prompt user to correct the form.                                              |
+| 403    | Ingest attempted without admin privileges                                | Show “Admins only” message.                                                   |
+| 429    | Rate limit exceeded in the current 60s window                            | Display a cooldown timer or retry CTA.                                        |
+| 429    | Daily question quota reached (see `limit` + `resetAt` fields in payload) | Surface a “Daily limit reached” banner, disable the form until the reset ETA. |
+| 503    | Backend placed in maintenance pause (`code: "SERVICE_PAUSED"`)           | Show the pause message returned by the server and hide/disable the ask form.  |
+| 500    | Unexpected backend failure                                               | Offer retry and log the incident.                                             |
 
 Source references: validation and rate limit enforcement in `RagAnswerService`, admin guard in `RagController`.【F:server/src/rag/answer.service.ts†L55-L90】【F:server/src/rag/answer.service.ts†L528-L559】【F:server/src/controllers/ragController.ts†L18-L101】
 
@@ -124,4 +126,9 @@ Each query logs a structured event containing reason, language, latency, retriev
 5. **Error UX:** Handle 4xx/5xx responses gracefully (cooldown timers, retry flows, support links).
 6. **Admin Tools:** Offer a simple form or script for `/rag/ingest` that batches curated chunks and reports inserted counts.
 
-Following these steps keeps the frontend aligned with semantic caching, HE/EN language policy, and the chatbot’s citation contract.
+Additional UI hooks introduced with the daily quota and pause guards:
+
+- **Daily quota breach:** watch for HTTP 429 responses whose body includes `code: "DAILY_LIMIT_REACHED"`, `limit`, and `resetAt`. Show a non-dismissable alert with the reset timestamp and prevent additional submissions until the reset time or after a successful retry.
+- **System pause:** when the backend responds with HTTP 503 and `code: "SERVICE_PAUSED"`, display the provided `message` verbatim. Offer a passive retry button that re-issues the request when the user believes service has resumed.
+
+Following these steps keeps the frontend aligned with semantic caching, HE/EN language policy, the chatbot’s citation contract, and the new operational guardrails.

@@ -3,8 +3,13 @@ import { detectLanguage } from "./language";
 import { classifyQuestion } from "./dietQuestionClassifier";
 import { generateAnswer } from "./openai";
 import { buildMetadataFilter, queryPinecone, trimMatches, upsertVectors } from "./pinecone";
-import { RAG_CONSTANTS } from "./config";
-import { getRagCacheRepository, getRagSourceRepository } from "./db";
+import { RAG_CONSTANTS, RAG_LIMITS } from "./config";
+import {
+  getRagCacheRepository,
+  getRagDailyQuotaRepository,
+  getRagSourceRepository,
+  getSystemStatusRepository,
+} from "./db";
 import { RagIngestRequest, RagRequest } from "./types";
 import { UsageMetrics } from "./openai";
 import { ensureRateLimit } from "./rate-limit";
@@ -18,9 +23,57 @@ import { isGreeting } from "./greetings";
 import { runBinaryClassifier, runBinaryClassifierLLM } from "./binaryClassifier";
 import { normalizeText } from "./text";
 import { IRagCacheEntry } from "../models/ragCacheModel";
+import { yyyymmddUTC, nextUTCmidnightISO } from "./utils/date";
 
 const sourceRepository = getRagSourceRepository();
 const cacheRepository = getRagCacheRepository();
+const dailyQuotaRepository = getRagDailyQuotaRepository();
+const systemStatusRepository = getSystemStatusRepository();
+
+export async function ensureNotPausedOrThrow() {
+  const { paused, message } = await systemStatusRepository.get();
+  if (paused) {
+    console.log(
+      JSON.stringify({
+        evt: "rag.paused",
+        reason: message,
+      })
+    );
+
+    const err: any = {
+      status: StatusCode.SERVICE_UNAVAILABLE,
+      message: message || "service temporarily paused",
+      code: "SERVICE_PAUSED",
+    };
+    throw err;
+  }
+}
+
+export async function ensureDailyQuotaOrThrow(userId: string) {
+  const date = yyyymmddUTC();
+  const doc = await dailyQuotaRepository.incAndGet({ userId, date });
+  if (doc && doc.count > RAG_LIMITS.perUserDailyLimit) {
+    console.log(
+      JSON.stringify({
+        evt: "rag.quota",
+        userId,
+        date,
+        count: doc.count,
+        limit: RAG_LIMITS.perUserDailyLimit,
+      })
+    );
+
+    const resetAt = nextUTCmidnightISO();
+    const err: any = {
+      status: StatusCode.TOO_MANY_REQUESTS,
+      message: "daily limit reached",
+      code: "DAILY_LIMIT_REACHED",
+      limit: RAG_LIMITS.perUserDailyLimit,
+      resetAt,
+    };
+    throw err;
+  }
+}
 
 export const toSseChunk = (payload: Record<string, any>) => `data: ${JSON.stringify(payload)}\n\n`;
 
@@ -41,6 +94,8 @@ export class RagAnswerService {
     if (!userId || !question) {
       throw { status: StatusCode.BAD_REQUEST, message: "userId and question are required" };
     }
+    await ensureNotPausedOrThrow();
+    await ensureDailyQuotaOrThrow(userId);
     await ensureRateLimit(userId);
 
     const languageDetection = detectLanguage(question);

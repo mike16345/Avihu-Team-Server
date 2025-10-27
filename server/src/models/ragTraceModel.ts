@@ -25,7 +25,15 @@ const ragTraceSchema = new Schema<IRagTrace>(
     language: { type: String, required: true },
     retrievedIds: { type: [String], default: [] },
     reason: { type: String, required: true },
-    answerPreview: { type: String, required: true },
+    answerPreview: {
+      type: String,
+      required: true,
+      validator: {
+        validate: (preview: string) => {
+          return preview.length > 0 ? preview : "EMPTY TRACE";
+        },
+      },
+    },
     usage: {
       promptTokens: Number,
       completionTokens: Number,

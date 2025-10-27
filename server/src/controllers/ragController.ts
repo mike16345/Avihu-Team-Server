@@ -71,10 +71,25 @@ export class RagController {
     } catch (error: any) {
       console.error("rag.ask error", error);
       const status = error?.status || StatusCode.INTERNAL_SERVER_ERROR;
-      const message = error?.message || "Failed to process request";
+      const payload: Record<string, any> = {
+        message: error?.message || "Failed to process request",
+      };
+
+      if (error?.code) {
+        payload.code = error.code;
+      }
+
+      if (typeof error?.limit !== "undefined") {
+        payload.limit = error.limit;
+      }
+
+      if (typeof error?.resetAt !== "undefined") {
+        payload.resetAt = error.resetAt;
+      }
+
       return {
         statusCode: status,
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(payload),
         headers: API_HEADERS,
       };
     }

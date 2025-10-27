@@ -55,6 +55,10 @@ export const RAG_CONSTANTS = {
   binaryClassifierMaxTokens: parsePositiveNumber(process.env.RAG_BINARY_CLASSIFIER_MAX_TOKENS, 4),
 };
 
+export const RAG_LIMITS = {
+  perUserDailyLimit: 30, // hard cap per user per UTC day
+} as const;
+
 export const getPineconeIndexName = () => process.env.PINECONE_INDEX || "diet-questions";
 
 export const EMBEDDING_CONFIG = {

@@ -1,5 +1,5 @@
 const lambdaConfig = {
-  timeout: 15,
+  timeout: 25,
 };
 
 module.exports = {
