@@ -72,7 +72,12 @@ export class RecordedSetsService extends BaseService<
           })
       );
 
-      await this.repository.appendRecordedSetsById(objectId, muscleGroup, exercise, normalizedSets);
+      const appendResult = await this.repository.appendRecordedSetsById(
+        objectId,
+        muscleGroup,
+        exercise,
+        normalizedSets
+      );
 
       const last = normalizedSets[normalizedSets.length - 1];
       const sessionDetails: ISessionCreate = this.buildSessionDetails(
