@@ -15,7 +15,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     const data = extractBodyFromEvent(event);
 
     try {
-      const totalCalories = calculateTotalCalories(data.meals, data.fatsPerDay);
+      const totalCalories = calculateTotalCalories(data.meals, data.freeCalories);
 
       console.log("total calories", totalCalories);
 
@@ -38,7 +38,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
 
     console.log("total calories", totalCalories);
 
@@ -65,7 +65,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
 
     console.log("total calories", totalCalories);
     try {

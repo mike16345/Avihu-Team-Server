@@ -11,6 +11,8 @@ export const dietItemSchema = new Schema<IDietItem>({
 export const mealSchema = new Schema<IMeal>({
   totalProtein: { type: dietItemSchema, required: true },
   totalCarbs: { type: dietItemSchema, required: true },
+  totalFats: { type: dietItemSchema },
+  totalVeggies: { type: dietItemSchema },
 });
 
 export const dietPlanSchema = new Schema<IDietPlan>({
@@ -35,6 +37,8 @@ export const dietItemValidationSchema = Joi.object({
 export const mealValidationSchema = Joi.object({
   totalProtein: dietItemValidationSchema.required(),
   totalCarbs: dietItemValidationSchema.required(),
+  totalVeggies: dietItemValidationSchema,
+  totalFats: dietItemValidationSchema,
 });
 
 export const DietPlanSchemaValidation = Joi.object({
