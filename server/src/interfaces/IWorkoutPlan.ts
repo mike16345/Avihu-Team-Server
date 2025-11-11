@@ -17,8 +17,7 @@ export interface IExercise {
   imageUrl?: string;
 }
 
-export interface IExercisePreset
-  extends Omit<IExercise, "tipFromTrainer" | "sets" | "restTime" | "exerciseMethod"> {
+export interface IExercisePreset extends Omit<IExercise, "sets" | "restTime" | "exerciseMethod"> {
   muscleGroup: string;
 }
 
