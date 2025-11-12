@@ -28,6 +28,52 @@ export const removeNestedIds: any = (doc: any) => {
   return doc;
 };
 
+import type { ObjectId } from "mongodb";
+
+export function removeNestedIdsSafe(input: any, seen = new WeakSet()): any {
+  if (input === null || typeof input !== "object") return input;
+
+  // Avoid infinite recursion on circular refs
+  if (seen.has(input)) return input;
+  seen.add(input);
+
+  // Don’t recurse into common non-plain instances
+  if (
+    input instanceof Date ||
+    (typeof Buffer !== "undefined" && Buffer.isBuffer?.(input)) ||
+    (typeof Map !== "undefined" && input instanceof Map) ||
+    (typeof Set !== "undefined" && input instanceof Set)
+  ) {
+    return input;
+  }
+
+  // Handle Mongo/Mongoose ObjectId specially (keep or stringify)
+  if (isObjectId(input)) return input; // or: return String(input);
+
+  if (Array.isArray(input)) {
+    return input.map((item) => removeNestedIdsSafe(item, seen));
+  }
+
+  // Plain object: copy and recurse
+  const out: any = {};
+  for (const [k, v] of Object.entries(input)) {
+    if (k === "_id" || k === "__v") continue;
+    out[k] = removeNestedIdsSafe(v, seen);
+  }
+  return out;
+}
+
+function isObjectId(val: any): val is ObjectId {
+  // Works for both native mongodb ObjectId and mongoose.Types.ObjectId
+  return (
+    val &&
+    typeof val === "object" &&
+    (typeof (val as any).toHexString === "function" ||
+      (val.constructor && val.constructor.name === "ObjectId"))
+  );
+}
+
+
 export const createResponse = (statusCode: StatusCode, message?: string) => {
   return {
     statusCode: statusCode,
