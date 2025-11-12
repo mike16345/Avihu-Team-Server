@@ -8,7 +8,7 @@ import PasswordsService from "../services/PasswordsService";
 import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
-import { leadEmailTemplate, welcomeEmailTemplate } from "../utils/emailTemplates";
+import { welcomeEmailTemplate } from "../utils/emailTemplates";
 import AuthService from "../services/AuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
@@ -203,28 +203,4 @@ export class UserController extends BaseController<IUser, UserService> {
     }
   };
 
-  saveLead = async (event: APIGatewayEvent) => {
-    try {
-      const { email, phone, name, error } = this.getParamsOrError(
-        event,
-        ["email", "name", "phone"],
-        "body"
-      );
-
-      if (error) return error;
-
-      const mailOptions = {
-        to: "noammz101@gmail.com",
-        ...leadEmailTemplate(name, phone, email),
-      };
-
-      await new EmailService().sendEmail(mailOptions);
-
-      return this.successResponse({
-        status: StatusCode.OK,
-      });
-    } catch (error) {
-      return this.errorResponse(error);
-    }
-  };
 }

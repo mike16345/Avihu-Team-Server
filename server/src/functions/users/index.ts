@@ -17,7 +17,6 @@ const userApiHandlers = {
   [`PUT ${BASE_PATH}/user/register`]: userController.register,
   [`POST ${BASE_PATH}/user/login`]: userController.logIn,
   [`POST ${BASE_PATH}/user/session`]: userController.checkUserSessionToken,
-  [`POST ${BASE_PATH}/user/lead`]: userController.saveLead,
 };
 
 const userValidaters = {
