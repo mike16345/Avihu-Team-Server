@@ -23,7 +23,10 @@ export default class PublicSignupController extends BaseController<any, PublicSi
 
     try {
       const body = extractBodyFromEvent(event);
-      const { error, value } = signupSchema.validate(body, { abortEarly: false, stripUnknown: true });
+      const { error, value } = signupSchema.validate(body, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
 
       if (error) {
         return {
@@ -32,13 +35,15 @@ export default class PublicSignupController extends BaseController<any, PublicSi
         };
       }
 
-      const result = await this.service.submitSignup(value as {
-        fullName: string;
-        email: string;
-        phone?: string;
-        source?: string;
-        deviceId?: string;
-      });
+      const result = await this.service.submitSignup(
+        value as {
+          fullName: string;
+          email: string;
+          phone?: string;
+          source?: string;
+          deviceId?: string;
+        }
+      );
       const response = {
         statusCode: StatusCode.OK,
         body: JSON.stringify(result),

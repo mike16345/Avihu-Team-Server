@@ -117,7 +117,9 @@ export default class PublicSignupService extends BaseService<IUnsentLead, Unsent
     const sheets = this.buildSheetsClient([APPEND_SCOPE]);
 
     for (const lead of leads) {
-      const timestamp = lead.createdAt ? new Date(lead.createdAt).toISOString() : new Date().toISOString();
+      const timestamp = lead.createdAt
+        ? new Date(lead.createdAt).toISOString()
+        : new Date().toISOString();
       const row = [
         timestamp,
         lead.fullName,
