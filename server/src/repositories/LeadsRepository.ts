@@ -24,12 +24,7 @@ export default class LeadsRepository extends BaseRepository<ILead> {
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
-      this.model
-        .find()
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+      this.model.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       this.model.countDocuments(),
     ]);
 
@@ -44,17 +39,12 @@ export default class LeadsRepository extends BaseRepository<ILead> {
     return this.model.findById(id).lean();
   }
 
-  async updateById(
-    id: string,
-    update: Partial<ILead>
-  ): Promise<ILead | null> {
+  async updateById(id: string, update: Partial<ILead>): Promise<ILead | null> {
     if (!isValidObjectId(id)) {
       return null;
     }
 
-    return this.model
-      .findByIdAndUpdate(id, update, { new: true, runValidators: true })
-      .lean();
+    return this.model.findByIdAndUpdate(id, update, { new: true, runValidators: true }).lean();
   }
 
   async deleteById(id: string): Promise<boolean> {

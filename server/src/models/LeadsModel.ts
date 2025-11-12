@@ -54,13 +54,10 @@ const leadBaseSchema = Joi.object({
   registeredAt: Joi.date(),
 }).prefs({ abortEarly: false, stripUnknown: true });
 
-export const LeadCreateSchema = leadBaseSchema.fork(
-  ["fullName", "email"],
-  (schema) => schema.required()
+export const LeadCreateSchema = leadBaseSchema.fork(["fullName", "email"], (schema) =>
+  schema.required()
 );
 
-export const LeadUpdateSchema = leadBaseSchema
-  .min(1)
-  .messages({
-    "object.min": "Invalid payload",
-  });
+export const LeadUpdateSchema = leadBaseSchema.min(1).messages({
+  "object.min": "Invalid payload",
+});
