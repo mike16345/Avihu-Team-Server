@@ -202,5 +202,4 @@ export class UserController extends BaseController<IUser, UserService> {
       return this.errorResponse(error);
     }
   };
-
 }
