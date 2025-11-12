@@ -73,7 +73,6 @@ function isObjectId(val: any): val is ObjectId {
   );
 }
 
-
 export const createResponse = (statusCode: StatusCode, message?: string) => {
   return {
     statusCode: statusCode,
