@@ -16,6 +16,7 @@
     "@pinecone-database/pinecone": "^6.0.1",
     "aws-sdk": "^2.1690.0",
     "bcryptjs": "^2.4.3",
+    "googleapis": "^134.0.0",
     "joi": "^17.6.0",
     "mongoose": "^8.16.5",
     "nodemailer": "^7.0.5",
