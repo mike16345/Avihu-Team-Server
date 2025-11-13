@@ -20,30 +20,9 @@ const leadsApiValidators = {
   [`PUT ${BASE_PATH}/one`]: validateUpdateLead,
 };
 
-const normalizeEventPath = (event: APIGatewayProxyEvent): APIGatewayProxyEvent => {
-  const match = event.path?.match(new RegExp(`^${BASE_PATH}/([^/]+)$`));
-
-  if (match && match[1]) {
-    const leadId = decodeURIComponent(match[1]);
-
-    return {
-      ...event,
-      path: `${BASE_PATH}/{id}`,
-      pathParameters: {
-        ...(event.pathParameters || {}),
-        id: leadId,
-      },
-    } as APIGatewayProxyEvent;
-  }
-
-  return event;
-};
-
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  const normalizedEvent = normalizeEventPath(event);
-
-  return handleApiCall(normalizedEvent, context, leadsApiHandlers, leadsApiValidators);
+  return handleApiCall(event, context, leadsApiHandlers, leadsApiValidators);
 };
