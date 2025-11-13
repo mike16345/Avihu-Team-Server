@@ -21,6 +21,7 @@ export const DietPlanPresetSchemaValidation = Joi.object({
   totalCalories: Joi.number().optional(),
   fatsPerDay: Joi.number().min(0).optional(),
   veggiesPerDay: Joi.number().min(0).optional(),
+  supplements: Joi.array().min(0).optional(),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
   freeCalories: Joi.number().optional().min(0),
 });
