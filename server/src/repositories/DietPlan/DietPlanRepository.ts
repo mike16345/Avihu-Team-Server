@@ -12,12 +12,14 @@ export class DietPlanRepository extends BaseRepository<IDietPlan> {
   getPopulatedDietPlan = async (query: FilterQuery<IDietPlan>) => {
     let data = await this.model
       .findOne(query)
-      .select({ _id: false, __v: false })
-      .populate({ path: "meals.totalProtein.customItems", model: fullMenuItemPresets })
-      .populate({
-        path: "meals.totalCarbs.customItems",
-        model: fullMenuItemPresets,
-      });
+      .select({ __v: false })
+      .populate([
+        { path: "meals.totalProtein.customItems", model: fullMenuItemPresets },
+        { path: "meals.totalCarbs.customItems", model: fullMenuItemPresets },
+        { path: "meals.totalFats.customItems", model: fullMenuItemPresets },
+        { path: "meals.totalVeggies.customItems", model: fullMenuItemPresets },
+      ])
+      .lean();
 
     return data;
   };

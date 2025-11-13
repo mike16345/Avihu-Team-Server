@@ -1,9 +1,7 @@
 const { execSync } = require("child_process");
 const dotenv = require("dotenv");
 dotenv.config({ path: "./.env.local" });
-const sleep=require('./utils')
-
-
+const sleep = require("./utils");
 
 const apiId = process.env.API_ID;
 const parentResourceId = process.env.PARENT_RESOURCE_ID;

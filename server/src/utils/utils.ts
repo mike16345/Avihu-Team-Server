@@ -207,3 +207,13 @@ export const getHeaderValue = (
   const lower = key.toLowerCase();
   return Object.entries(headers).find(([k]) => k.toLowerCase() === lower)?.[1];
 };
+
+export const getRequestIp = (event: APIGatewayEvent): string | undefined => {
+  const forwardedFor = getHeaderValue(event.headers || {}, "x-forwarded-for");
+
+  if (typeof forwardedFor === "string" && forwardedFor.trim()) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  return event.requestContext?.identity?.sourceIp || undefined;
+};
