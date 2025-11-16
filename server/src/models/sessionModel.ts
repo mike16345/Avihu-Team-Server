@@ -13,20 +13,16 @@ export interface ISession {
 
 export interface ISessionCreate extends Partial<ISession> {}
 
-const sessionSchema = new Schema<ISession>({
-  userId: { type: String, required: true },
-  type: { type: String, required: true },
-  data: { type: Schema.Types.Mixed, default: {} },
-  createdAt: { type: Date, default: Date.now, immutable: true },
-  updatedAt: { type: Date, default: Date.now },
-});
+const sessionSchema = new Schema<ISession>(
+  {
+    userId: { type: String, required: true },
+    type: { type: String, required: true },
+    data: { type: Schema.Types.Mixed, default: {} },
+  },
+  { timestamps: true }
+);
 
 sessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: ONE_WEEK_IN_SECONDS });
-
-sessionSchema.pre("save", function (next) {
-  this.updatedAt = new Date();
-  next();
-});
 
 const Session = model<ISession>("Session", sessionSchema);
 
