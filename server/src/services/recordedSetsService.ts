@@ -90,9 +90,10 @@ export class RecordedSetsService extends BaseService<
 
       const session = isNewSession
         ? await this.sessionService.create(sessionDetails as ISession)
-        : await this.sessionService.updateById(sessionId!, sessionDetails);
-
-      await this.sessionService.refreshSession(session._id!);
+        : await this.sessionService.updateById(sessionId!, {
+            ...sessionDetails,
+            updatedAt: new Date(),
+          });
 
       this.cache.invalidateAllContaining(userId);
 
