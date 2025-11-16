@@ -1,4 +1,4 @@
-import  { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 export type SessionType = "login" | "workout" | string;
@@ -22,6 +22,11 @@ const sessionSchema = new Schema<ISession>({
 });
 
 sessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: ONE_WEEK_IN_SECONDS });
+
+sessionSchema.pre("save", function (next) {
+  this.updatedAt = new Date();
+  next();
+});
 
 const Session = model<ISession>("Session", sessionSchema);
 
