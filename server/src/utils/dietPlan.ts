@@ -7,10 +7,16 @@ import {
 import { IMeal } from "../interfaces/IDietPlan";
 
 export const calculateTotalCalories = (meals: IMeal[], freeCalories: number = 0) => {
-  const totalProteins = meals.reduce((acc, m: IMeal) => acc + (m.totalProtein.quantity || 0), 0);
-  const totalCarbs = meals.reduce((acc, m: IMeal) => acc + (m.totalCarbs.quantity || 0), 0);
-  const totalFats = meals.reduce((acc, m: IMeal) => acc + (m.totalFats?.quantity || 0), 0);
-  const totalVeggies = meals.reduce((acc, m: IMeal) => acc + (m.totalVeggies?.quantity || 0), 0);
+  const totalProteins = meals.reduce(
+    (acc, m: IMeal) => acc + (Number(m.totalProtein.quantity) || 0),
+    0
+  );
+  const totalCarbs = meals.reduce((acc, m: IMeal) => acc + (Number(m.totalCarbs.quantity) || 0), 0);
+  const totalFats = meals.reduce((acc, m: IMeal) => acc + (Number(m.totalFats?.quantity) || 0), 0);
+  const totalVeggies = meals.reduce(
+    (acc, m: IMeal) => acc + (Number(m.totalVeggies?.quantity) || 0),
+    0
+  );
 
   const proteinCalories = totalProteins * AVG_PROTEIN_CALORIES;
   const carbCalories = totalCarbs * AVG_CARB_CALORIES;
