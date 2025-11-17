@@ -1,9 +1,10 @@
-import  { Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
 export type SessionType = "login" | "workout" | string;
 
 export interface ISession {
+  _id?: string;
   userId: string;
   type: SessionType;
   data?: any; // Additional session-specific data
