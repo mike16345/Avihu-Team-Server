@@ -11,6 +11,7 @@ export const dietPlanSchema = new Schema<IDietPlanPreset>({
   fatsPerDay: { type: Number, required: false },
   veggiesPerDay: { type: Number, required: false },
   customInstructions: { type: [String], required: false },
+  supplements: { type: [String], required: false, default: [] },
 });
 
 export const DietPlanPresetsModel = model<IDietPlanPreset>("dietPlanPresets", dietPlanSchema);
