@@ -15,7 +15,7 @@ export class WorkoutPlanRepository<T> extends BaseRepository<T> {
   ) {
     return query.populate({
       path: "workoutPlans.muscleGroups.exercises.exerciseId",
-      select: "name linkToVideo imageUrl",
+      select: "name linkToVideo imageUrl tipFromTrainer",
       model: exercisePresets,
     });
   }

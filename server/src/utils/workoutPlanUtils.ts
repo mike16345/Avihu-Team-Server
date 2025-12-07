@@ -52,7 +52,7 @@ function sanitizeMuscleGroup(group: IMuscleGroupWorkoutPlan) {
 }
 
 function sanitizeExercise(exercise: IExercise) {
-  const { name, linkToVideo, exerciseId, ...rest } = exercise;
+  const { name, linkToVideo, exerciseId, tipFromTrainer, ...rest } = exercise;
 
   return {
     ...rest,
