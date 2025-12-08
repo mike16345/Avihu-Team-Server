@@ -27,6 +27,8 @@ const lambdaFunctionsMap = {
   ProgressNotes: { path: "ProgressNote/index.ts", envToUse: "api" },
   LessonGroups: { path: "lessonGroups/index.ts", envToUse: "api" },
   Leads: { path: "Leads/index.ts", envToUse: "otp" },
+  Chat: { path: "rag/index.ts", envToUse: "rag" },
+  MuscleMeasurements: { path: "MuscleMeasurements/index.ts", envToUse: "api" },
 };
 
 async function deployAllLambdas() {
