@@ -182,7 +182,7 @@ export class UserController extends BaseController<IUser, UserService> {
       if (session) {
         await this.sessionService.refreshSession(token._id);
       }
-      
+
       if (!user) {
         return this.errorResponse("User not found!", StatusCode.NOT_FOUND);
       }

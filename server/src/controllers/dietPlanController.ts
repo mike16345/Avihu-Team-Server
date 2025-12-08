@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanService } from "../services/dietPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { extractBodyFromEvent, removeNestedIds } from "../utils/utils";
+import { extractBodyFromEvent, removeNestedIds, removeNestedIdsSafe } from "../utils/utils";
 import { calculateTotalCalories } from "../utils/dietPlan";
 import BaseController from "./BaseController";
 import { IDietPlan } from "../interfaces/IDietPlan";
@@ -15,7 +15,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     const data = extractBodyFromEvent(event);
 
     try {
-      const totalCalories = calculateTotalCalories(data.meals, data.fatsPerDay);
+      const totalCalories = calculateTotalCalories(data.meals, data.freeCalories);
 
       console.log("total calories", totalCalories);
 
@@ -38,7 +38,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
 
     console.log("total calories", totalCalories);
 
@@ -65,7 +65,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.fatsPerDay);
+    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
 
     console.log("total calories", totalCalories);
     try {
@@ -125,6 +125,23 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
         });
       }
 
+      const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
+      const current = Number.isFinite(+dietPlan.totalCalories)
+        ? +dietPlan.totalCalories
+        : undefined;
+
+      if (current !== computed) {
+        try {
+          const id = dietPlan._id;
+          const cleaned = removeNestedIdsSafe(dietPlan);
+          await this.service.updateById?.(id, { ...cleaned, totalCalories: computed });
+
+          (dietPlan as any).totalCalories = computed;
+        } catch (fixErr) {
+          console.warn("Auto-fix totalCalories failed:", fixErr);
+        }
+      }
+
       return this.successResponse({
         status: StatusCode.OK,
         data: dietPlan,
@@ -148,6 +165,27 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
           status: StatusCode.NOT_FOUND,
           message: "Diet plan not found for the given user ID.",
         });
+      }
+
+      const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
+      const current = Number.isFinite(+dietPlan.totalCalories)
+        ? +dietPlan.totalCalories
+        : undefined;
+
+      if (current !== computed) {
+        try {
+          const id = dietPlan._id;
+          const cleaned = removeNestedIdsSafe(dietPlan);
+          (dietPlan as any).totalCalories = computed;
+          const result = await this.service.updateById?.(id, {
+            ...cleaned,
+            totalCalories: computed,
+          });
+          console.log("Auto-fix result:", result);
+          (dietPlan as any).totalCalories = computed;
+        } catch (fixErr) {
+          console.warn("Auto-fix totalCalories failed:", fixErr);
+        }
       }
 
       return this.successResponse({

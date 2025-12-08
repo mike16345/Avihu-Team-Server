@@ -11,6 +11,7 @@ export const dietPlanSchema = new Schema<IDietPlanPreset>({
   fatsPerDay: { type: Number, required: false },
   veggiesPerDay: { type: Number, required: false },
   customInstructions: { type: [String], required: false },
+  supplements: { type: [String], required: false, default: [] },
 });
 
 export const DietPlanPresetsModel = model<IDietPlanPreset>("dietPlanPresets", dietPlanSchema);
@@ -21,6 +22,7 @@ export const DietPlanPresetSchemaValidation = Joi.object({
   totalCalories: Joi.number().optional(),
   fatsPerDay: Joi.number().min(0).optional(),
   veggiesPerDay: Joi.number().min(0).optional(),
+  supplements: Joi.array().min(0).optional(),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
   freeCalories: Joi.number().optional().min(0),
 });

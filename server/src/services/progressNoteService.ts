@@ -39,7 +39,7 @@ export class ProgressNoteService extends BaseService<IProgressNotes, ProgressNot
   async getProgressNotesByUserId(userId: string) {
     const cached = this.cache.get(userId);
 
-    if (cached) return;
+    if (cached) return cached;
 
     try {
       const progressNotesRecord: IProgressNotes = await this.repository.findOne({

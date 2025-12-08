@@ -22,7 +22,7 @@ export const handleApiCall = async (
     const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
     const handlerFunction = apiHandlers[routeKey];
 
-    console.log("event", JSON.stringify(event));
+    console.log(`${httpMethod} Event:`, JSON.stringify(event));
 
     if (!handlerFunction) {
       console.log(`BAD ROUTE: ${routeKey} is not a valid route!`);

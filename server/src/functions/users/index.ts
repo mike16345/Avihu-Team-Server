@@ -8,7 +8,7 @@ const BASE_PATH = "/users";
 const userController = new UserController();
 const userApiHandlers = {
   [`GET ${BASE_PATH}`]: userController.getAll,
-  [`GET ${BASE_PATH}/one`]: userController.getById, 
+  [`GET ${BASE_PATH}/one`]: userController.getById,
   [`PUT ${BASE_PATH}/one`]: userController.updateById,
   [`POST ${BASE_PATH}`]: userController.addUser,
   [`DELETE ${BASE_PATH}/one`]: userController.deleteById,

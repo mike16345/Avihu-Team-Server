@@ -2,7 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult } from "aw
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { StatusCode } from "../enums/StatusCode";
 import mongoose from "mongoose";
-import { createResponse, createResponseWithData, createServerErrorResponse } from "../utils/utils";
+import { createResponse, extractQueryFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IMuscleGroupRecordedSets } from "../interfaces/ISet";
 
@@ -12,22 +12,23 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
   }
 
   addRecordedSet = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const sessionId = event.queryStringParameters?.sessionId;
-    const { error, userId, muscleGroup, exercise, recordedSet } = this.getParamsOrError(
+    const { sessionId } = extractQueryFromEvent(event);
+    const { error, userId, muscleGroup, exercise, recordedSets } = this.getParamsOrError(
       event,
-      ["userId", "muscleGroup", "exercise", "recordedSet"],
+      ["userId", "muscleGroup", "exercise", "recordedSets"],
       "body"
     );
 
     if (error) return error;
+    const sets = Array.isArray(recordedSets) ? recordedSets : [recordedSets];
 
     try {
-      const response = await this.service.addRecordedSet(
+      const response = await this.service.addRecordedSets(
         userId,
         muscleGroup,
         exercise,
-        sessionId || "",
-        recordedSet
+        sessionId,
+        sets
       );
 
       return {
@@ -36,6 +37,49 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
       };
     } catch (err: any) {
       return this.errorResponse(err);
+    }
+  };
+
+  updateRecordedSetById = async (event: APIGatewayProxyEvent) => {
+    const { error, userId, set, setId, exercise } = this.getParamsOrError(
+      event,
+      ["userId", "exercise", "set", "setId"],
+      "body"
+    );
+
+    if (error) return error;
+
+    try {
+      const result = await this.service.updateRecordedSetById(setId, userId, exercise, set);
+
+      if (result.modifiedCount == 0) {
+        return this.errorResponse("לא הצלחנו לעדכן את הסט", StatusCode.NOT_MODIFIED);
+      }
+
+      return this.successResponse({ message: "סט עודכן בהצלחה!", status: StatusCode.CREATED });
+    } catch (e: any) {
+      return this.errorResponse(e);
+    }
+  };
+
+  deleteRecordedSetById = async (event: APIGatewayProxyEvent) => {
+    const { error, userId, setId, exercise } = this.getParamsOrError(
+      event,
+      ["userId", "exercise", "setId"],
+      "body"
+    );
+
+    if (error) return error;
+
+    try {
+      const result = await this.service.deleteRecordedSetById(setId, userId, exercise);
+      if (result.modifiedCount == 0) {
+        return this.errorResponse("לא הצלחנו למחוק את הסט", StatusCode.NOT_MODIFIED);
+      }
+
+      return this.successResponse({ message: "סט נמחק בהצלחה!", status: StatusCode.OK });
+    } catch (e: any) {
+      return this.errorResponse(e);
     }
   };
 
