@@ -7,60 +7,36 @@ const ensureRateLimit = async (userId: string) => {
   const now = new Date();
   const windowStart = new Date(now.getTime() - RAG_CONSTANTS.rateLimitWindowMs);
 
-  const updatedRecord = await RagRateLimitModel.findOneAndUpdate(
-    { userId },
-    [
-      {
-        $setOnInsert: {
-          userId,
-          events: [],
-          createdAt: now,
-        },
-      },
-      {
-        $set: {
-          events: {
-            $filter: {
-              input: "$events",
-              as: "event",
-              cond: { $gt: ["$$event", windowStart] },
-            },
-          },
-        },
-      },
-      {
-        $set: {
-          withinLimit: {
-            $lt: [{ $size: "$events" }, RAG_CONSTANTS.rateLimitMaxRequests],
-          },
-        },
-      },
-      {
-        $set: {
-          events: {
-            $cond: ["$withinLimit", { $concatArrays: ["$events", [now]] }, "$events"],
-          },
-          updatedAt: now,
-        },
-      },
-      {
-        $set: {
-          createdAt: { $ifNull: ["$createdAt", now] },
-        },
-      },
-      {
-        $unset: "withinLimit",
-      },
-    ],
-    { new: true, upsert: true }
-  );
+  // 1. Load current record (if any)
+  const existing = await RagRateLimitModel.findOne({ userId }).lean<IRagRateLimit | null>();
 
-  const events = ((updatedRecord as unknown as IRagRateLimit | null)?.events || []) as Date[];
-  const inserted = events.some((event) => new Date(event).getTime() === now.getTime());
+  // 2. Normalize + trim events to the active window
+  let events: Date[] = (existing?.events ?? []).map((e) => new Date(e));
+  events = events.filter((event) => event > windowStart);
 
-  if (!inserted) {
-    throw { status: StatusCode.TOO_MANY_REQUESTS, message: "rate limit exceeded" };
+  // 3. Check limit *before* adding this request
+  if (events.length >= RAG_CONSTANTS.rateLimitMaxRequests) {
+    throw { status: StatusCode.TOO_MANY_REQUESTS, message: "rate limit exceeded" } as const;
   }
+
+  // 4. Add current event
+  events.push(now);
+
+  // 5. Upsert back (no pipeline, so $setOnInsert is valid)
+  await RagRateLimitModel.findOneAndUpdate(
+    { userId },
+    {
+      $setOnInsert: {
+        userId,
+        createdAt: now,
+      },
+      $set: {
+        events,
+        updatedAt: now,
+      },
+    },
+    { new: false, upsert: true }
+  );
 };
 
 export { ensureRateLimit };
