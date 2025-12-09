@@ -7,6 +7,7 @@ export interface ILead {
   phone?: string;
   deviceId?: string;
   ip?: string;
+  isContacted: boolean;
   registeredAt: Date;
   createdAt: Date;
   updatedAt: Date;
