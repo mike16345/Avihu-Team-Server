@@ -24,12 +24,7 @@ export default class LeadsRepository extends BaseRepository<ILead> {
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
-      this.model
-        .find()
-        .sort({ isContacted: 1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
+      this.model.find().sort({ isContacted: 1, createdAt: -1 }).skip(skip).limit(limit).lean(),
       this.model.countDocuments(),
     ]);
 
