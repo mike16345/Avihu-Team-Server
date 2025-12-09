@@ -86,11 +86,15 @@ export default class LeadsController extends BaseController<ILead, LeadsService>
 
     try {
       const payload = extractBodyFromEvent(event);
-      const { id, error } = this.getParamsOrError(event, ["id"]);
+      const { id, error } = this.getParamsOrError(event, ["id"], "body");
 
       if (error) return error;
 
-      const updated = await this.service.updateLead(id, payload);
+      if (typeof payload.isContacted !== "boolean") {
+        return this.errorResponse("isContacted must be a boolean", StatusCode.BAD_REQUEST);
+      }
+
+      const updated = await this.service.updateLead(id, { isContacted: payload.isContacted });
 
       if (!updated) {
         return this.errorResponse("Lead not found", StatusCode.NOT_FOUND);

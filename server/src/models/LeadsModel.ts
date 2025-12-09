@@ -32,6 +32,10 @@ const leadsSchema = new Schema<ILead>(
       trim: true,
       maxlength: 64,
     },
+    isContacted: {
+      type: Boolean,
+      default: false,
+    },
     registeredAt: {
       type: Date,
       default: Date.now,
@@ -51,6 +55,7 @@ const leadBaseSchema = Joi.object({
   email: Joi.string().trim().lowercase().email().max(256),
   phone: Joi.string().trim().max(64),
   deviceId: Joi.string().trim().max(128),
+  isContacted: Joi.boolean().default(false),
   registeredAt: Joi.date(),
 }).prefs({ abortEarly: false, stripUnknown: true });
 
@@ -58,6 +63,7 @@ export const LeadCreateSchema = leadBaseSchema.fork(["fullName", "email"], (sche
   schema.required()
 );
 
-export const LeadUpdateSchema = leadBaseSchema.min(1).messages({
-  "object.min": "Invalid payload",
-});
+export const LeadUpdateSchema = Joi.object({
+  id: Joi.string().required(),
+  isContacted: Joi.boolean().required(),
+}).prefs({ abortEarly: false, stripUnknown: true });
