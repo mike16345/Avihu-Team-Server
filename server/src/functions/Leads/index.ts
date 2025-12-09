@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import LeadsController from "../../controllers/LeadsController";
-import { validateCreateLead, validateUpdateLead } from "../../middleware/leadsMiddleware";
+import { validateCreateLead } from "../../middleware/leadsMiddleware";
 
 const BASE_PATH = "/leads";
 
@@ -17,7 +17,6 @@ const leadsApiHandlers = {
 
 const leadsApiValidators = {
   [`POST ${BASE_PATH}`]: validateCreateLead,
-  [`PUT ${BASE_PATH}/one`]: validateUpdateLead,
 };
 
 export const handler = async (

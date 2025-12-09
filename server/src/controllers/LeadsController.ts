@@ -86,7 +86,7 @@ export default class LeadsController extends BaseController<ILead, LeadsService>
 
     try {
       const payload = extractBodyFromEvent(event);
-      const { id, error } = this.getParamsOrError(event, ["id"], "body");
+      const { id, error } = this.getParamsOrError(event, ["id"]);
 
       if (error) return error;
 
