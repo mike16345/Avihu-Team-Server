@@ -7,6 +7,10 @@ export const blogSchema = new Schema<IBlog>({
     type: String,
     required: true,
   },
+  subtitle: {
+    type: String,
+    required: true,
+  },
   content: {
     type: String,
     required: true,
@@ -44,6 +48,7 @@ export const BlogModel = model("blogs", blogSchema);
 
 export const blogPostSchemaValidator = Joi.object({
   title: Joi.string().required(),
+  subtitle: Joi.string().required(),
   content: Joi.string().required(),
   imageUrl: Joi.string().allow(""),
   date: Joi.date(),
