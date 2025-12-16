@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export interface IBlog {
   title: string;
+  subtitle: string;
   content: string;
   imageUrl?: string;
   date: Date;
