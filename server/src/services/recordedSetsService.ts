@@ -47,12 +47,17 @@ export class RecordedSetsService extends BaseService<
     muscleGroup: string,
     exercise: string,
     sessionId: string | null,
-    recordedSets: IRecordedSet[]
+    recordedSets: IRecordedSet[],
+    exerciseId?: string
   ) {
     try {
       if (!recordedSets?.length) {
         throw new Error("No recorded sets provided");
       }
+      const exerciseObjectId =
+        exerciseId && mongoose.isValidObjectId(exerciseId)
+          ? new mongoose.mongo.ObjectId(exerciseId)
+          : null;
       const objectId = new mongoose.mongo.ObjectId(userId);
       const activeSession = sessionId ? await this.sessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
@@ -69,6 +74,7 @@ export class RecordedSetsService extends BaseService<
           new RecordedSet({
             ...s,
             setNumber: s.setNumber ?? nextSetNumber + i,
+            ...(exerciseObjectId ? { exerciseId: exerciseObjectId } : {}),
           })
       );
 
@@ -110,9 +116,10 @@ export class RecordedSetsService extends BaseService<
     muscleGroup: string,
     exercise: string,
     sessionId: string,
-    recordedSet: IRecordedSet
+    recordedSet: IRecordedSet,
+    exerciseId?: string
   ) {
-    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet]);
+    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet], exerciseId);
   }
 
   async updateRecordedSetById(setId: string, userId: string, exercise: string, set: IRecordedSet) {
