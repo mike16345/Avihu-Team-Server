@@ -23,4 +23,5 @@ export interface IMuscleGroupRecordedSets {
   userId: ObjectId;
   muscleGroup: string;
   recordedSets: IExerciseRecordedSets;
+  exerciseKeyToId?: Record<string, string>;
 }

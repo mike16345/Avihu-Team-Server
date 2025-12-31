@@ -13,11 +13,15 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
 
   addRecordedSet = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { sessionId } = extractQueryFromEvent(event);
-    const { error, userId, muscleGroup, exercise, recordedSets } = this.getParamsOrError(
-      event,
-      ["userId", "muscleGroup", "exercise", "recordedSets"],
-      "body"
-    );
+    const allowLegacy = process.env.ALLOW_LEGACY_EXERCISE_NAME_ONLY === "true";
+    const isProd = event.requestContext?.stage === "prod" || process.env.STAGE === "prod";
+    const requiresExerciseId = isProd && !allowLegacy;
+    const requiredParams = ["userId", "muscleGroup", "exercise", "recordedSets"];
+    if (requiresExerciseId) {
+      requiredParams.push("exerciseId");
+    }
+    const { error, userId, muscleGroup, exercise, exerciseId, recordedSets } =
+      this.getParamsOrError(event, requiredParams, "body");
 
     if (error) return error;
     const sets = Array.isArray(recordedSets) ? recordedSets : [recordedSets];
@@ -27,6 +31,7 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
         userId,
         muscleGroup,
         exercise,
+        exerciseId ?? null,
         sessionId,
         sets
       );

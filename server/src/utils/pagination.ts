@@ -3,7 +3,7 @@ import { stableStringify } from "./utils";
 export interface PaginationParams {
   limit: number;
   page: number;
-  query?: Record<string, any>;
+  query?: Record<string, any> | string;
   sort?: Record<string, 1 | -1>;
 }
 

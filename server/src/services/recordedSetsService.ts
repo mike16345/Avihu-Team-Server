@@ -22,7 +22,7 @@ export class RecordedSetsService extends BaseService<
 
   private buildSessionDetails(
     userId: string,
-    exercise: string,
+    exerciseKey: string,
     nextSetNumber: number,
     recordedSet: IRecordedSet,
     activeSession: ISession | null = null
@@ -35,17 +35,42 @@ export class RecordedSetsService extends BaseService<
       type: "workout",
       data: {
         ...activeSession?.data,
-        [plan]: { ...existingPlanData, [exercise]: { setNumber: nextSetNumber } },
+        [plan]: { ...existingPlanData, [exerciseKey]: { setNumber: nextSetNumber } },
       },
     };
 
     return sessionDetails;
   }
 
+  private async getCanonicalExerciseName(exerciseId: string): Promise<string | null> {
+    if (!mongoose.Types.ObjectId.isValid(exerciseId)) {
+      return null;
+    }
+
+    const db = mongoose.connection?.db;
+    if (!db) {
+      return null;
+    }
+
+    try {
+      const exerciseDoc = await db.collection("exercises").findOne(
+        { _id: new mongoose.Types.ObjectId(exerciseId) },
+        {
+          projection: { name: 1 },
+        }
+      );
+
+      return exerciseDoc?.name ?? null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async addRecordedSets(
     userId: string,
     muscleGroup: string,
     exercise: string,
+    exerciseId: string | null,
     sessionId: string | null,
     recordedSets: IRecordedSet[]
   ) {
@@ -57,8 +82,33 @@ export class RecordedSetsService extends BaseService<
       const activeSession = sessionId ? await this.sessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
 
+      const incomingExerciseKey = exercise;
+      const canonicalExerciseName = exerciseId
+        ? await this.getCanonicalExerciseName(exerciseId)
+        : null;
+      const canonicalKey = canonicalExerciseName ?? incomingExerciseKey;
+
+      if (canonicalExerciseName && canonicalExerciseName !== incomingExerciseKey) {
+        console.warn({
+          service: "RecordedSetsService.addRecordedSets",
+          userId,
+          muscleGroup,
+          exerciseId,
+          receivedExerciseKey: incomingExerciseKey,
+          canonicalExerciseName,
+          sessionId,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       const muscleGroupRecord = await this.repository.findOrCreate(objectId, muscleGroup);
-      this.repository.initializeExerciseIfNecessary(muscleGroupRecord, exercise);
+      this.repository.initializeExerciseIfNecessary(muscleGroupRecord, canonicalKey);
+      if (exerciseId && mongoose.Types.ObjectId.isValid(exerciseId)) {
+        muscleGroupRecord.exerciseKeyToId = muscleGroupRecord.exerciseKeyToId ?? {};
+        muscleGroupRecord.exerciseKeyToId[incomingExerciseKey] = exerciseId;
+        muscleGroupRecord.exerciseKeyToId[canonicalKey] = exerciseId;
+        muscleGroupRecord.markModified("exerciseKeyToId");
+      }
       await muscleGroupRecord.save();
 
       const lastIndex = recordedSets.length - 1;
@@ -75,14 +125,14 @@ export class RecordedSetsService extends BaseService<
       const appendResult = await this.repository.appendRecordedSetsById(
         objectId,
         muscleGroup,
-        exercise,
+        canonicalKey,
         normalizedSets
       );
 
       const last = normalizedSets[normalizedSets.length - 1];
       const sessionDetails: ISessionCreate = this.buildSessionDetails(
         userId,
-        exercise,
+        canonicalKey,
         nextSetNumber,
         last,
         activeSession
@@ -109,10 +159,13 @@ export class RecordedSetsService extends BaseService<
     userId: string,
     muscleGroup: string,
     exercise: string,
+    exerciseId: string | null,
     sessionId: string,
     recordedSet: IRecordedSet
   ) {
-    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet]);
+    return this.addRecordedSets(userId, muscleGroup, exercise, exerciseId, sessionId, [
+      recordedSet,
+    ]);
   }
 
   async updateRecordedSetById(setId: string, userId: string, exercise: string, set: IRecordedSet) {
@@ -156,7 +209,7 @@ export class RecordedSetsService extends BaseService<
     try {
       const result = await this.repository.findOne({
         query: { userId, muscleGroup },
-        projection: { [`recordedSets.${exercise}`]: 1 },
+        projection: { [`recordedSets.${exercise}`]: 1 } as Record<string, 1>,
       });
 
       const sets = result?.recordedSets?.[exercise];

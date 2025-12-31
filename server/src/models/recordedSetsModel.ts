@@ -23,6 +23,7 @@ const muscleGroupRecordedSetsSchema = new Schema<IMuscleGroupRecordedSetsDocumen
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   muscleGroup: { type: String, required: true },
   recordedSets: { type: Object, of: [exerciseRecordedSetsSchema], default: {} },
+  exerciseKeyToId: { type: Object, default: {} },
 });
 
 export const RecordedSet = model<IRecordedSet>("RecordedSet", recordedSetSchema);
@@ -42,6 +43,7 @@ const muscleGroupRecordedSetsJoiSchema = Joi.object<IMuscleGroupRecordedSets>({
   userId: Joi.string().required(),
   muscleGroup: Joi.string().required(),
   recordedSets: Joi.object().pattern(Joi.string(), Joi.array().items(RecordedSetJoiSchema)),
+  exerciseKeyToId: Joi.object().pattern(Joi.string(), Joi.string()),
 });
 
 export { RecordedSetJoiSchema, muscleGroupRecordedSetsJoiSchema };
