@@ -72,8 +72,7 @@ export class BaseRepository<T> {
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
     const queryHasKeys = !!Object.keys(query).length;
-    const parsedQuery =
-      queryHasKeys && typeof query === "string" ? JSON.parse(query) : query;
+    const parsedQuery = queryHasKeys && typeof query === "string" ? JSON.parse(query) : query;
 
     const [results, totalResults] = await Promise.all([
       this.model.find(parsedQuery).sort(sort).skip(skip).limit(limit),
