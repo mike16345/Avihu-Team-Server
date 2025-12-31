@@ -119,7 +119,14 @@ export class RecordedSetsService extends BaseService<
     recordedSet: IRecordedSet,
     exerciseId?: string
   ) {
-    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet], exerciseId);
+    return this.addRecordedSets(
+      userId,
+      muscleGroup,
+      exercise,
+      sessionId,
+      [recordedSet],
+      exerciseId
+    );
   }
 
   async updateRecordedSetById(setId: string, userId: string, exercise: string, set: IRecordedSet) {
