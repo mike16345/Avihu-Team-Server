@@ -105,7 +105,7 @@ export const formQuestionValidator = Joi.object({
 
 export const formSectionValidator = Joi.object({
   title: Joi.string().required(),
-  description: Joi.string().optional(),
+  description: Joi.string().optional().allow(""),
   questions: Joi.array().items(formQuestionValidator).min(1).required(),
 });
 
