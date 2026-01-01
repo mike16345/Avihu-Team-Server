@@ -1,5 +1,4 @@
 import BaseController from "./BaseController";
-import { APIGatewayProxyEvent } from "aws-lambda";
 import { IForm } from "../interfaces/IForm";
 import { FormPresetService } from "../services/FormPresetService";
 
