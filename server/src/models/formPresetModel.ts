@@ -99,7 +99,7 @@ export const formQuestionValidator = Joi.object({
   options: Joi.when("type", {
     is: Joi.valid(...OPTION_TYPES),
     then: Joi.array().items(Joi.string()).min(1).required(),
-    otherwise: Joi.forbidden().allow([]),
+    otherwise: Joi.array().length(0).optional(),
   }),
 });
 
