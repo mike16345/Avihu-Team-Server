@@ -29,7 +29,7 @@ const FormQuestionSchema = new Schema(
       type: String,
     },
     options: {
-      type: [String],
+      type: [Schema.Types.Mixed],
       default: undefined, // prevents empty array for non-option questions
     },
     required: {
@@ -98,7 +98,7 @@ export const formQuestionValidator = Joi.object({
 
   options: Joi.when("type", {
     is: Joi.valid(...OPTION_TYPES),
-    then: Joi.array().items(Joi.string()).min(1).required(),
+    then: Joi.array().items(Joi.alternatives(Joi.string(), Joi.number())).min(1).required(),
     otherwise: Joi.array().length(0).optional(),
   }),
 });
