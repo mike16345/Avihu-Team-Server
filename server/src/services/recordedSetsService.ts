@@ -47,12 +47,14 @@ export class RecordedSetsService extends BaseService<
     muscleGroup: string,
     exercise: string,
     sessionId: string | null,
-    recordedSets: IRecordedSet[]
+    recordedSets: IRecordedSet[],
+    exerciseId: string
   ) {
     try {
       if (!recordedSets?.length) {
         throw new Error("No recorded sets provided");
       }
+
       const objectId = new mongoose.mongo.ObjectId(userId);
       const activeSession = sessionId ? await this.sessionService.getSessionById(sessionId) : null;
       const isNewSession = activeSession == null;
@@ -60,7 +62,7 @@ export class RecordedSetsService extends BaseService<
       const muscleGroupRecord = await this.repository.findOrCreate(objectId, muscleGroup);
       this.repository.initializeExerciseIfNecessary(muscleGroupRecord, exercise);
       await muscleGroupRecord.save();
-
+      
       const lastIndex = recordedSets.length - 1;
       const nextSetNumber = recordedSets[lastIndex]?.setNumber + 1;
 
@@ -72,12 +74,7 @@ export class RecordedSetsService extends BaseService<
           })
       );
 
-      const appendResult = await this.repository.appendRecordedSetsById(
-        objectId,
-        muscleGroup,
-        exercise,
-        normalizedSets
-      );
+      await this.repository.appendRecordedSetsById(objectId, muscleGroup, exercise, normalizedSets);
 
       const last = normalizedSets[normalizedSets.length - 1];
       const sessionDetails: ISessionCreate = this.buildSessionDetails(
@@ -103,16 +100,6 @@ export class RecordedSetsService extends BaseService<
     } catch (e: any) {
       throw e;
     }
-  }
-
-  async addRecordedSet(
-    userId: string,
-    muscleGroup: string,
-    exercise: string,
-    sessionId: string,
-    recordedSet: IRecordedSet
-  ) {
-    return this.addRecordedSets(userId, muscleGroup, exercise, sessionId, [recordedSet]);
   }
 
   async updateRecordedSetById(setId: string, userId: string, exercise: string, set: IRecordedSet) {
