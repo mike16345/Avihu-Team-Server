@@ -12,11 +12,13 @@ const formResponseController = new FormResponseController();
 export const formPresetApiHandlers = {
   [`GET ${FORM_PRESET_BASE_PATH}`]: formPresetController.getAll,
   [`GET ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.getById,
+  [`GET ${FORM_PRESET_BASE_PATH}/form/one`]: formPresetController.getOne,
   [`POST ${FORM_PRESET_BASE_PATH}`]: formPresetController.create,
   [`PUT ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.updateById,
   [`DELETE ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.deleteById,
   [`GET ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.getAll,
   [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.getById,
+  [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: formResponseController.getOne,
   [`POST ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.create,
   [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.updateById,
   [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.deleteById,
