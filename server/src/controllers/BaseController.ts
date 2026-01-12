@@ -13,9 +13,10 @@ import { MongoCode } from "../enums/MongoCode";
 import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
 import { BaseService } from "../services/BaseService";
 
-export default class BaseController<T, S extends BaseService<T, BaseRepository<T>>>
-  implements IBaseController<T>
-{
+export default class BaseController<
+  T,
+  S extends BaseService<T, BaseRepository<T>>,
+> implements IBaseController<T> {
   protected service: S;
 
   constructor(service: S) {
