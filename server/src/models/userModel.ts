@@ -70,6 +70,10 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false,
   },
+  completedOnboarding: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export const User = model("users", userSchema);

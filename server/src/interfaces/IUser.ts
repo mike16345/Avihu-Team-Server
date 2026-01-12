@@ -16,4 +16,5 @@ export interface IUser {
   hasAccess: boolean;
   isAdmin: boolean;
   profileImage?: string;
+  completedOnboarding?: boolean;
 }
