@@ -3,7 +3,8 @@ import { IFormResponse } from "../interfaces/IFormResponse";
 import { FormResponseService } from "../services/FormResponseService";
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { extractBodyFromEvent } from "../utils/utils";
-import UserService from "../services/userService";
+/* import UserService from "../services/userService"; */
+import { StatusCode } from "../enums/StatusCode";
 
 export default class FormResponseController extends BaseController<
   IFormResponse,
@@ -13,15 +14,19 @@ export default class FormResponseController extends BaseController<
     super(new FormResponseService());
   }
 
-  async saveSubmission(event: APIGatewayProxyEvent) {
-    const { userId } = extractBodyFromEvent(event);
+  saveSubmission = async (event: APIGatewayProxyEvent) => {
+    const body = extractBodyFromEvent(event);
     try {
-      const response = await this.create(event);
-      await new UserService().updateById(userId, { completedOnboarding: true });
+      await this.service.create(body);
 
-      return response;
+      /*   if (body.formType === "onboarding") {
+        const userService = new UserService();
+        await userService.updateById(body.userId, { completedOnboarding: true });
+      } */
+
+      this.successResponse({ status: StatusCode.OK, message: "success" });
     } catch (error) {
       return this.errorResponse(error);
     }
-  }
+  };
 }

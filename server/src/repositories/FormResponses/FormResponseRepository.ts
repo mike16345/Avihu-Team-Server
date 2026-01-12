@@ -6,6 +6,7 @@ import { FindOptions } from "../../types/mongooseTypes";
 import { StatusCode } from "../../enums/StatusCode";
 import { FIND_ONE_FAILURE } from "../../constants/repository";
 import { FormModel } from "../../models/formPresetModel";
+import { User } from "../../models/userModel";
 
 export class FormResponseRepository extends BaseRepository<IFormResponse> {
   constructor() {
@@ -49,5 +50,15 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
     const responses = await this.populateForm(this.model.find(query, projection, queryOptions));
 
     return responses;
+  };
+
+  create = async (doc: IFormResponse): Promise<IFormResponse> => {
+    const newDoc = await this.model.create(doc);
+
+    if (doc.formType === "onboarding") {
+      await User.findByIdAndUpdate(doc.userId, { completedOnboarding: true });
+    }
+
+    return newDoc;
   };
 }

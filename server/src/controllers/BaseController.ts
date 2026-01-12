@@ -1,7 +1,6 @@
-import { APIGatewayProxyEvent, APIGatewayProxyEventBase, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import { IBaseController } from "../interfaces/IController";
-import { BaseService } from "../services/BaseService";
 import {
   createMissingParamErrorMessage,
   createServerResponse,
@@ -12,6 +11,7 @@ import { IServerResponseParams } from "../interfaces/IResponse";
 import { BaseRepository } from "../repositories/BaseRepository";
 import { MongoCode } from "../enums/MongoCode";
 import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
+import { BaseService } from "../services/BaseService";
 
 export default class BaseController<T, S extends BaseService<T, BaseRepository<T>>>
   implements IBaseController<T>

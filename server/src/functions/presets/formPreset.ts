@@ -19,7 +19,7 @@ export const formPresetApiHandlers = {
   [`GET ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.getAll,
   [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.getById,
   [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: formResponseController.getOne,
-  [`POST ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.saveSubmission,
+  [`POST ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.create,
   [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.updateById,
   [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.deleteById,
 };
