@@ -101,7 +101,8 @@ export class BlogController extends BaseController<IBlog, BlogService> {
 
   getBlogCountByGroup = async (event: APIGatewayProxyEvent) => {
     try {
-      const blogCount = await this.service.getBlogCountsByGroup();
+      const { planType } = extractQueryFromEvent(event);
+      const blogCount = await this.service.getBlogCountsByGroup(planType);
 
       return this.successResponse({
         data: blogCount,

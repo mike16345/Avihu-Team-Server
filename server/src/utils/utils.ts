@@ -136,6 +136,32 @@ export const extractQueryFromEvent = (event: any) => {
   return event.queryStringParameters || {};
 };
 
+export const extractPaginationParamsFromEvent = (event: any) => {
+  const qs = (event.queryStringParameters ?? {}) as Record<string, string | undefined>;
+
+  const page = Number(qs.page ?? 1);
+  const limit = Number(qs.limit ?? 20);
+
+  const parseJson = <T>(val?: string, fallback: T = {} as T): T => {
+    if (!val) return fallback;
+    try {
+      const decoded = decodeURIComponent(val);
+      return JSON.parse(decoded) as T;
+    } catch {
+      try {
+        return JSON.parse(val) as T;
+      } catch {
+        return fallback;
+      }
+    }
+  };
+
+  const query = parseJson<Record<string, any>>(qs.query, {});
+  const sort = parseJson<Record<string, any>>(qs.sort, {});
+
+  return { page, limit, query, sort };
+};
+
 export const generateOTP = (length: number = 6) => {
   const digits = "0123456789";
   let otp = "";

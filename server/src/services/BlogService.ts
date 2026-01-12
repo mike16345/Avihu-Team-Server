@@ -30,9 +30,9 @@ export class BlogService extends BaseService<IBlog, BlogRepository> {
     }
   };
 
-  getBlogCountsByGroup = async () => {
+  getBlogCountsByGroup = async (planType: string) => {
     try {
-      return await this.repository.getBlogCountsByGroup();
+      return await this.repository.getBlogCountsByGroup(planType);
     } catch (error) {
       throw error;
     }

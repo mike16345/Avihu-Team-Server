@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import mongoose, { Document, isValidObjectId, Types } from "mongoose";
 import { IBlog } from "../../interfaces/IBlog";
 import { BlogModel } from "../../models/blogsModel";
 import { LessonGroup } from "../../models/lessonGroupsModel";
@@ -57,9 +57,25 @@ export class BlogRepository extends BaseRepository<IBlog> {
   getPaginatedBlogs = async (
     paginationParams: PaginationParams
   ): Promise<PaginationResult<IBlog>> => {
-    const paginated = await this.getPaginated(paginationParams);
-    paginated.results = await this.populateBlogs(paginated.results);
+    const query = paginationParams.query ?? {};
 
+    if (query.planType) {
+      const planType = query.planType;
+      query.planType = { $in: [planType, "כללי"] };
+      console.log("NEW PLAN TYPE QUERY!", query.planType);
+    }
+
+    if (query.group && isValidObjectId(query.group)) {
+      query.group = mongoose.Types.ObjectId.createFromHexString(query.group);
+      console.log("TURNED GROUP INTO OBJECTID", query.group);
+    }
+
+    const paginated = await this.getPaginated({
+      ...paginationParams,
+      query,
+    });
+
+    paginated.results = await this.populateBlogs(paginated.results);
     return paginated;
   };
 
@@ -97,33 +113,43 @@ export class BlogRepository extends BaseRepository<IBlog> {
     return updatedBlog;
   };
 
-  getBlogCountsByGroup = async () => {
-    const counts = await this.model.aggregate([
+  getBlogCountsByGroup = async (planType?: string) => {
+    const pipeline: any[] = [];
+
+    if (planType) {
+      pipeline.push({
+        $match: {
+          planType: { $in: [planType, "כללי"] },
+        },
+      });
+    }
+
+    pipeline.push(
       {
         $group: {
-          _id: "$group", // group by lessonGroup ObjectId
-          count: { $sum: 1 }, // count blogs in each group
+          _id: "$group", // lessonGroup ObjectId
+          count: { $sum: 1 },
         },
       },
       {
         $lookup: {
-          from: "lessongroups", // name of the lessonGroups collection
-          localField: "_id", // the ObjectId stored in blogs.group
-          foreignField: "_id", // match it against lessonGroups._id
+          from: "lessongroups",
+          localField: "_id",
+          foreignField: "_id",
           as: "lessonGroup",
         },
       },
-      { $unwind: "$lessonGroup" }, // flatten the lessonGroup array
+      { $unwind: "$lessonGroup" },
       {
         $project: {
           id: "$lessonGroup._id",
-          name: "$lessonGroup.name", // pull just the name
+          name: "$lessonGroup.name",
           description: "$lessonGroup.description",
           count: 1,
         },
-      },
-    ]);
+      }
+    );
 
-    return counts;
+    return this.model.aggregate(pipeline);
   };
 }

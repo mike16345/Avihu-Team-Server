@@ -6,6 +6,7 @@ import {
   createMissingParamErrorMessage,
   createServerResponse,
   extractBodyFromEvent,
+  extractPaginationParamsFromEvent,
   extractQueryFromEvent,
 } from "../utils/utils";
 import { IServerResponseParams } from "../interfaces/IResponse";
@@ -140,7 +141,7 @@ export default class BaseController<T, S extends BaseService<T, BaseRepository<T
     await this.beforeAction(event);
 
     try {
-      const query = extractQueryFromEvent(event);
+      const query = extractPaginationParamsFromEvent(event);
       const results = await this.service.findPaginated(query, "");
       const response = this.successResponse({ data: results });
 
