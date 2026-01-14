@@ -6,11 +6,7 @@ import { API_HEADERS } from "../../constants/Constants";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
-  accessKeyId: process.env.ACCESS_KEY,
-  secretAccessKey: process.env.SECRET_KEY,
-  region: process.env.AMAZON_REGION,
-  signatureVersion: "v4",
-});
+3
 
 const ONE_MIN = 60;
 const URL_TTL = ONE_MIN * 10;
@@ -19,20 +15,21 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
   const bucketName = process.env.AWS_BUCKET;
   const httpMethod = event.httpMethod;
   const methodToAllow = getMethodToAllow(httpMethod);
-  const imageName = event.queryStringParameters?.imageName;
+  const folderName = event.queryStringParameters?.folderName || "images";
+  const fileName = event.queryStringParameters?.imageName;
   const clientId = event.queryStringParameters?.userId;
+  const contentType = event.queryStringParameters?.contentType || "image/jpeg";
   const date = event.queryStringParameters?.date;
-  const objectKey = `images/${clientId}/${date}/${imageName}`;
+
+  const objectKey = `${folderName}/${clientId}/${date}/${fileName}`;
 
   const params = {
     Bucket: bucketName,
     Key: objectKey,
     Expires: URL_TTL,
-    ContentType: "image/jpeg",
+    ContentType: contentType,
   };
-  console.log("event", JSON.stringify(event));
-
-  console.log(`bucket`, process.env.AWS_BUCKET_NAME);
+  console.log(`${httpMethod} Event:`, JSON.stringify(event));
   console.log(`params`, params);
 
   if (!methodToAllow) {
