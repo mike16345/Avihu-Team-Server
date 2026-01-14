@@ -70,6 +70,10 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false,
   },
+  completedOnboarding: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export const User = model("users", userSchema);
@@ -91,4 +95,5 @@ export const UserSchemaValidation = Joi.object({
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean(),
+  completedOnboarding: Joi.boolean().optional(),
 });

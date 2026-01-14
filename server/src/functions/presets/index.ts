@@ -19,6 +19,7 @@ import { StatusCode } from "../../enums/StatusCode";
 import { API_HEADERS } from "../../constants/Constants";
 import { EXERCISE_METHODS_BASE_PATH, exerciseMethodsApiHandlers } from "./exerciseMethods";
 import { CARDIO_WORKOUT_BASE_PATH, cardioWorkoutApiHandlers } from "./cardioWorkout";
+import { FORM_PRESET_BASE_PATH, formPresetApiHandlers, formPresetsMiddleware } from "./formPreset";
 
 export const BASE_PATH = "/presets";
 
@@ -28,12 +29,14 @@ const routeToPresetMap: Record<string, Record<string, Function>> = {
   [WORKOUT_BASE_PATH]: workoutPlanPresetApiHandlers,
   [EXERCISE_METHODS_BASE_PATH]: exerciseMethodsApiHandlers,
   [CARDIO_WORKOUT_BASE_PATH]: cardioWorkoutApiHandlers,
+  [FORM_PRESET_BASE_PATH]: formPresetApiHandlers,
 };
 
 const presetMiddleWareMap: Record<string, Record<string, Function>> = {
   [EXERCISES_BASE_PATH]: exerciseMiddlewareHandlers,
   [WORKOUT_BASE_PATH]: workoutPlanPresetApiMiddleware,
   [DIET_PLANS_BASE_PATH]: dietPlanPresetsMiddleware,
+  [FORM_PRESET_BASE_PATH]: formPresetsMiddleware,
 };
 
 export const handler = async (
