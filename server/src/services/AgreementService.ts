@@ -17,6 +17,7 @@ import {
 import { sha256 } from "../utils/crypto";
 import { stripBase64DataUrl } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
+import mongoose from "mongoose";
 
 const DOWNLOAD_URL_TTL_SECONDS = 60 * 10;
 const UPLOAD_URL_TTL_SECONDS = 60 * 10;
@@ -46,26 +47,29 @@ export class AgreementService {
   }
 
   async createTemplateUploadUrl(params: {
-    agreementId: string;
+    agreementId?: string;
     groupId?: string;
     contentType: string;
   }) {
+    const agreementId = params.agreementId ?? new mongoose.Types.ObjectId().toString();
+
     const latest = await this.templateService.getLatestTemplate({
-      agreementId: params.agreementId,
+      agreementId,
       ...(params.groupId ? { groupId: params.groupId } : {}),
     });
-    const nextVersion = (latest?.version ?? 0) + 1;
-    const templatePdfS3Key = `agreements/templates/${params.agreementId}/${nextVersion}.pdf`;
 
-    const template = {
-      agreementId: params.agreementId,
+    const nextVersion = (latest?.version ?? 0) + 1;
+    const templatePdfS3Key = `agreements/templates/${agreementId}/${nextVersion}.pdf`;
+
+    const template: Omit<IAgreementTemplate, "_id"> = {
+      agreementId,
       groupId: params.groupId,
       version: nextVersion,
       active: false,
       templatePdfS3Key,
       questions: [],
       createdAt: new Date(),
-    } satisfies Omit<IAgreementTemplate, "_id">;
+    };
 
     const created = await this.templateService.create(template as any);
 
@@ -79,7 +83,7 @@ export class AgreementService {
       uploadUrl,
       templatePdfS3Key,
       version: created.version,
-      agreementId: created.agreementId,
+      agreementId: created.agreementId, // crucial for the client
     };
   }
 

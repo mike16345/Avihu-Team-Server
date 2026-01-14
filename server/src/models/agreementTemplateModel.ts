@@ -42,7 +42,7 @@ export const AgreementTemplateActivationSchema = Joi.object({
 });
 
 export const AgreementTemplateUploadSchema = Joi.object({
-  agreementId: Joi.string().required(),
+  agreementId: Joi.string().optional().allow(""),
   groupId: Joi.string().optional(),
   contentType: Joi.string().valid("application/pdf").required(),
   adminId: Joi.string().optional(),
