@@ -208,6 +208,24 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
 };
 
+export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {
+  const trimmed = input.trim();
+  const match = /^data:([^;]+);base64,(.*)$/i.exec(trimmed);
+  if (match) {
+    return { mime: match[1], base64: match[2] };
+  }
+  return { base64: trimmed };
+};
+
+export const streamToBuffer = async (stream: NodeJS.ReadableStream): Promise<Buffer> => {
+  return await new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
+};
+
 export function stableStringify(obj: any): string {
   // Simple stable stringify by sorting keys (can be improved if needed)
   if (!obj || typeof obj !== "object") return String(obj);
