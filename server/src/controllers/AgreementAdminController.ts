@@ -4,7 +4,11 @@ import { AgreementTemplateService } from "../services/AgreementTemplateService";
 import { AgreementService } from "../services/AgreementService";
 import { SignedAgreementService } from "../services/SignedAgreementService";
 import { StatusCode } from "../enums/StatusCode";
-import { extractBodyFromEvent, extractPaginationParamsFromEvent, extractQueryFromEvent } from "../utils/utils";
+import {
+  extractBodyFromEvent,
+  extractPaginationParamsFromEvent,
+  extractQueryFromEvent,
+} from "../utils/utils";
 import { IAgreementTemplate } from "../interfaces/IAgreement";
 import UserService from "../services/userService";
 import { requireAdmin } from "../guards/AdminAccessGuard";
@@ -84,8 +88,12 @@ export class AgreementAdminController extends BaseController<
       if (error) return error;
 
       const signedAgreement = await this.signedAgreementService.findById(id);
+      if (!signedAgreement) {
+        return this.errorResponse("PDF לא קיים במערכת", 404);
+      }
+
       const downloadUrl = await getPresignedGetUrl(
-        signedAgreement.signedPdfS3Key,
+        signedAgreement?.signedPdfS3Key,
         DOWNLOAD_URL_TTL_SECONDS
       );
 
@@ -102,9 +110,7 @@ export class AgreementAdminController extends BaseController<
     }
   };
 
-  createTemplateUploadUrl = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
+  createTemplateUploadUrl = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
@@ -130,9 +136,7 @@ export class AgreementAdminController extends BaseController<
     }
   };
 
-  activateTemplateVersion = async (
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> => {
+  activateTemplateVersion = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     await this.beforeAction(event);
 
     try {
