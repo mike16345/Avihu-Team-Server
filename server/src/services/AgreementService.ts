@@ -3,7 +3,6 @@ import { SignedAgreementService } from "./SignedAgreementService";
 import {
   AgreementAnswerValue,
   IAgreementAnswer,
-  IAgreementQuestionDefinition,
   IAgreementTemplate,
   ISignedAgreement,
 } from "../interfaces/IAgreement";
@@ -18,6 +17,7 @@ import { sha256 } from "../utils/crypto";
 import { stripBase64DataUrl } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 import mongoose from "mongoose";
+import { IFormQuestion } from "../interfaces/IForm";
 
 const DOWNLOAD_URL_TTL_SECONDS = 60 * 10;
 const UPLOAD_URL_TTL_SECONDS = 60 * 10;
@@ -91,7 +91,7 @@ export class AgreementService {
     agreementId: string;
     version: number;
     groupId?: string;
-    questions: IAgreementQuestionDefinition[];
+    questions: IFormQuestion[];
   }) {
     const templateQuery = {
       agreementId: params.agreementId,
@@ -240,7 +240,7 @@ function buildSignedPdfKey(agreementId: string, userId: string, signedAt: Date):
 }
 
 function findMissingRequiredAnswers(
-  questions: IAgreementQuestionDefinition[],
+  questions: IFormQuestion[],
   answers: IAgreementAnswer[]
 ): string[] {
   const required = questions.filter((question) => question.required);
@@ -253,9 +253,12 @@ function findMissingRequiredAnswers(
 
   const missing: string[] = [];
   for (const question of required) {
-    const value = answerMap.get(question.questionId);
+    const value = answerMap.get(question._id || "");
+    
     if (isEmptyAnswer(value)) {
-      missing.push(question.label || question.questionId);
+      if (question._id) {
+        missing.push(question._id);
+      }
     }
   }
 

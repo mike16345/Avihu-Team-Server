@@ -1,12 +1,5 @@
 import mongoose from "mongoose";
-
-export interface IAgreementQuestionDefinition {
-  questionId: string;
-  label: string;
-  type?: string;
-  required?: boolean;
-  options?: string[];
-}
+import { IFormQuestion } from "./IForm";
 
 export type AgreementAnswerValue = string | number | boolean | string[] | null;
 
@@ -22,7 +15,7 @@ export interface IAgreementTemplate {
   version: number;
   active: boolean;
   templatePdfS3Key: string;
-  questions: IAgreementQuestionDefinition[];
+  questions: IFormQuestion[];
   createdAt: Date;
 }
 

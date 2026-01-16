@@ -1,18 +1,17 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { IAgreementAnswer, IAgreementQuestionDefinition } from "../interfaces/IAgreement";
+import { IAgreementAnswer } from "../interfaces/IAgreement";
+import { IFormQuestion } from "../interfaces/IForm";
 
 interface SignedAgreementPdfInput {
   templatePdfBytes: Buffer;
   signaturePngBytes: Buffer;
   answers: IAgreementAnswer[];
-  questions: IAgreementQuestionDefinition[];
+  questions: IFormQuestion[];
   signedAt: Date;
   userDisplayName?: string;
 }
 
-export async function createSignedAgreementPdf(
-  input: SignedAgreementPdfInput
-): Promise<Buffer> {
+export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): Promise<Buffer> {
   const pdfDoc = await PDFDocument.load(input.templatePdfBytes);
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -84,17 +83,17 @@ export async function createSignedAgreementPdf(
 
   const questions =
     input.questions.length > 0
-      ? input.questions
+      ? input.questions.map((question) => ({ questionId: question._id, label: question._id }))
       : input.answers.map((answer) => ({
           questionId: answer.questionId,
           label: answer.questionId,
         }));
 
   for (const question of questions) {
-    const answerValue = answerMap.get(question.questionId);
+    const answerValue = answerMap.get(question.questionId || "");
     const answerText = formatAnswerValue(answerValue);
 
-    const questionLabel = question.label || question.questionId;
+    const questionLabel = question.label || question.questionId || "";
     const questionResult = drawWrappedText(
       pdfDoc,
       page,

@@ -14,7 +14,7 @@ const QUESTION_TYPES = [
 
 const OPTION_TYPES = ["radio", "drop-down", "checkboxes", "range"] as const;
 
-const FormQuestionSchema = new Schema(
+export const FormQuestionSchema = new Schema(
   {
     type: {
       type: String,
