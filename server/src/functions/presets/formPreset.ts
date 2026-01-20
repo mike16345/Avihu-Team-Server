@@ -16,6 +16,7 @@ export const formPresetApiHandlers = {
   [`POST ${FORM_PRESET_BASE_PATH}`]: formPresetController.create,
   [`PUT ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.updateById,
   [`DELETE ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.deleteById,
+
   [`GET ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.getAll,
   [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.getById,
   [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: formResponseController.getOne,

@@ -72,9 +72,13 @@ function getLambdaHandlers(folder) {
 function getLambdaFunctions() {
   try {
     const result = execSync(
-      `aws lambda list-functions --region ${REGION} --query "Functions[*].FunctionName" --output json`
+      `aws lambda list-functions --region ${REGION} --query "Functions[*].FunctionName" --output json`,
+      { encoding: "utf8" }
     );
-    return JSON.parse(result);
+
+    const parsed = JSON.parse(result);
+
+    return parsed.sort((a, b) => a.localeCompare(b));
   } catch (error) {
     console.error("Failed to list Lambda functions:", error.message);
     process.exit(1);
