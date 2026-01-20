@@ -2,7 +2,11 @@ import { APIGatewayEvent } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
 import { ISession } from "../models/sessionModel";
-import { API_HEADERS } from "../constants/Constants";
+import {
+  API_HEADERS,
+  PAGINATION_LIMIT_FALLBACK,
+  PAGINATION_PAGE_FALLBACK,
+} from "../constants/Constants";
 import { DietPlanService } from "../services/dietPlanService";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { UserImageUrlService } from "../services/UserImageUrlService";
@@ -137,10 +141,10 @@ export const extractQueryFromEvent = (event: any) => {
 };
 
 export const extractPaginationParamsFromEvent = (event: any) => {
-  const qs = (event.queryStringParameters ?? {}) as Record<string, string | undefined>;
+  const qs = extractQueryFromEvent(event);
 
-  const page = Number(qs.page ?? 1);
-  const limit = Number(qs.limit ?? 20);
+  const page = Number(qs.page ?? qs._page ?? PAGINATION_PAGE_FALLBACK);
+  const limit = Number(qs.limit ?? qs._limit ?? PAGINATION_LIMIT_FALLBACK);
 
   const parseJson = <T>(val?: string, fallback: T = {} as T): T => {
     if (!val) return fallback;
