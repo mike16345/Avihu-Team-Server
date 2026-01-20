@@ -1,9 +1,9 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import { IAgreementAnswer } from "../interfaces/IAgreement";
 import { IFormQuestion } from "../interfaces/IForm";
-import fs from "fs";
-import rubikRegular from "../../assets/fonts/Rubik-Regular.ttf";
-import rubikBold from "../../assets/fonts/Rubik-Bold.ttf";
+import rubikRegular from "../../assets/fonts/Rubik-Regular";
+import rubikBold from "../../assets/fonts/Rubik-Bold";
+import * as fontkit from "fontkit";
 
 interface SignedAgreementPdfInput {
   templatePdfBytes: Buffer;
@@ -16,11 +16,10 @@ interface SignedAgreementPdfInput {
 
 export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): Promise<Buffer> {
   const pdfDoc = await PDFDocument.load(input.templatePdfBytes);
-  const fontBytes = new Uint8Array(fs.readFileSync(rubikRegular));
-  const boldFontBytes = new Uint8Array(fs.readFileSync(rubikBold));
+  pdfDoc.registerFontkit(fontkit);
 
-  const font = await pdfDoc.embedFont(fontBytes);
-  const boldFont = await pdfDoc.embedFont(boldFontBytes);
+  const font = await pdfDoc.embedFont(rubikRegular);
+  const boldFont = await pdfDoc.embedFont(rubikBold);
 
   const pages = pdfDoc.getPages();
   const lastPage = pages[pages.length - 1];
