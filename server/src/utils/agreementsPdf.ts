@@ -1,9 +1,10 @@
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
 import { IAgreementAnswer } from "../interfaces/IAgreement";
-import { IFormQuestion } from "../interfaces/IForm";
+import { IFormQuestion, QuestionTypes } from "../interfaces/IForm";
 import rubikRegular from "../../assets/fonts/Rubik-Regular";
 import rubikBold from "../../assets/fonts/Rubik-Bold";
 import * as fontkit from "fontkit";
+import moment from "moment";
 
 interface SignedAgreementPdfInput {
   templatePdfBytes: Buffer;
@@ -12,6 +13,20 @@ interface SignedAgreementPdfInput {
   questions: IFormQuestion[];
   signedAt: Date;
   userDisplayName?: string;
+}
+const NOT_ANSWERED_TEXT = "לא נענתה/נענה";
+
+function getTextMargin(
+  textToMeasure: string,
+  fontSize: number,
+  margin: number,
+  font: PDFFont,
+  page: PDFPage
+) {
+  const textWidth = font.widthOfTextAtSize(textToMeasure, fontSize);
+  const { width } = page.getSize();
+
+  return width - margin - textWidth;
 }
 
 export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): Promise<Buffer> {
@@ -48,9 +63,24 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
     height: sigHeight,
   });
 
-  const signedAtText = `Signed at: ${input.signedAt.toISOString()}`;
+  const signatureTextSize = 10;
+  const signedAtText = `נחתם ב: `;
+  const signedAtDate = moment(input.signedAt).format("YYYY.MM.DD HH:mm");
+  const signedAtTextMargin = getTextMargin(signedAtText, signatureTextSize, margin, font, lastPage);
+
   lastPage.drawText(signedAtText, {
-    x: margin,
+    x: signedAtTextMargin,
+    y: sigY + sigHeight + 10,
+    size: 10,
+    font,
+    color: rgb(0.2, 0.2, 0.2),
+  });
+
+  const labelWidth = font.widthOfTextAtSize(signedAtText, signatureTextSize);
+  const dateMargin = margin + labelWidth;
+
+  lastPage.drawText(signedAtDate, {
+    x: getTextMargin(signedAtDate, signatureTextSize, dateMargin, font, lastPage),
     y: sigY + sigHeight + 10,
     size: 10,
     font,
@@ -58,8 +88,10 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
   });
 
   if (input.userDisplayName) {
-    lastPage.drawText(`Signed by: ${input.userDisplayName}`, {
-      x: margin,
+    const displayNameText = `נחתם על ידי: ${input.userDisplayName}`;
+
+    lastPage.drawText(displayNameText, {
+      x: getTextMargin(displayNameText, signatureTextSize, margin, font, lastPage),
       y: sigY + sigHeight + 24,
       size: 10,
       font,
@@ -72,9 +104,10 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
   const maxWidth = page.getSize().width - margin * 2;
   const titleSize = 18;
   const bodySize = 11;
+  const answersHeader = "תשובות:";
 
-  page.drawText("Answers", {
-    x: margin,
+  page.drawText(answersHeader, {
+    x: getTextMargin(answersHeader, titleSize, margin, font, page),
     y,
     size: titleSize,
     font: boldFont,
@@ -88,15 +121,20 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
 
   const questions =
     input.questions.length > 0
-      ? input.questions.map((question) => ({ questionId: question._id, label: question.question }))
+      ? input.questions.map((question) => ({
+          questionId: question._id,
+          label: question.question,
+          type: question.type,
+        }))
       : input.answers.map((answer) => ({
           questionId: answer.questionId,
           label: answer.questionId,
+          type: undefined,
         }));
 
   for (const question of questions) {
-    const answerValue = answerMap.get(question.questionId || "");
-    const answerText = formatAnswerValue(answerValue);
+    const answerValue = answerMap.get(question.questionId?.toString() || "");
+    const answerText = formatAnswerValue(answerValue, question.type);
 
     const questionLabel = question.label || question.questionId || "";
     const questionResult = drawWrappedText(
@@ -107,8 +145,7 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
       y,
       maxWidth,
       boldFont,
-      bodySize,
-      margin
+      bodySize
     );
     page = questionResult.page;
     y = questionResult.y - 2;
@@ -121,8 +158,7 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
       y,
       maxWidth,
       font,
-      bodySize,
-      margin
+      bodySize
     );
     page = answerResult.page;
     y = answerResult.y - bodySize;
@@ -132,12 +168,16 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
   return Buffer.from(pdfBytes);
 }
 
-function formatAnswerValue(value: IAgreementAnswer["value"] | undefined): string {
-  if (value === null || value === undefined) return "Not provided";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "Not provided";
+function formatAnswerValue(
+  value: IAgreementAnswer["value"] | undefined,
+  type?: QuestionTypes
+): string {
+  if (value === null || value === undefined) return NOT_ANSWERED_TEXT;
+  if (typeof value === "boolean") return value ? "כן" : "לא";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : NOT_ANSWERED_TEXT;
   if (typeof value === "number") return value.toString();
-  if (typeof value === "string" && value.trim().length === 0) return "Not provided";
+  if (typeof value === "string" && value.trim().length === 0) return NOT_ANSWERED_TEXT;
+  if (typeof value === "string" && type === "yes-no" && value !== "לא") return `כן, ${value}`;
   return String(value);
 }
 
@@ -145,12 +185,11 @@ function drawWrappedText(
   pdfDoc: PDFDocument,
   page: any,
   text: string,
-  x: number,
+  margin: number,
   y: number,
   maxWidth: number,
   font: any,
-  size: number,
-  margin: number
+  size: number
 ): { page: any; y: number } {
   const lines = wrapText(text, font, size, maxWidth);
   const lineHeight = size + 3;
@@ -159,6 +198,8 @@ function drawWrappedText(
       page = pdfDoc.addPage();
       y = page.getSize().height - margin;
     }
+
+    const x = getTextMargin(line, size, margin, font, page);
     page.drawText(line, { x, y, size, font });
     y -= lineHeight;
   }

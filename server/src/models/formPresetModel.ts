@@ -10,6 +10,7 @@ const QUESTION_TYPES = [
   "file-upload",
   "checkboxes",
   "drop-down",
+  "yes-no",
 ] as const;
 
 const OPTION_TYPES = ["radio", "drop-down", "checkboxes", "range"] as const;
