@@ -253,8 +253,8 @@ function findMissingRequiredAnswers(
 
   const missing: string[] = [];
   for (const question of required) {
-    const value = answerMap.get(question._id || "");
-    
+    const value = answerMap.get(question._id?.toString() || "");
+
     if (isEmptyAnswer(value)) {
       if (question._id) {
         missing.push(question._id);

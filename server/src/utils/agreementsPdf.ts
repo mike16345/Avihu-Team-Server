@@ -1,6 +1,9 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { IAgreementAnswer } from "../interfaces/IAgreement";
 import { IFormQuestion } from "../interfaces/IForm";
+import fs from "fs";
+import rubikRegular from "../../assets/fonts/Rubik-Regular.ttf";
+import rubikBold from "../../assets/fonts/Rubik-Bold.ttf";
 
 interface SignedAgreementPdfInput {
   templatePdfBytes: Buffer;
@@ -13,8 +16,11 @@ interface SignedAgreementPdfInput {
 
 export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): Promise<Buffer> {
   const pdfDoc = await PDFDocument.load(input.templatePdfBytes);
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontBytes = new Uint8Array(fs.readFileSync(rubikRegular));
+  const boldFontBytes = new Uint8Array(fs.readFileSync(rubikBold));
+
+  const font = await pdfDoc.embedFont(fontBytes);
+  const boldFont = await pdfDoc.embedFont(boldFontBytes);
 
   const pages = pdfDoc.getPages();
   const lastPage = pages[pages.length - 1];
@@ -83,7 +89,7 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
 
   const questions =
     input.questions.length > 0
-      ? input.questions.map((question) => ({ questionId: question._id, label: question._id }))
+      ? input.questions.map((question) => ({ questionId: question._id, label: question.question }))
       : input.answers.map((answer) => ({
           questionId: answer.questionId,
           label: answer.questionId,
