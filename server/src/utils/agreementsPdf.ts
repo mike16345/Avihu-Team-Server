@@ -31,73 +31,13 @@ function getTextMargin(
 
 export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): Promise<Buffer> {
   const pdfDoc = await PDFDocument.load(input.templatePdfBytes);
+
   pdfDoc.registerFontkit(fontkit);
 
-  const font = await pdfDoc.embedFont(rubikRegular);
-  const boldFont = await pdfDoc.embedFont(rubikBold);
-
-  const pages = pdfDoc.getPages();
-  const lastPage = pages[pages.length - 1];
-  const { width, height } = lastPage.getSize();
-
-  const signatureImage = await pdfDoc.embedPng(input.signaturePngBytes);
-  const signatureDims = signatureImage.scale(1);
-  const maxSigWidth = 240;
-  const maxSigHeight = 100;
-  const sigScale = Math.min(
-    maxSigWidth / signatureDims.width,
-    maxSigHeight / signatureDims.height,
-    1
-  );
-  const sigWidth = signatureDims.width * sigScale;
-  const sigHeight = signatureDims.height * sigScale;
+  const font = await pdfDoc.embedFont(rubikRegular, { subset: false });
+  const boldFont = await pdfDoc.embedFont(rubikBold, { subset: false });
 
   const margin = 48;
-  const sigX = width - margin - sigWidth;
-  const sigY = margin;
-
-  lastPage.drawImage(signatureImage, {
-    x: sigX,
-    y: sigY,
-    width: sigWidth,
-    height: sigHeight,
-  });
-
-  const signatureTextSize = 10;
-  const signedAtText = `נחתם ב: `;
-  const signedAtDate = moment(input.signedAt).format("YYYY.MM.DD HH:mm");
-  const signedAtTextMargin = getTextMargin(signedAtText, signatureTextSize, margin, font, lastPage);
-
-  lastPage.drawText(signedAtText, {
-    x: signedAtTextMargin,
-    y: sigY + sigHeight + 10,
-    size: 10,
-    font,
-    color: rgb(0.2, 0.2, 0.2),
-  });
-
-  const labelWidth = font.widthOfTextAtSize(signedAtText, signatureTextSize);
-  const dateMargin = margin + labelWidth;
-
-  lastPage.drawText(signedAtDate, {
-    x: getTextMargin(signedAtDate, signatureTextSize, dateMargin, font, lastPage),
-    y: sigY + sigHeight + 10,
-    size: 10,
-    font,
-    color: rgb(0.2, 0.2, 0.2),
-  });
-
-  if (input.userDisplayName) {
-    const displayNameText = `נחתם על ידי: ${input.userDisplayName}`;
-
-    lastPage.drawText(displayNameText, {
-      x: getTextMargin(displayNameText, signatureTextSize, margin, font, lastPage),
-      y: sigY + sigHeight + 24,
-      size: 10,
-      font,
-      color: rgb(0.2, 0.2, 0.2),
-    });
-  }
 
   let page = pdfDoc.addPage();
   let y = page.getSize().height - margin;
@@ -164,7 +104,70 @@ export async function createSignedAgreementPdf(input: SignedAgreementPdfInput): 
     y = answerResult.y - bodySize;
   }
 
-  const pdfBytes = await pdfDoc.save();
+  const pages = pdfDoc.getPages();
+  const lastPage = pages[pages.length - 1];
+  const { width } = lastPage.getSize();
+
+  const signatureImage = await pdfDoc.embedPng(input.signaturePngBytes);
+  const signatureDims = signatureImage.scale(1);
+  const maxSigWidth = 240;
+  const maxSigHeight = 100;
+  const sigScale = Math.min(
+    maxSigWidth / signatureDims.width,
+    maxSigHeight / signatureDims.height,
+    1
+  );
+  const sigWidth = signatureDims.width * sigScale;
+  const sigHeight = signatureDims.height * sigScale;
+
+  const sigX = width - margin - sigWidth;
+  const sigY = margin;
+
+  lastPage.drawImage(signatureImage, {
+    x: sigX,
+    y: sigY,
+    width: sigWidth,
+    height: sigHeight,
+  });
+
+  const signatureTextSize = 10;
+  const signedAtText = `נחתם ב: `;
+  const signedAtDate = moment(input.signedAt).format("HH:mm DD.MM.YYYY");
+  const signedAtTextMargin = getTextMargin(signedAtText, signatureTextSize, margin, font, lastPage);
+
+  lastPage.drawText(signedAtText, {
+    x: signedAtTextMargin,
+    y: sigY + sigHeight + 10,
+    size: 10,
+    font,
+    color: rgb(0.2, 0.2, 0.2),
+  });
+
+  const labelWidth = font.widthOfTextAtSize(signedAtText, signatureTextSize);
+  const dateMargin = margin + labelWidth;
+
+  lastPage.drawText(signedAtDate, {
+    x: getTextMargin(signedAtDate, signatureTextSize, dateMargin, font, lastPage),
+    y: sigY + sigHeight + 10,
+    size: 10,
+    font,
+    color: rgb(0.2, 0.2, 0.2),
+  });
+
+  if (input.userDisplayName) {
+    const displayNameText = `נחתם על ידי: ${input.userDisplayName}`;
+
+    lastPage.drawText(displayNameText, {
+      x: getTextMargin(displayNameText, signatureTextSize, margin, font, lastPage),
+      y: sigY + sigHeight + 24,
+      size: 10,
+      font,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+  }
+
+  const pdfBytes = await pdfDoc.save({ addDefaultPage: false, useObjectStreams: false });
+
   return Buffer.from(pdfBytes);
 }
 
