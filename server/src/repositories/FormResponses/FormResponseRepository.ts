@@ -35,7 +35,7 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
     const { query, queryOptions, projection } = options;
     const queryResult = this.model.findOne(query, projection, queryOptions);
     const res = await this.populateForm(queryResult);
-    const finalRes = await this.populateUserId(res);
+    const finalRes = await this.populateUserId([res]);
 
     if (!finalRes) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -47,7 +47,7 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
   findById = async (id: string | Types.ObjectId): Promise<any> => {
     const form = await this.model.findById(id);
     const res = await this.populateForm(form);
-    const finalRes = await this.populateUserId(res);
+    const finalRes = await this.populateUserId([res]);
 
     if (!finalRes) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
