@@ -29,6 +29,7 @@ const lambdaFunctionsMap = {
   Leads: { path: "Leads/index.ts", envToUse: "otp" },
   Chat: { path: "rag/index.ts", envToUse: "rag" },
   MuscleMeasurements: { path: "MuscleMeasurements/index.ts", envToUse: "api" },
+  Agreements: { path: "agreements/index.ts", envToUse: "signedUrl" },
 };
 
 async function deployAllLambdas() {

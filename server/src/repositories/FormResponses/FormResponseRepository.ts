@@ -23,33 +23,46 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
     return this.model.populate(queryOrDocs, options);
   }
 
+  private populateUserId(docs: any[]) {
+    return this.model.populate(docs, {
+      path: "userId",
+      select: "firstName lastName",
+      model: User,
+    });
+  }
+
   findOne = async (options: FindOptions<IFormResponse>): Promise<any> => {
     const { query, queryOptions, projection } = options;
     const queryResult = this.model.findOne(query, projection, queryOptions);
-    const response = await this.populateForm(queryResult);
+    const res = await this.populateForm(queryResult);
+    const finalRes = await this.populateUserId([res]);
 
-    if (!response) {
+    if (!finalRes) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
     }
 
-    return response;
+    return Array.isArray(finalRes) ? finalRes[0] : null;
   };
 
   findById = async (id: string | Types.ObjectId): Promise<any> => {
-    const response = await this.populateForm(this.model.findById(id));
+    const form = await this.model.findById(id);
+    const res = await this.populateForm(form);
+    const finalRes = await this.populateUserId([res]);
 
-    if (!response) {
+    if (!finalRes) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
     }
 
-    return response;
+    return Array.isArray(finalRes) ? finalRes[0] : null;
   };
 
   find = async (options: FindOptions<IFormResponse>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const responses = await this.populateForm(this.model.find(query, projection, queryOptions));
+    const forms = await this.model.find(query, projection, queryOptions);
+    const res = await this.populateForm(forms);
+    const finalRes = await this.populateUserId(res);
 
-    return responses;
+    return finalRes;
   };
 
   create = async (doc: IFormResponse): Promise<IFormResponse> => {
