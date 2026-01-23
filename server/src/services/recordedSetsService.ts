@@ -54,7 +54,7 @@ export class RecordedSetsService extends BaseService<
       if (!recordedSets?.length) {
         throw new Error("No recorded sets provided");
       }
-      
+
       const exerciseObjectId =
         exerciseId && mongoose.isValidObjectId(exerciseId)
           ? new mongoose.mongo.ObjectId(exerciseId)
@@ -66,7 +66,7 @@ export class RecordedSetsService extends BaseService<
       const muscleGroupRecord = await this.repository.findOrCreate(objectId, muscleGroup);
       this.repository.initializeExerciseIfNecessary(muscleGroupRecord, exercise);
       await muscleGroupRecord.save();
-      
+
       const lastIndex = recordedSets.length - 1;
       const nextSetNumber = recordedSets[lastIndex]?.setNumber + 1;
 
