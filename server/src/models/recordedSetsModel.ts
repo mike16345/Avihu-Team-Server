@@ -11,6 +11,7 @@ const recordedSetSchema = new Schema<IRecordedSet>({
   weight: { type: Number, min: 1, required: true },
   repsDone: { type: Number, min: 1, required: true },
   note: { type: String },
+  exerciseId: { type: Schema.Types.ObjectId, required: false },
   date: { type: Date, default: Date.now },
 });
 
@@ -35,6 +36,7 @@ const RecordedSetJoiSchema = Joi.object<IRecordedSet>({
   weight: Joi.number().min(1).required(),
   repsDone: Joi.number().min(1).required(),
   note: Joi.string().allow(null, ""),
+  exerciseId: Joi.string().optional().allow(null, ""),
   date: Joi.date().default(() => new Date()),
 });
 
