@@ -25,27 +25,6 @@ export class RecordedSetsRepository extends BaseRepository<IMuscleGroupRecordedS
     }
   };
 
-  appendRecordedSet(
-    record: HydratedDocument<IMuscleGroupRecordedSets>,
-    exercise: string,
-    set: IRecordedSet
-  ) {
-    record.recordedSets[exercise].push(new RecordedSet(set));
-    record.markModified("recordedSets");
-  }
-
-  appendRecordedSets(
-    muscleGroupRecord: HydratedDocument<IMuscleGroupRecordedSets>,
-    exercise: string,
-    sets: IRecordedSet[]
-  ) {
-    if (!muscleGroupRecord.recordedSets[exercise]) {
-      muscleGroupRecord.recordedSets[exercise] = [];
-    }
-
-    muscleGroupRecord.recordedSets[exercise].push(...sets);
-  }
-
   appendRecordedSetsById(
     userId: mongoose.Types.ObjectId,
     muscleGroup: string,
