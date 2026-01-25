@@ -2,7 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult } from "aw
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { StatusCode } from "../enums/StatusCode";
 import mongoose from "mongoose";
-import { createResponse, extractQueryFromEvent } from "../utils/utils";
+import { createResponse, extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IMuscleGroupRecordedSets } from "../interfaces/ISet";
 
@@ -13,6 +13,7 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
 
   addRecordedSet = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { sessionId } = extractQueryFromEvent(event);
+    const { exerciseId } = extractBodyFromEvent(event);
     const { error, userId, muscleGroup, exercise, recordedSets } = this.getParamsOrError(
       event,
       ["userId", "muscleGroup", "exercise", "recordedSets"],
@@ -28,7 +29,8 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
         muscleGroup,
         exercise,
         sessionId,
-        sets
+        sets,
+        exerciseId
       );
 
       return {
