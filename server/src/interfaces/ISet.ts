@@ -8,6 +8,7 @@ export interface ISet {
 export interface IRecordedSet {
   plan: string;
   exercise: string;
+  exerciseId?: ObjectId;
   setNumber: number;
   weight: number;
   repsDone: number;
