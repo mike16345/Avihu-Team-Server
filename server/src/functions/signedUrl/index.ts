@@ -6,7 +6,8 @@ import { API_HEADERS } from "../../constants/Constants";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
-3
+  
+});
 
 const ONE_MIN = 60;
 const URL_TTL = ONE_MIN * 10;
