@@ -66,11 +66,17 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false,
   },
-  isAdmin: {
-    type: Boolean,
-    default: false,
+  role: {
+    type: String,
+    enum: ["admin", "user", "trainer"],
+    default: "user",
   },
-  completedOnboarding: {
+  onboardingStep: {
+    type: String,
+    enum: ["form", "agreement", "completed"],
+    default: "form",
+  },
+  isAdmin: {
     type: Boolean,
     default: false,
   },
@@ -94,6 +100,8 @@ export const UserSchemaValidation = Joi.object({
   hasAccess: Joi.boolean(),
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
-  isAdmin: Joi.boolean(),
+  isAdmin: Joi.boolean().optional(),
   completedOnboarding: Joi.boolean().optional(),
+  role: Joi.string().valid("admin", "user", "trainer").default("user"),
+  onboardingStep: Joi.string().valid("form", "agreement", "completed").default("form"),
 });

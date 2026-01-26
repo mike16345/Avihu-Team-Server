@@ -69,7 +69,7 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
     const newDoc = await this.model.create(doc);
 
     if (doc.formType === "onboarding") {
-      await User.findByIdAndUpdate(doc.userId, { completedOnboarding: true });
+      await User.findByIdAndUpdate(doc.userId, { role: "agreement" });
     }
 
     return newDoc;

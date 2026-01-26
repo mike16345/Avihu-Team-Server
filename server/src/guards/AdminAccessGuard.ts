@@ -6,7 +6,7 @@ export const requireAdmin = (user: IUser | null) => {
     throw { message: "משתמש לא נמצא!", statusCode: StatusCode.NOT_FOUND };
   }
 
-  if (!user.isAdmin) {
+  if (user.role !== "admin") {
     throw { message: "אין הרשאה להתחבר כמנהל!", statusCode: StatusCode.FORBIDDEN };
   }
 };

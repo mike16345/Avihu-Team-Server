@@ -14,7 +14,8 @@ export interface IUser {
   isChecked: boolean;
   imagesUploaded: boolean;
   hasAccess: boolean;
+  role: "admin" | "user" | "trainer";
+  onboardingStep: "form" | "agreement" | "completed";
   isAdmin: boolean;
   profileImage?: string;
-  completedOnboarding?: boolean;
 }

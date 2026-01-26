@@ -4,7 +4,7 @@ import { SignedAgreementModel } from "../../models/signedAgreementModel";
 import { FindOptions } from "../../types/mongooseTypes";
 import { BaseRepository } from "../BaseRepository";
 import { User } from "../../models/userModel";
-import { PaginationParams, PaginationResult } from "../../utils/pagination";
+import { PaginationParams } from "../../utils/pagination";
 
 export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> {
   constructor() {
@@ -48,4 +48,12 @@ export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> 
 
     return paginated;
   }
+
+  create = async (doc: ISignedAgreement): Promise<ISignedAgreement> => {
+    const newDoc = await this.model.create(doc);
+
+    await User.findByIdAndUpdate(doc.userId, { role: "completed" });
+
+    return newDoc;
+  };
 }
