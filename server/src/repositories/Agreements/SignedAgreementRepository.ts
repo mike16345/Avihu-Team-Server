@@ -52,7 +52,7 @@ export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> 
   create = async (doc: ISignedAgreement): Promise<ISignedAgreement> => {
     const newDoc = await this.model.create(doc);
 
-    await User.findByIdAndUpdate(doc.userId, { role: "completed" });
+    await User.findByIdAndUpdate(doc.userId, { onboardingStep: "completed" });
 
     return newDoc;
   };
