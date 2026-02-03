@@ -1,9 +1,8 @@
 import BaseController from "./BaseController";
 import { IFormResponse } from "../interfaces/IFormResponse";
 import { FormResponseService } from "../services/FormResponseService";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { extractBodyFromEvent } from "../utils/utils";
-/* import UserService from "../services/userService"; */
 import { StatusCode } from "../enums/StatusCode";
 
 export default class FormResponseController extends BaseController<
@@ -19,12 +18,20 @@ export default class FormResponseController extends BaseController<
     try {
       await this.service.create(body);
 
-      /*   if (body.formType === "onboarding") {
-        const userService = new UserService();
-        await userService.updateById(body.userId, { completedOnboarding: true });
-      } */
+      return this.successResponse({ status: StatusCode.OK, message: "success" });
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
 
-      this.successResponse({ status: StatusCode.OK, message: "success" });
+  checkOffResponse = async (event: APIGatewayProxyEvent) => {
+    const body = extractBodyFromEvent(event);
+    const { id, isChecked } = body;
+
+    try {
+      await this.service.updateById(id, { isChecked });
+
+      return this.successResponse({ status: StatusCode.OK, message: "success" });
     } catch (error) {
       return this.errorResponse(error);
     }

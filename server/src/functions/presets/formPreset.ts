@@ -22,6 +22,7 @@ export const formPresetApiHandlers = {
   [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: formResponseController.getOne,
   [`POST ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.create,
   [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.updateById,
+  [`PUT ${FORM_RESPONSE_BASE_PATH}/one/check-off`]: formResponseController.checkOffResponse,
   [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.deleteById,
 };
 

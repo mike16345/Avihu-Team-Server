@@ -20,6 +20,7 @@ export interface IFormResponse {
   formTitle?: string;
   formType?: string;
   sections: IFormResponseSection[];
+  isChecked: boolean
   createdAt?: Date;
   updatedAt?: Date;
 }

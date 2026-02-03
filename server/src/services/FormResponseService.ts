@@ -42,4 +42,11 @@ export class FormResponseService extends BaseService<IFormResponse, FormResponse
 
     return super.updateById(id, hydrated);
   }
+
+  find(filter?: Partial<Record<keyof IFormResponse, any>>): Promise<IFormResponse[]> {
+    return this.repository.find({
+      query: filter || {},
+      queryOptions: { sort: { isChecked: 1, submittedAt: -1 } },
+    });
+  }
 }

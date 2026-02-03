@@ -101,7 +101,6 @@ export const UserSchemaValidation = Joi.object({
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean().optional(),
-  completedOnboarding: Joi.boolean().optional(),
   role: Joi.string().valid("admin", "user", "trainer").default("user"),
   onboardingStep: Joi.string().valid("form", "agreement", "completed").default("form"),
 });
