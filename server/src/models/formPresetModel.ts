@@ -94,7 +94,7 @@ export const formQuestionValidator = Joi.object({
     .valid(...QUESTION_TYPES)
     .required(),
   question: Joi.string().required(),
-  description: Joi.string().optional(),
+  description: Joi.string().optional().allow(""),
   required: Joi.boolean().required(),
 
   options: Joi.when("type", {
