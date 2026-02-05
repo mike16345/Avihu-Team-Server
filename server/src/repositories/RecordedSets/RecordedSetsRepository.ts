@@ -52,16 +52,53 @@ export class RecordedSetsRepository extends BaseRepository<IMuscleGroupRecordedS
     return this.model.updateOne(query, update);
   }
 
-  deleteRecordedSetById(userId: string, exercise: string, setId: string) {
+  async deleteRecordedSetById(userId: string, exercise: string, setId: string) {
     const query = {
       userId: new mongoose.Types.ObjectId(userId),
       [`recordedSets.${exercise}._id`]: new mongoose.Types.ObjectId(setId),
     };
 
-    return this.model.updateOne(query, {
-      $pull: {
-        [`recordedSets.${exercise}`]: { _id: new mongoose.Types.ObjectId(setId) },
+    const setObjectId = new mongoose.Types.ObjectId(setId);
+    const recordedSetsPath = `recordedSets.${exercise}`;
+
+    const updatedRecord = await this.model.findOneAndUpdate(query, [
+      {
+        $set: {
+          [recordedSetsPath]: {
+            $filter: {
+              input: `$${recordedSetsPath}`,
+              as: "set",
+              cond: { $ne: ["$$set._id", setObjectId] },
+            },
+          },
+        },
       },
-    });
+      {
+        $set: {
+          _recordedSetsSize: { $size: `$${recordedSetsPath}` },
+        },
+      },
+      {
+        $set: {
+          [recordedSetsPath]: {
+            $cond: [
+              { $eq: ["$_recordedSetsSize", 0] },
+              "$$REMOVE",
+              `$${recordedSetsPath}`,
+            ],
+          },
+        },
+      },
+      { $unset: "_recordedSetsSize" },
+    ], { new: true });
+
+    if (!updatedRecord) return null;
+
+    const recordedSetsKeysCount = Object.keys(updatedRecord.recordedSets ?? {}).length;
+    if (recordedSetsKeysCount === 0) {
+      await this.model.deleteOne({ _id: updatedRecord._id });
+    }
+
+    return updatedRecord;
   }
 }
