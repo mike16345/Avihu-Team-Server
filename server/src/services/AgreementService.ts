@@ -98,12 +98,19 @@ export class AgreementService {
       ...(params.groupId ? { groupId: params.groupId } : {}),
     };
 
-    await this.templateService.deactivateTemplates(templateQuery);
-
     const updated = await this.templateService.updateOne(
       { ...templateQuery, version: params.version },
       { active: true, questions: params.questions }
     );
+
+    if (!updated) {
+      throw { status: StatusCode.NOT_FOUND, message: "Agreement template not found." };
+    }
+
+    await this.templateService.deactivateTemplates({
+      ...templateQuery,
+      version: { $ne: params.version },
+    });
 
     return updated;
   }
