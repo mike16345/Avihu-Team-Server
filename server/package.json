@@ -16,14 +16,18 @@
     "@pinecone-database/pinecone": "^6.0.1",
     "aws-sdk": "^2.1690.0",
     "bcryptjs": "^2.4.3",
+    "fontkit": "^2.0.4",
     "joi": "^17.6.0",
+    "moment": "^2.30.1",
     "mongoose": "^8.16.5",
     "nodemailer": "^7.0.5",
-    "openai": "^4.28.0"
+    "openai": "^4.28.0",
+    "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/bcryptjs": "^2.4.6",
+    "@types/fontkit": "^2.0.8",
     "@types/jest": "^29.5.12",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^20.10.7",

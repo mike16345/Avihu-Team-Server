@@ -61,36 +61,36 @@ export class RecordedSetsRepository extends BaseRepository<IMuscleGroupRecordedS
     const setObjectId = new mongoose.Types.ObjectId(setId);
     const recordedSetsPath = `recordedSets.${exercise}`;
 
-    const updatedRecord = await this.model.findOneAndUpdate(query, [
-      {
-        $set: {
-          [recordedSetsPath]: {
-            $filter: {
-              input: `$${recordedSetsPath}`,
-              as: "set",
-              cond: { $ne: ["$$set._id", setObjectId] },
+    const updatedRecord = await this.model.findOneAndUpdate(
+      query,
+      [
+        {
+          $set: {
+            [recordedSetsPath]: {
+              $filter: {
+                input: `$${recordedSetsPath}`,
+                as: "set",
+                cond: { $ne: ["$$set._id", setObjectId] },
+              },
             },
           },
         },
-      },
-      {
-        $set: {
-          _recordedSetsSize: { $size: `$${recordedSetsPath}` },
-        },
-      },
-      {
-        $set: {
-          [recordedSetsPath]: {
-            $cond: [
-              { $eq: ["$_recordedSetsSize", 0] },
-              "$$REMOVE",
-              `$${recordedSetsPath}`,
-            ],
+        {
+          $set: {
+            _recordedSetsSize: { $size: `$${recordedSetsPath}` },
           },
         },
-      },
-      { $unset: "_recordedSetsSize" },
-    ], { new: true });
+        {
+          $set: {
+            [recordedSetsPath]: {
+              $cond: [{ $eq: ["$_recordedSetsSize", 0] }, "$$REMOVE", `$${recordedSetsPath}`],
+            },
+          },
+        },
+        { $unset: "_recordedSetsSize" },
+      ],
+      { new: true }
+    );
 
     if (!updatedRecord) return null;
 

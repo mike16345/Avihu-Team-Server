@@ -67,6 +67,11 @@ export const FormResponseSchema = new Schema<IFormResponse>({
     type: [FormResponseSectionSchema],
     required: true,
   },
+  isChecked: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
 });
 
 FormResponseSchema.index({ userId: 1, formId: 1, submittedAt: -1 });
@@ -93,6 +98,7 @@ export const formResponseValidator = Joi.object({
   formTitle: Joi.string().optional().allow(""),
   formType: Joi.string().optional().allow(""),
   sections: Joi.array().items(formResponseSectionValidator).min(1).required(),
+  isChecked: Joi.boolean().optional(),
   createdAt: Joi.date().optional(),
   updatedAt: Joi.date().optional(),
 });

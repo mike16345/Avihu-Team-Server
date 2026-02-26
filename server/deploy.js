@@ -44,7 +44,7 @@ const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECR
 const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI}`;
 const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
-  signedUrl: signedUrlEnv,
+  signedUrl: `${signedUrlEnv},${apiEnv}`,
   api: apiEnv,
   otp: `${EMAIL},${APP_PASSWORD},${apiEnv}`,
   rag: `${ragEnv},${apiEnv}`,
@@ -72,9 +72,13 @@ function getLambdaHandlers(folder) {
 function getLambdaFunctions() {
   try {
     const result = execSync(
-      `aws lambda list-functions --region ${REGION} --query "Functions[*].FunctionName" --output json`
+      `aws lambda list-functions --region ${REGION} --query "Functions[*].FunctionName" --output json`,
+      { encoding: "utf8" }
     );
-    return JSON.parse(result);
+
+    const parsed = JSON.parse(result);
+
+    return parsed.sort((a, b) => a.localeCompare(b));
   } catch (error) {
     console.error("Failed to list Lambda functions:", error.message);
     process.exit(1);

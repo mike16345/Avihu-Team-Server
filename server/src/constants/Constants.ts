@@ -9,6 +9,9 @@ export const AVG_FAT_CALORIES = 100;
 export const AVG_CARB_CALORIES = 115;
 export const AVG_VEGGIE_CALORIES = 30;
 
+export const PAGINATION_LIMIT_FALLBACK = 10;
+export const PAGINATION_PAGE_FALLBACK = 1;
+
 export const DUPLICATE_PRESET_ERROR = "שם התבנית כבר קיים במערכת!";
 
 export const API_HEADERS = {

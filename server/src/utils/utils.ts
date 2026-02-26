@@ -2,7 +2,11 @@ import { APIGatewayEvent } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import Joi from "joi";
 import { ISession } from "../models/sessionModel";
-import { API_HEADERS } from "../constants/Constants";
+import {
+  API_HEADERS,
+  PAGINATION_LIMIT_FALLBACK,
+  PAGINATION_PAGE_FALLBACK,
+} from "../constants/Constants";
 import { DietPlanService } from "../services/dietPlanService";
 import { RecordedSetsService } from "../services/recordedSetsService";
 import { UserImageUrlService } from "../services/UserImageUrlService";
@@ -137,10 +141,10 @@ export const extractQueryFromEvent = (event: any) => {
 };
 
 export const extractPaginationParamsFromEvent = (event: any) => {
-  const qs = (event.queryStringParameters ?? {}) as Record<string, string | undefined>;
+  const qs = extractQueryFromEvent(event);
 
-  const page = Number(qs.page ?? 1);
-  const limit = Number(qs.limit ?? 20);
+  const page = Number(qs.page ?? qs._page ?? PAGINATION_PAGE_FALLBACK);
+  const limit = Number(qs.limit ?? qs._limit ?? PAGINATION_LIMIT_FALLBACK);
 
   const parseJson = <T>(val?: string, fallback: T = {} as T): T => {
     if (!val) return fallback;
@@ -206,6 +210,24 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
   await new PasswordsService().deletePasswordByUserId(userId).catch((err) => console.log(err));
   await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
+};
+
+export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {
+  const trimmed = input.trim();
+  const match = /^data:([^;]+);base64,(.*)$/i.exec(trimmed);
+  if (match) {
+    return { mime: match[1], base64: match[2] };
+  }
+  return { base64: trimmed };
+};
+
+export const streamToBuffer = async (stream: NodeJS.ReadableStream): Promise<Buffer> => {
+  return await new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
 };
 
 export function stableStringify(obj: any): string {

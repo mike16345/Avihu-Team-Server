@@ -10,11 +10,12 @@ const QUESTION_TYPES = [
   "file-upload",
   "checkboxes",
   "drop-down",
+  "yes-no",
 ] as const;
 
 const OPTION_TYPES = ["radio", "drop-down", "checkboxes", "range"] as const;
 
-const FormQuestionSchema = new Schema(
+export const FormQuestionSchema = new Schema(
   {
     type: {
       type: String,
@@ -93,7 +94,7 @@ export const formQuestionValidator = Joi.object({
     .valid(...QUESTION_TYPES)
     .required(),
   question: Joi.string().required(),
-  description: Joi.string().optional(),
+  description: Joi.string().optional().allow(""),
   required: Joi.boolean().required(),
 
   options: Joi.when("type", {
