@@ -2,51 +2,79 @@ const { deploy } = require("./deploy");
 const dotenv = require("dotenv");
 const fs = require("fs");
 const path = require("path");
+const lambdaFunctionsMap = require("./config/lambdas.json");
 
 dotenv.config({ path: "./.env.local" });
 
-const lambdaFolder = "./src/functions";
+const lambdaFolder = path.join(__dirname, "src", "functions");
+const ignoredLambdaFolders = new Set(["test"]);
 
-const lambdaFunctionsMap = {
-  Blogs: { path: "blogs/index.ts", envToUse: "api" },
-  weighIns: { path: "weighIns/index.ts", envToUse: "api" },
-  RecordedSets: { path: "recordedSets/index.ts", envToUse: "api" },
-  Analytics: { path: "analytics/index.ts", envToUse: "api" },
-  UserImageUrls: { path: "UserImageUrls/index.ts", envToUse: "api" },
-  Users: { path: "users/index.ts", envToUse: "otp" },
-  WorkoutPlans: { path: "workoutPlans/index.ts", envToUse: "api" },
-  Presets: { path: "presets/index.ts", envToUse: "api" },
-  muscleGroups: { path: "muscleGroups/index.ts", envToUse: "api" },
-  OTP: { path: "OneTimePassword/index.ts", envToUse: "otp" },
-  menuItems: { path: "menuItems/index.ts", envToUse: "api" },
-  Password: { path: "Password/index.ts", envToUse: "api" },
-  GenerateSignedURL: { path: "signedUrl/index.ts", envToUse: "signedUrl" },
-  DietPlans: { path: "dietPlans/index.ts", envToUse: "api" },
-  Sessions: { path: "sessions/index.ts", envToUse: "api" },
-  S3Actions: { path: "S3/index.ts", envToUse: "signedUrl" },
-  ProgressNotes: { path: "ProgressNote/index.ts", envToUse: "api" },
-  LessonGroups: { path: "lessonGroups/index.ts", envToUse: "api" },
-  Leads: { path: "Leads/index.ts", envToUse: "otp" },
-  Chat: { path: "rag/index.ts", envToUse: "rag" },
-  MuscleMeasurements: { path: "MuscleMeasurements/index.ts", envToUse: "api" },
-  Agreements: { path: "agreements/index.ts", envToUse: "signedUrl" },
-};
+function getLambdaHandlerEntries(folder = lambdaFolder) {
+  return fs
+    .readdirSync(folder, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .filter((entry) => !ignoredLambdaFolders.has(entry.name))
+    .map((entry) => {
+      const tsHandlerPath = path.join(folder, entry.name, "index.ts");
+      const jsHandlerPath = path.join(folder, entry.name, "index.js");
+
+      if (fs.existsSync(tsHandlerPath)) {
+        return { folderName: entry.name, handlerPath: tsHandlerPath };
+      }
+
+      if (fs.existsSync(jsHandlerPath)) {
+        return { folderName: entry.name, handlerPath: jsHandlerPath };
+      }
+
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.folderName.localeCompare(b.folderName));
+}
+
+function findLambdaConfigMismatches(
+  folder = lambdaFolder,
+  lambdaDefinitions = lambdaFunctionsMap
+) {
+  const handlerEntries = getLambdaHandlerEntries(folder);
+  const discoveredFolders = handlerEntries.map(({ folderName }) => folderName);
+  const configuredFolders = Object.keys(lambdaDefinitions);
+
+  return {
+    handlerEntries,
+    missingConfig: discoveredFolders.filter((folderName) => !lambdaDefinitions[folderName]),
+    extraConfig: configuredFolders.filter((folderName) => !discoveredFolders.includes(folderName)),
+  };
+}
 
 async function deployAllLambdas() {
-  for (const [functionName, { path: handlerPath, envToUse }] of Object.entries(
-    lambdaFunctionsMap
-  )) {
-    const selectedHandlerPath = path.join(lambdaFolder, handlerPath);
+  const { handlerEntries, missingConfig, extraConfig } = findLambdaConfigMismatches();
 
-    if (!fs.existsSync(selectedHandlerPath)) {
-      console.error(`Handler file for ${functionName} not found: ${selectedHandlerPath}`);
-      continue; // Skip this lambda if handler file doesn't exist
+  if (missingConfig.length > 0 || extraConfig.length > 0) {
+    const mismatchMessages = [];
+
+    if (missingConfig.length > 0) {
+      mismatchMessages.push(
+        `Missing deploy config for folders: ${missingConfig.join(", ")}`
+      );
     }
 
+    if (extraConfig.length > 0) {
+      mismatchMessages.push(
+        `Deploy config references missing folders: ${extraConfig.join(", ")}`
+      );
+    }
+
+    throw new Error(mismatchMessages.join("\n"));
+  }
+
+  for (const { folderName, handlerPath } of handlerEntries) {
+    const { functionName, envToUse } = lambdaFunctionsMap[folderName];
+
     try {
-      await deploy({ functionName, handlerPath: selectedHandlerPath }, envToUse);
-    } catch (e) {
-      console.log("Error deploying Lambda: ", e.message);
+      await deploy({ functionName, handlerPath }, envToUse);
+    } catch (error) {
+      console.log("Error deploying Lambda: ", error.message);
     }
   }
 
@@ -54,4 +82,17 @@ async function deployAllLambdas() {
   process.exit(0);
 }
 
-deployAllLambdas();
+if (require.main === module) {
+  deployAllLambdas().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  deployAllLambdas,
+  findLambdaConfigMismatches,
+  getLambdaHandlerEntries,
+  ignoredLambdaFolders,
+  lambdaFunctionsMap,
+};

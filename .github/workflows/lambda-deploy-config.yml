@@ -1,0 +1,41 @@
+name: Lambda Deploy Config Check
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "server/deployAllLambdas.js"
+      - "server/jest.setup.js"
+      - "server/package.json"
+      - "server/package-lock.json"
+      - "server/config/lambdas.json"
+      - "server/src/functions/**"
+      - "server/tests/deployAllLambdas.test.ts"
+      - ".github/workflows/lambda-deploy-config.yml"
+
+jobs:
+  lambda-deploy-config:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify deployAllLambdas coverage
+        run: npx jest tests/deployAllLambdas.test.ts --runInBand
+        env:
+          SKIP_MONGO_MEMORY_SERVER: "true"
