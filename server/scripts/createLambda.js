@@ -8,7 +8,7 @@ const { lambdaConfig } = require("../config/lambdaConfig");
 dotenv.config({ path: "./.env.local" });
 
 // Constants (same as the batch script)
-const RUNTIME = "nodejs20.x";
+const RUNTIME = "nodejs22.x";
 const HANDLER = "index.handler";
 const ZIP_FILE = path.resolve("./scripts/archive.zip");
 const ROLE_ARN = `arn:aws:iam::${process.env.AWS_ACCOUNT_ID}:role/BasicLambdaRole`;
