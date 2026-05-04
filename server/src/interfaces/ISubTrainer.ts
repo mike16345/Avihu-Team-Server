@@ -10,6 +10,7 @@ export interface ISubTrainer {
   _id: mongoose.Types.ObjectId;
   fullName: string;
   email: string;
+  phone: string;
   isDeleted?: boolean;
   position: SubTrainerPosition;
   status: SubTrainerStatus;

@@ -11,19 +11,32 @@ export default class UserService extends BaseService<IUser, UserRepository> {
     super(new UserRepository(), "users");
   }
 
-  createUserWithWelcome = async (userToCreate: Partial<IUser>) => {
+  createUserWithWelcome = async (
+    userToCreate: Partial<IUser>,
+    options?: { initialPassword?: string }
+  ) => {
     const user = await this.create(userToCreate as IUser);
 
-    if (user) {
-      const phoneNumber = user.phone.replace(/\D/g, "");
-      await new PasswordsService().hashPassword(user._id.toString(), phoneNumber);
+    try {
+      const initialPassword =
+        options?.initialPassword ||
+        (user.phone ? user.phone.replace(/\D/g, "") : undefined);
+
+      if (!initialPassword) {
+        throw new Error("Initial password is required when user phone is not provided.");
+      }
+
+      await new PasswordsService().hashPassword(user._id.toString(), initialPassword);
 
       const mailOptions = {
         to: user.email,
-        ...welcomeEmailTemplate(phoneNumber),
+        ...welcomeEmailTemplate(initialPassword),
       };
 
       await new EmailService().sendEmail(mailOptions);
+    } catch (error) {
+      await this.deleteUser(user._id.toString()).catch(() => undefined);
+      throw error;
     }
 
     return user;
