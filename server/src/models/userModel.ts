@@ -3,6 +3,9 @@ import { IUser } from "../interfaces/IUser";
 import { Schema, model } from "mongoose";
 import Joi from "joi";
 
+export const USER_ROLES = ["admin", "user", "trainer", "subTrainer"] as const;
+export const USER_ONBOARDING_STEPS = ["form", "agreement", "completed"] as const;
+
 const userSchema = new Schema<IUser>({
   firstName: {
     type: String,
@@ -29,7 +32,7 @@ const userSchema = new Schema<IUser>({
   },
   dietaryType: {
     type: [String],
-    required: true,
+    required: false,
   },
 
   hasAccess: {
@@ -43,42 +46,53 @@ const userSchema = new Schema<IUser>({
   },
   dateFinished: {
     type: Date,
-    required: true,
+    required: false,
   },
   planType: {
     type: String,
-    required: true,
+    required: false,
   },
   remindIn: {
     type: Number,
-    required: true,
+    required: false,
   },
   checkInAt: {
     type: Number,
-    required: true,
+    required: false,
   },
   isChecked: {
     type: Boolean,
     default: false,
-    required: true,
+    required: false,
   },
   imagesUploaded: {
     type: Boolean,
     default: false,
+    required: false,
   },
   role: {
     type: String,
-    enum: ["admin", "user", "trainer"],
+    enum: USER_ROLES,
     default: "user",
   },
   onboardingStep: {
     type: String,
-    enum: ["form", "agreement", "completed"],
+    enum: USER_ONBOARDING_STEPS,
     default: "form",
   },
   isAdmin: {
     type: Boolean,
     default: false,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    ref: "trainers",
+    required: false,
+  },
+  subTrainerId: {
+    type: Schema.Types.ObjectId,
+    ref: "subTrainers",
+    required: false,
   },
 });
 
@@ -94,13 +108,19 @@ export const UserSchemaValidation = Joi.object({
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),
-  remindIn: Joi.number().min(259200).max(2678400).required(),
+  remindIn: Joi.number().min(259200).max(2678400),
   checkInAt: Joi.number(),
   isChecked: Joi.boolean(),
   hasAccess: Joi.boolean(),
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean().optional(),
-  role: Joi.string().valid("admin", "user", "trainer").default("user"),
-  onboardingStep: Joi.string().valid("form", "agreement", "completed").default("form"),
+  role: Joi.string()
+    .valid(...USER_ROLES)
+    .default("user"),
+  onboardingStep: Joi.string()
+    .valid(...USER_ONBOARDING_STEPS)
+    .default("form"),
+  trainerId: Joi.string().optional(),
+  subTrainerId: Joi.string().optional(),
 });

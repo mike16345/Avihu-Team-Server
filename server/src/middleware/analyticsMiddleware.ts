@@ -4,8 +4,16 @@ import { createValidatorResponse } from "../utils/utils";
 
 export const scheduleUserChecks = async (event: APIGatewayEvent) => {
   try {
-    const users = await User.find();
+    const users = await User.find({
+      role: "user",
+      checkInAt: { $exists: true },
+      remindIn: { $exists: true },
+    });
     for (const user of users) {
+      if (typeof user.checkInAt !== "number" || typeof user.remindIn !== "number") {
+        continue;
+      }
+
       if (Date.now() > user.checkInAt) {
         const oneThousand = 1000;
         const remindInMillieSeconds = user.remindIn * oneThousand;
