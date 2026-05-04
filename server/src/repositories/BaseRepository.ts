@@ -18,6 +18,24 @@ export class BaseRepository<T> {
     this.model = model;
   }
 
+  protected supportsSoftDelete(): boolean {
+    return Boolean((this.model as any)?.schema?.path("isDeleted"));
+  }
+
+  protected withSoftDeleteFilter<Q extends Record<string, any>>(query?: Q): Q {
+    const baseQuery = (query ?? {}) as Q;
+
+    if (!this.supportsSoftDelete()) {
+      return baseQuery;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(baseQuery, "isDeleted")) {
+      return baseQuery;
+    }
+
+    return { ...baseQuery, isDeleted: false };
+  }
+
   async create(doc: T): Promise<T> {
     const newDoc = await this.model.create(doc);
 
@@ -25,14 +43,15 @@ export class BaseRepository<T> {
   }
 
   async isExists(filter: RootFilterQuery<T>): Promise<boolean> {
-    const count = await this.model.exists(filter);
+    const count = await this.model.exists(this.withSoftDeleteFilter(filter as Record<string, any>));
 
     return count !== null;
   }
 
   async find(options: FindOptions<T> = { query: {} }) {
     const { query, projection, queryOptions } = options;
-    const data = await this.model.find(query, projection, queryOptions);
+    const filteredQuery = this.withSoftDeleteFilter(query as Record<string, any>);
+    const data = await this.model.find(filteredQuery, projection, queryOptions);
 
     if (!data || data.length === 0) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_FAILURE };
@@ -43,7 +62,11 @@ export class BaseRepository<T> {
 
   async findById(id: string, options?: FindOptionsNoQuery<T>) {
     const { projection = {}, queryOptions = {} } = options || {};
-    const item = await this.model.findById(id, projection, queryOptions);
+    const item = await this.model.findOne(
+      this.withSoftDeleteFilter({ _id: id }),
+      projection,
+      queryOptions
+    );
 
     if (!item) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -54,8 +77,9 @@ export class BaseRepository<T> {
 
   async findOne(options: FindOptions<T>) {
     const { projection, queryOptions, query } = options;
+    const filteredQuery = this.withSoftDeleteFilter(query as Record<string, any>);
 
-    const item = await this.model.findOne(query, projection, queryOptions);
+    const item = await this.model.findOne(filteredQuery, projection, queryOptions);
 
     if (!item) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -73,12 +97,13 @@ export class BaseRepository<T> {
     const skip = (page - 1) * limit;
     const parsedQuery =
       typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : query ?? {};
+    const filteredQuery = this.withSoftDeleteFilter(parsedQuery);
 
-    console.log("FINAL QUERY:", parsedQuery);
+    console.log("FINAL QUERY:", filteredQuery);
 
     const [results, totalResults] = await Promise.all([
-      this.model.find(parsedQuery).sort(sort).skip(skip).limit(limit),
-      this.model.countDocuments(parsedQuery).exec(),
+      this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),
+      this.model.countDocuments(filteredQuery).exec(),
     ]);
 
     const totalPages = Math.ceil(totalResults / limit);
@@ -95,7 +120,11 @@ export class BaseRepository<T> {
 
   async updateOne(updateOptions: UpdateOptions<T>) {
     const { options, filter, update } = updateOptions;
-    const updatedDoc = await this.model.findOneAndUpdate(filter, update, options);
+    const updatedDoc = await this.model.findOneAndUpdate(
+      this.withSoftDeleteFilter(filter as Record<string, any>),
+      update,
+      options
+    );
 
     if (!updatedDoc) {
       throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
@@ -106,7 +135,11 @@ export class BaseRepository<T> {
 
   async updateById(id: string | ObjectId, updateOptions: Omit<UpdateOptions<T>, "filter">) {
     const { options, update } = updateOptions;
-    const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
+    const updatedDoc = await this.model.findOneAndUpdate(
+      this.withSoftDeleteFilter({ _id: id }),
+      update,
+      options
+    );
 
     if (!updatedDoc) {
       throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
@@ -116,7 +149,10 @@ export class BaseRepository<T> {
   }
 
   async updateMany(query: FilterQuery<T>, data: any): Promise<UpdateWriteOpResult> {
-    const updateResult = await this.model.updateMany(query, data);
+    const updateResult = await this.model.updateMany(
+      this.withSoftDeleteFilter(query as Record<string, any>),
+      data
+    );
 
     if (updateResult.modifiedCount === 0) {
       throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };
@@ -126,6 +162,15 @@ export class BaseRepository<T> {
   }
 
   async deleteById(id: string, options?: QueryOptions<T>) {
+    if (this.supportsSoftDelete()) {
+      const deletedDoc = await this.model
+        .findOneAndUpdate(this.withSoftDeleteFilter({ _id: id }), { isDeleted: true }, { new: true })
+        .lean()
+        .exec();
+
+      return deletedDoc;
+    }
+
     const deletedDoc = await this.model.findByIdAndDelete(id, options).lean().exec();
 
     return deletedDoc;
@@ -135,12 +180,35 @@ export class BaseRepository<T> {
     if (!query || Object.keys(query).length === 0) {
       throw new Error("Empty query would result in unintended delete.");
     }
+
+    if (this.supportsSoftDelete()) {
+      const deletedDoc = await this.model
+        .findOneAndUpdate(
+          this.withSoftDeleteFilter(query as Record<string, any>),
+          { isDeleted: true },
+          { new: true }
+        )
+        .lean()
+        .exec();
+
+      return deletedDoc;
+    }
+
     const deletedDoc = await this.model.findOneAndDelete(query).lean().exec();
 
     return deletedDoc;
   }
 
   async deleteMany(query: FilterQuery<T>): Promise<{ deletedCount?: number }> {
+    if (this.supportsSoftDelete()) {
+      const updateResult = await this.model.updateMany(
+        this.withSoftDeleteFilter(query as Record<string, any>),
+        { isDeleted: true }
+      );
+
+      return { deletedCount: updateResult.modifiedCount };
+    }
+
     const deleteResult = await this.model.deleteMany(query);
 
     return deleteResult;

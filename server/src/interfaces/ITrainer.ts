@@ -20,6 +20,7 @@ export interface ITrainer {
   fullName: string;
   email: string;
   phone: string;
+  isDeleted?: boolean;
   subscriptionPlan: TrainerSubscriptionPlan;
   clientLimit: number;
   subTrainerLimit: number;

@@ -22,6 +22,11 @@ export const subTrainerSchema = new Schema<ISubTrainer>(
       lowercase: true,
       maxlength: 256,
     },
+    isDeleted: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     position: {
       type: String,
       required: true,
@@ -58,6 +63,7 @@ export const SubTrainerModel = model<ISubTrainer>("subTrainers", subTrainerSchem
 export const SubTrainerSchemaValidation = Joi.object({
   fullName: Joi.string().trim().min(2).max(120).required(),
   email: Joi.string().trim().lowercase().min(5).max(256).email().required(),
+  isDeleted: Joi.boolean().optional(),
   position: Joi.string()
     .valid(...SUB_TRAINER_POSITIONS)
     .required(),

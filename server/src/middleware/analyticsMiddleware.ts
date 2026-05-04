@@ -5,6 +5,7 @@ import { createValidatorResponse } from "../utils/utils";
 export const scheduleUserChecks = async (event: APIGatewayEvent) => {
   try {
     const users = await User.find({
+      isDeleted: false,
       role: "user",
       checkInAt: { $exists: true },
       remindIn: { $exists: true },

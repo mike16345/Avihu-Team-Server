@@ -15,7 +15,7 @@ export class AnalyticsService {
     }
 
     try {
-      const allUsers = await User.find({ role: "user", isChecked: false }).select(
+      const allUsers = await User.find({ isDeleted: false, role: "user", isChecked: false }).select(
         `firstName lastName isChecked`
       );
 
@@ -57,7 +57,7 @@ export class AnalyticsService {
     }
 
     try {
-      const users = await User.find({ role: "user" }, { firstName: 1, lastName: 1 });
+      const users = await User.find({ isDeleted: false, role: "user" }, { firstName: 1, lastName: 1 });
       const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
       const usersWithPlanSet = new Set(usersWithPlans.map((user) => user.userId.toString()));
       const usersWithoutPlan = users.filter((user) => !usersWithPlanSet.has(user._id.toString()));
@@ -79,6 +79,7 @@ export class AnalyticsService {
     try {
       const users = await User.find(
         {
+          isDeleted: false,
           role: "user",
           $expr: {
             $and: [

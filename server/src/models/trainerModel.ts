@@ -30,6 +30,11 @@ export const trainerSchema = new Schema<ITrainer>(
       trim: true,
       maxlength: 64,
     },
+    isDeleted: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     subscriptionPlan: {
       type: String,
       required: true,
@@ -83,6 +88,7 @@ export const TrainerSchemaValidation = Joi.object({
   fullName: Joi.string().trim().min(2).max(120).required(),
   email: Joi.string().trim().lowercase().min(5).max(256).email().required(),
   phone: Joi.string().trim().pattern(phoneRegex).required(),
+  isDeleted: Joi.boolean().optional(),
   subscriptionPlan: Joi.string()
     .valid(...TRAINER_SUBSCRIPTION_PLANS)
     .required(),

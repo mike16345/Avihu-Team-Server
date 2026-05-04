@@ -6,6 +6,7 @@ export interface IUser {
   lastName: string;
   email: string;
   phone: string;
+  isDeleted?: boolean;
   dietaryType?: string[];
   dateJoined: Date;
   dateFinished?: Date;

@@ -25,6 +25,11 @@ const userSchema = new Schema<IUser>({
     required: true,
     unique: true,
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
   profileImage: {
     type: String,
     required: false,
@@ -105,6 +110,7 @@ export const UserSchemaValidation = Joi.object({
   lastName: Joi.string().min(2).max(25),
   email: Joi.string().min(5).max(30).email(),
   phone: Joi.string().pattern(phoneRegex),
+  isDeleted: Joi.boolean().optional(),
   dietaryType: Joi.array().items(Joi.string()),
   dateFinished: Joi.date(),
   planType: Joi.string(),
