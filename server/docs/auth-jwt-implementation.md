@@ -402,10 +402,10 @@ The frontend implementation should adapt this pattern to the app's existing API 
 The API Gateway Lambda authorizer authenticates identity only. It validates access-token signature and expiration and passes string context to target Lambdas:
 
 ```ts
-event.requestContext.authorizer.userId
-event.requestContext.authorizer.role
-event.requestContext.authorizer.sessionId
-event.requestContext.authorizer.authMode
+event.requestContext.authorizer.userId;
+event.requestContext.authorizer.role;
+event.requestContext.authorizer.sessionId;
+event.requestContext.authorizer.authMode;
 ```
 
 The authorizer does not connect to MongoDB and does not perform full RBAC, trainer/client scoping, resource ownership, or plan-limit checks. Those checks belong in target Lambdas/services/middleware where route and resource context is available.
