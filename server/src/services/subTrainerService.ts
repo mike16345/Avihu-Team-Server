@@ -5,6 +5,7 @@ import { BaseService } from "./BaseService";
 import UserService from "./userService";
 import { User } from "../models/userModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
+import { PaginationParams, PaginationResult } from "../utils/pagination";
 
 type SubTrainerOverview = {
   trainees: {
@@ -15,6 +16,10 @@ type SubTrainerOverview = {
 type SubTrainerWithOverview = {
   subTrainer: ISubTrainer;
   overview: SubTrainerOverview;
+};
+
+type SubTrainerListItem = ISubTrainer & {
+  traineeCount: number;
 };
 
 type CreateSubTrainerPayload = Partial<ISubTrainer> & {
@@ -126,6 +131,36 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
           current: traineeCount,
         },
       },
+    };
+  }
+
+  async findPaginatedWithTraineeCounts(
+    params: PaginationParams
+  ): Promise<PaginationResult<SubTrainerListItem>> {
+    const paginated = await this.findPaginated(params);
+    const results = await Promise.all(
+      paginated.results.map(async (subTrainer) => {
+        const traineeCount = await User.countDocuments({
+          isDeleted: false,
+          role: "user",
+          subTrainerId: subTrainer._id,
+        });
+
+        const subTrainerObject =
+          typeof (subTrainer as any)?.toObject === "function"
+            ? (subTrainer as any).toObject()
+            : subTrainer;
+
+        return {
+          ...subTrainerObject,
+          traineeCount,
+        } as SubTrainerListItem;
+      })
+    );
+
+    return {
+      ...paginated,
+      results,
     };
   }
 

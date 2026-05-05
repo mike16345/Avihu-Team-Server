@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import BaseController from "./BaseController";
 import { ISubTrainer } from "../interfaces/ISubTrainer";
 import SubTrainerService from "../services/subTrainerService";
-import { extractBodyFromEvent } from "../utils/utils";
+import { extractBodyFromEvent, extractPaginationParamsFromEvent } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
 export default class SubTrainerController extends BaseController<
@@ -46,6 +46,26 @@ export default class SubTrainerController extends BaseController<
         status: StatusCode.OK,
         data,
         message: "Sub trainer retrieved successfully!",
+      });
+
+      await this.afterAction(response);
+
+      return response;
+    } catch (err) {
+      return this.errorResponse(err);
+    }
+  };
+
+  getPaginated = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    await this.beforeAction(event);
+
+    try {
+      const query = extractPaginationParamsFromEvent(event);
+      const data = await this.service.findPaginatedWithTraineeCounts(query);
+      const response = this.successResponse({
+        status: StatusCode.OK,
+        data,
+        message: "Sub trainers retrieved successfully!",
       });
 
       await this.afterAction(response);

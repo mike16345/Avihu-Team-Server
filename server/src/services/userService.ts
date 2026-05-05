@@ -35,7 +35,8 @@ export default class UserService extends BaseService<IUser, UserRepository> {
 
       await new EmailService().sendEmail(mailOptions);
     } catch (error) {
-      await this.deleteUser(user._id.toString()).catch(() => undefined);
+      await new PasswordsService().deletePasswordByUserId(user._id.toString()).catch(() => undefined);
+      await this.hardDeleteById(user._id.toString()).catch(() => undefined);
       throw error;
     }
 

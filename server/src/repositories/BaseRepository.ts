@@ -176,6 +176,10 @@ export class BaseRepository<T> {
     return deletedDoc;
   }
 
+  async hardDeleteById(id: string, options?: QueryOptions<T>) {
+    return await this.model.findByIdAndDelete(id, options).lean().exec();
+  }
+
   async delete(query: FilterQuery<T>) {
     if (!query || Object.keys(query).length === 0) {
       throw new Error("Empty query would result in unintended delete.");
@@ -197,6 +201,14 @@ export class BaseRepository<T> {
     const deletedDoc = await this.model.findOneAndDelete(query).lean().exec();
 
     return deletedDoc;
+  }
+
+  async hardDelete(query: FilterQuery<T>) {
+    if (!query || Object.keys(query).length === 0) {
+      throw new Error("Empty query would result in unintended delete.");
+    }
+
+    return await this.model.findOneAndDelete(query).lean().exec();
   }
 
   async deleteMany(query: FilterQuery<T>): Promise<{ deletedCount?: number }> {
