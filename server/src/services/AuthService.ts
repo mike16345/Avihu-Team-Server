@@ -23,8 +23,7 @@ class AuthService {
     if (isAdminApp) {
       requireAdmin(user);
     }
-    if (!user.hasAccess)
-      throw { message: "User is inactive", statusCode: StatusCode.FORBIDDEN };
+    if (!user.hasAccess) throw { message: "User is inactive", statusCode: StatusCode.FORBIDDEN };
     if (user.onboardingStep !== "completed")
       throw { message: "User invite pending", statusCode: StatusCode.FORBIDDEN };
 
