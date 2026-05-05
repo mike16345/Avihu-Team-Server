@@ -6,7 +6,9 @@ import UserRepository from "../repositories/User/UserRepository";
 import { IUser } from "../interfaces/IUser";
 
 const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
-const REFRESH_EXPIRES_IN_MS = Number(process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30);
+const REFRESH_EXPIRES_IN_MS = Number(
+  process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
+);
 
 interface AccessClaims {
   userId: string;
@@ -34,24 +36,42 @@ class JwtAuthService {
   private parseExpiresIn(value: string) {
     const match = /^(\d+)([mhd]?)$/.exec(value.trim());
     if (!match) {
-      throw { message: "Invalid JWT_ACCESS_EXPIRES_IN value", statusCode: StatusCode.INTERNAL_SERVER_ERROR };
+      throw {
+        message: "Invalid JWT_ACCESS_EXPIRES_IN value",
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+      };
     }
     const amount = Number(match[1]);
     if (!Number.isFinite(amount) || amount <= 0) {
-      throw { message: "Invalid JWT_ACCESS_EXPIRES_IN value", statusCode: StatusCode.INTERNAL_SERVER_ERROR };
+      throw {
+        message: "Invalid JWT_ACCESS_EXPIRES_IN value",
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+      };
     }
     const unit = match[2] || "s";
-    return unit === "m" ? amount * 60 : unit === "h" ? amount * 3600 : unit === "d" ? amount * 86400 : amount;
+    return unit === "m"
+      ? amount * 60
+      : unit === "h"
+        ? amount * 3600
+        : unit === "d"
+          ? amount * 86400
+          : amount;
   }
 
   signAccessToken(claims: AccessClaims) {
     if (!claims.sessionId) {
-      throw { message: "Missing sessionId in claims", statusCode: StatusCode.INTERNAL_SERVER_ERROR };
+      throw {
+        message: "Missing sessionId in claims",
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+      };
     }
     const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
     const exp = Math.floor(Date.now() / 1000) + this.parseExpiresIn(ACCESS_EXPIRES_IN);
     const payload = Buffer.from(JSON.stringify({ ...claims, exp })).toString("base64url");
-    const sig = crypto.createHmac("sha256", this.getAccessSecret()).update(`${header}.${payload}`).digest("base64url");
+    const sig = crypto
+      .createHmac("sha256", this.getAccessSecret())
+      .update(`${header}.${payload}`)
+      .digest("base64url");
     return `${header}.${payload}.${sig}`;
   }
 
@@ -77,11 +97,19 @@ class JwtAuthService {
         .update(`${headerPart}.${payloadPart}`)
         .digest();
       const providedSig = Buffer.from(signaturePart, "base64url");
-      if (expectedSig.length !== providedSig.length || !crypto.timingSafeEqual(expectedSig, providedSig)) {
+      if (
+        expectedSig.length !== providedSig.length ||
+        !crypto.timingSafeEqual(expectedSig, providedSig)
+      ) {
         throw new Error("Invalid signature");
       }
 
-      if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000) || !payload.sessionId || !payload.userId) {
+      if (
+        !payload.exp ||
+        payload.exp < Math.floor(Date.now() / 1000) ||
+        !payload.sessionId ||
+        !payload.userId
+      ) {
         throw new Error("Invalid payload");
       }
 
@@ -147,7 +175,8 @@ class JwtAuthService {
   async rotateRefreshToken(refreshToken: string) {
     const { session, user } = await this.validateRefreshToken(refreshToken);
     await this.sessionRepository.revokeRefreshSession(session);
-    const { refreshToken: newRefreshToken, session: newSession } = await this.createRefreshSession(user);
+    const { refreshToken: newRefreshToken, session: newSession } =
+      await this.createRefreshSession(user);
     return { refreshToken: newRefreshToken, session: newSession, user };
   }
 }

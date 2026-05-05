@@ -1,7 +1,12 @@
 import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import { extractBearerToken, extractBodyFromEvent, extractQueryFromEvent, getHeaderValue } from "../utils/utils";
+import {
+  extractBearerToken,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+  getHeaderValue,
+} from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
 import PasswordsService from "../services/PasswordsService";
@@ -180,14 +185,14 @@ export class UserController extends BaseController<IUser, UserService> {
     }
   };
 
-
   refreshAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
     if (error) return error;
 
     try {
       const { user } = await this.jwtAuthService.validateRefreshToken(refreshToken);
-      const { refreshToken: nextRefreshToken, session } = await this.jwtAuthService.rotateRefreshToken(refreshToken);
+      const { refreshToken: nextRefreshToken, session } =
+        await this.jwtAuthService.rotateRefreshToken(refreshToken);
       const accessToken = this.jwtAuthService.signAccessToken({
         userId: user._id.toString(),
         role: user.role,

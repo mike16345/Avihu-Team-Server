@@ -25,7 +25,18 @@ describe("Bearer token transport", () => {
   test("/auth/me succeeds with Authorization Bearer token", async () => {
     const controller = new UserController() as any;
     controller.jwtAuthService = { verifyAccessToken: jest.fn().mockReturnValue({ userId: "u1" }) };
-    controller.service = { findById: jest.fn().mockResolvedValue({ _id: "u1", email: "a@a.com", role: "admin", hasAccess: true, firstName: "A", lastName: "B" }) };
+    controller.service = {
+      findById: jest
+        .fn()
+        .mockResolvedValue({
+          _id: "u1",
+          email: "a@a.com",
+          role: "admin",
+          hasAccess: true,
+          firstName: "A",
+          lastName: "B",
+        }),
+    };
 
     const response = await controller.me({ headers: { Authorization: "Bearer valid" } });
     expect(response.statusCode).toBe(200);
@@ -34,7 +45,18 @@ describe("Bearer token transport", () => {
   test("/auth/me succeeds with lowercase authorization", async () => {
     const controller = new UserController() as any;
     controller.jwtAuthService = { verifyAccessToken: jest.fn().mockReturnValue({ userId: "u1" }) };
-    controller.service = { findById: jest.fn().mockResolvedValue({ _id: "u1", email: "a@a.com", role: "admin", hasAccess: true, firstName: "A", lastName: "B" }) };
+    controller.service = {
+      findById: jest
+        .fn()
+        .mockResolvedValue({
+          _id: "u1",
+          email: "a@a.com",
+          role: "admin",
+          hasAccess: true,
+          firstName: "A",
+          lastName: "B",
+        }),
+    };
 
     const response = await controller.me({ headers: { authorization: "Bearer valid" } });
     expect(response.statusCode).toBe(200);
@@ -42,7 +64,11 @@ describe("Bearer token transport", () => {
 
   test("/auth/me invalid token returns 401", async () => {
     const controller = new UserController() as any;
-    controller.jwtAuthService = { verifyAccessToken: jest.fn().mockImplementation(() => { throw new Error("bad"); }) };
+    controller.jwtAuthService = {
+      verifyAccessToken: jest.fn().mockImplementation(() => {
+        throw new Error("bad");
+      }),
+    };
 
     const response = await controller.me({ headers: { Authorization: "Bearer invalid" } });
     expect(response.statusCode).toBe(401);
@@ -50,7 +76,11 @@ describe("Bearer token transport", () => {
 
   test("/auth/me ignores token in query/body and rejects missing header", async () => {
     const controller = new UserController() as any;
-    const response = await controller.me({ headers: {}, body: JSON.stringify({ accessToken: "x" }), queryStringParameters: { accessToken: "x" } });
+    const response = await controller.me({
+      headers: {},
+      body: JSON.stringify({ accessToken: "x" }),
+      queryStringParameters: { accessToken: "x" },
+    });
     expect(response.statusCode).toBe(401);
   });
 });

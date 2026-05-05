@@ -256,7 +256,6 @@ export const getHeaderValue = (
   return Object.entries(headers).find(([k]) => k.toLowerCase() === lower)?.[1];
 };
 
-
 export const extractBearerToken = (headers: Record<string, any> = {}): string => {
   const authHeader = getHeaderValue(headers, "authorization");
   if (!authHeader || typeof authHeader !== "string") {
