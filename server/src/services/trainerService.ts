@@ -7,88 +7,17 @@ import { BaseService } from "./BaseService";
 import UserService from "./userService";
 
 type TrainerOverview = {
-  subscriptionPlan: ITrainer["subscriptionPlan"];
   trainees: {
     current: number;
-    limit: number;
-    percentage: number;
   };
   subTrainers: {
     current: number;
-    limit: number;
-    percentage: number;
   };
 };
-
-type TrainerQuickAction = {
-  id: "editTrainer" | "toggleTrainerStatus" | "viewSubTrainers";
-  label: string;
-  enabled: boolean;
-  variant: "primary" | "danger" | "secondary";
-  meta?: Record<string, any>;
-};
-
-type TrainerHeader = {
-  fullName: string;
-  initials: string;
-  joinedAt: Date | null;
-};
-
-type TrainerSummary = {
-  subscriptionPlan: ITrainer["subscriptionPlan"];
-  clientLimit: number;
-  subTrainerLimit: number;
-  trainees: {
-    current: number;
-    usageLabel: string;
-    percentage: number;
-  };
-  subTrainers: {
-    current: number;
-    usageLabel: string;
-    percentage: number;
-  };
-};
-
-type TrainerDashboardDetails = {
-  status: ITrainer["status"];
-  subscriptionPlan: ITrainer["subscriptionPlan"];
-  clientUsage: string;
-  subTrainerUsage: string;
-  email: string;
-  phone: string;
-  source: ITrainer["source"];
-  joinedAt: Date | null;
-  endDate: Date | null;
-  videoLibraryAccess: boolean;
-};
-
-type TrainerEditForm = Pick<
-  ITrainer,
-  | "fullName"
-  | "email"
-  | "phone"
-  | "subscriptionPlan"
-  | "clientLimit"
-  | "subTrainerLimit"
-  | "status"
-  | "videoLibraryAccess"
->;
 
 type TrainerWithOverview = {
   trainer: ITrainer;
   overview: TrainerOverview;
-};
-
-type TrainerGetOnePayload = TrainerWithOverview & {
-  header: TrainerHeader;
-  summary: TrainerSummary;
-  details: TrainerDashboardDetails;
-  quickActions: TrainerQuickAction[];
-  edit: {
-    form: TrainerEditForm;
-    summary: TrainerSummary;
-  };
 };
 
 const splitFullName = (fullName: string) => {
@@ -99,19 +28,6 @@ const splitFullName = (fullName: string) => {
 };
 
 const statusToAccess = (status: ITrainer["status"]) => status === "active";
-
-const calculatePercentage = (current: number, limit: number) => {
-  if (limit <= 0) return 0;
-
-  return Math.round((current / limit) * 100);
-};
-
-const buildUsageLabel = (current: number, limit: number) => `${current}/${limit}`;
-
-const buildInitials = (fullName: string) => {
-  const [firstName = "", secondName = ""] = fullName.trim().split(/\s+/);
-  return `${firstName[0] || ""}${secondName[0] || ""}`.toUpperCase();
-};
 
 export default class TrainerService extends BaseService<ITrainer, TrainerRepository> {
   private userService: UserService;
@@ -194,9 +110,8 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     }
   }
 
-  async getTrainerWithOverview(id: string): Promise<TrainerGetOnePayload> {
+  async getTrainerWithOverview(id: string): Promise<TrainerWithOverview> {
     const trainer = (await this.findById(id)) as ITrainer;
-    const linkedUser = await this.findLinkedTrainerUser(trainer);
 
     const [traineeCount, subTrainerCount] = await Promise.all([
       User.countDocuments({
@@ -212,97 +127,15 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     ]);
 
     const overview: TrainerOverview = {
-      subscriptionPlan: trainer.subscriptionPlan,
       trainees: {
         current: traineeCount,
-        limit: trainer.clientLimit,
-        percentage: calculatePercentage(traineeCount, trainer.clientLimit),
       },
       subTrainers: {
         current: subTrainerCount,
-        limit: trainer.subTrainerLimit,
-        percentage: calculatePercentage(subTrainerCount, trainer.subTrainerLimit),
       },
     };
 
-    const summary: TrainerSummary = {
-      subscriptionPlan: trainer.subscriptionPlan,
-      clientLimit: trainer.clientLimit,
-      subTrainerLimit: trainer.subTrainerLimit,
-      trainees: {
-        current: traineeCount,
-        usageLabel: buildUsageLabel(traineeCount, trainer.clientLimit),
-        percentage: overview.trainees.percentage,
-      },
-      subTrainers: {
-        current: subTrainerCount,
-        usageLabel: buildUsageLabel(subTrainerCount, trainer.subTrainerLimit),
-        percentage: overview.subTrainers.percentage,
-      },
-    };
-
-    const header: TrainerHeader = {
-      fullName: trainer.fullName,
-      initials: buildInitials(trainer.fullName),
-      joinedAt: (linkedUser as IUser | null)?.dateJoined || trainer.createdAt || null,
-    };
-
-    const details: TrainerDashboardDetails = {
-      status: trainer.status,
-      subscriptionPlan: trainer.subscriptionPlan,
-      clientUsage: summary.trainees.usageLabel,
-      subTrainerUsage: summary.subTrainers.usageLabel,
-      email: trainer.email,
-      phone: trainer.phone,
-      source: trainer.source,
-      joinedAt: header.joinedAt,
-      endDate: (linkedUser as IUser | null)?.dateFinished || null,
-      videoLibraryAccess: trainer.videoLibraryAccess,
-    };
-
-    const quickActions: TrainerQuickAction[] = [
-      {
-        id: "editTrainer",
-        label: "ערוך מאמן",
-        enabled: true,
-        variant: "primary",
-      },
-      {
-        id: "toggleTrainerStatus",
-        label: trainer.status === "blocked" ? "שחרר חסימה" : "חסום מאמן",
-        enabled: true,
-        variant: "danger",
-        meta: {
-          currentStatus: trainer.status,
-          nextStatus: trainer.status === "blocked" ? "active" : "blocked",
-        },
-      },
-      {
-        id: "viewSubTrainers",
-        label: "צפה בתת-מאמנים",
-        enabled: subTrainerCount > 0,
-        variant: "secondary",
-        meta: {
-          count: subTrainerCount,
-        },
-      },
-    ];
-
-    const edit: TrainerGetOnePayload["edit"] = {
-      form: {
-        fullName: trainer.fullName,
-        email: trainer.email,
-        phone: trainer.phone,
-        subscriptionPlan: trainer.subscriptionPlan,
-        clientLimit: trainer.clientLimit,
-        subTrainerLimit: trainer.subTrainerLimit,
-        status: trainer.status,
-        videoLibraryAccess: trainer.videoLibraryAccess,
-      },
-      summary,
-    };
-
-    return { trainer, overview, header, summary, details, quickActions, edit };
+    return { trainer, overview };
   }
 
   async updateTrainer(id: string, payload: Partial<ITrainer>): Promise<ITrainer | null> {
