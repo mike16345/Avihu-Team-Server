@@ -1,13 +1,21 @@
 import { Schema, model } from "mongoose";
 import { ONE_WEEK_IN_SECONDS } from "../constants/Constants";
 
-export type SessionType = "login" | "workout" | string;
+export type SessionType = "login" | "workout" | "auth_refresh" | string;
+
+export interface IRefreshSessionData {
+  tokenHash: string;
+  expiresAt: Date;
+  revokedAt?: Date | null;
+  ip?: string;
+  device?: string;
+}
 
 export interface ISession {
   _id?: string;
   userId: string;
   type: SessionType;
-  data?: any; // Additional session-specific data
+  data?: Record<string, unknown> | IRefreshSessionData;
   createdAt: Date;
   updatedAt: Date;
 }

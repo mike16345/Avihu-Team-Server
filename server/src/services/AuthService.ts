@@ -19,15 +19,17 @@ class AuthService {
   ): Promise<ISession> {
     const user = await this.userService.findOne({ email: email.toLowerCase() });
 
-    if (!user) throw { message: "משתמש לא נמצא!", statusCode: StatusCode.NOT_FOUND };
+    if (!user) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
     if (isAdminApp) {
       requireAdmin(user);
     }
     if (!user.hasAccess)
-      throw { message: "אין גישה לכתובת המייל", statusCode: StatusCode.UNAUTHORIZED };
+      throw { message: "User is inactive", statusCode: StatusCode.FORBIDDEN };
+    if (user.onboardingStep !== "completed")
+      throw { message: "User invite pending", statusCode: StatusCode.FORBIDDEN };
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);
-    if (!isMatch) throw { message: "מייל או סיסמא שגויים!", statusCode: StatusCode.NOT_FOUND };
+    if (!isMatch) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
 
     return this.sessionService.create({
       userId: user._id.toString(),
