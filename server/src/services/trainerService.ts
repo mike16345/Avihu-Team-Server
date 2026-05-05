@@ -100,7 +100,9 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     const trainer = await this.create(payload as ITrainer);
 
     try {
-      const user = await this.userService.createUserWithWelcome(this.buildTrainerUserPayload(trainer));
+      const user = await this.userService.createUserWithWelcome(
+        this.buildTrainerUserPayload(trainer)
+      );
       const updatedTrainer = await this.updateById(trainer._id.toString(), { userId: user._id });
 
       return updatedTrainer as ITrainer;
