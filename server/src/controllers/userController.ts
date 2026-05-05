@@ -4,11 +4,8 @@ import UserService from "../services/userService";
 import { extractBodyFromEvent, extractQueryFromEvent, getHeaderValue } from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
-import PasswordsService from "../services/PasswordsService";
-import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
-import { welcomeEmailTemplate } from "../utils/emailTemplates";
 import AuthService from "../services/AuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
@@ -34,19 +31,7 @@ export class UserController extends BaseController<IUser, UserService> {
   addUser = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       const userToCreate = extractBodyFromEvent(event);
-      const user = await this.service.create(userToCreate);
-
-      if (user) {
-        const phoneNumber = user.phone.replace(/\D/g, "");
-        await new PasswordsService().hashPassword(user._id.toString(), phoneNumber);
-
-        const mailOptions = {
-          to: user.email,
-          ...welcomeEmailTemplate(phoneNumber),
-        };
-
-        await new EmailService().sendEmail(mailOptions);
-      }
+      const user = await this.service.createUserWithWelcome(userToCreate);
 
       return this.successResponse({
         status: StatusCode.CREATED,

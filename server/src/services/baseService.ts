@@ -136,8 +136,24 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return deleted;
   }
 
+  async hardDeleteById(id: string) {
+    const deleted = await this.repository.hardDeleteById(id);
+
+    this.cache.invalidateAll();
+
+    return deleted;
+  }
+
   async delete(filter: Partial<Record<keyof T, any>>) {
     const deleted = await this.repository.delete(filter);
+
+    this.cache.invalidateAll();
+
+    return deleted;
+  }
+
+  async hardDelete(filter: Partial<Record<keyof T, any>>) {
+    const deleted = await this.repository.hardDelete(filter);
 
     this.cache.invalidateAll();
 
