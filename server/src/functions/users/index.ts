@@ -6,6 +6,7 @@ import { scheduleUserChecks } from "../../middleware/analyticsMiddleware";
 
 const BASE_PATH = "/users";
 const userController = new UserController();
+
 const userApiHandlers = {
   [`GET ${BASE_PATH}`]: userController.getAll,
   [`GET ${BASE_PATH}/one`]: userController.getById,
@@ -17,10 +18,10 @@ const userApiHandlers = {
   [`PUT ${BASE_PATH}/user/register`]: userController.register,
   [`POST ${BASE_PATH}/user/login`]: userController.logIn,
   [`POST ${BASE_PATH}/user/session`]: userController.checkUserSessionToken,
-  [`POST /auth/login`]: userController.logIn,
-  [`POST /auth/refresh`]: userController.refreshAuth,
-  [`POST /auth/logout`]: userController.logoutAuth,
-  [`GET /auth/me`]: userController.me,
+  [`POST ${BASE_PATH}/auth/login`]: userController.logIn,
+  [`POST ${BASE_PATH}/auth/refresh`]: userController.refreshAuth,
+  [`POST ${BASE_PATH}/auth/logout`]: userController.logoutAuth,
+  [`GET ${BASE_PATH}/auth/me`]: userController.me,
 };
 
 const userValidaters = {

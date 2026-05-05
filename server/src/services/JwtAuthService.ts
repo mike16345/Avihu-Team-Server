@@ -27,6 +27,7 @@ class JwtAuthService {
 
   private getAccessSecret() {
     const secret = process.env.JWT_ACCESS_SECRET;
+
     if (!secret || secret.length < 32) {
       throw { message: "Invalid JWT access secret", statusCode: StatusCode.INTERNAL_SERVER_ERROR };
     }

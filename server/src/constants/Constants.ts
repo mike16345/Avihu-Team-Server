@@ -17,5 +17,5 @@ export const DUPLICATE_PRESET_ERROR = "שם התבנית כבר קיים במע�
 export const API_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
 };
