@@ -96,10 +96,8 @@ export class BaseRepository<T> {
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
     const parsedQuery =
-      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : query ?? {};
+      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : (query ?? {});
     const filteredQuery = this.withSoftDeleteFilter(parsedQuery);
-
-    console.log("FINAL QUERY:", filteredQuery);
 
     const [results, totalResults] = await Promise.all([
       this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),
@@ -164,7 +162,11 @@ export class BaseRepository<T> {
   async deleteById(id: string, options?: QueryOptions<T>) {
     if (this.supportsSoftDelete()) {
       const deletedDoc = await this.model
-        .findOneAndUpdate(this.withSoftDeleteFilter({ _id: id }), { isDeleted: true }, { new: true })
+        .findOneAndUpdate(
+          this.withSoftDeleteFilter({ _id: id }),
+          { isDeleted: true },
+          { new: true }
+        )
         .lean()
         .exec();
 

@@ -183,6 +183,7 @@ export class UserController extends BaseController<IUser, UserService> {
         role: user.role,
         sessionId: String(session._id),
       });
+
       return this.successResponse({
         status: StatusCode.OK,
         data: { accessToken, refreshToken: nextRefreshToken, user: this.toSafeUser(user) },
@@ -194,10 +195,12 @@ export class UserController extends BaseController<IUser, UserService> {
 
   logoutAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
+
     if (error) return error;
 
     try {
       await this.jwtAuthService.revokeRefreshToken(refreshToken);
+
       return this.successResponse({ status: StatusCode.OK, message: "Logged out" });
     } catch (err: any) {
       return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
@@ -209,8 +212,10 @@ export class UserController extends BaseController<IUser, UserService> {
       const token = extractBearerToken(event.headers || {});
       const claims = this.jwtAuthService.verifyAccessToken(token);
       const user = await this.service.findById(claims.userId);
+
       if (!user) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
       if (!user.hasAccess) return this.errorResponse("Unauthorized", StatusCode.FORBIDDEN);
+
       return this.successResponse({ status: StatusCode.OK, data: this.toSafeUser(user) });
     } catch (err) {
       return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
@@ -219,7 +224,7 @@ export class UserController extends BaseController<IUser, UserService> {
 
   private toSafeUser(user: IUser) {
     return {
-      id: user._id,
+      _id: user._id,
       email: user.email,
       role: user.role,
       status: user.hasAccess ? "active" : "inactive",
