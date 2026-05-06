@@ -19,8 +19,7 @@ export default class UserService extends BaseService<IUser, UserRepository> {
 
     try {
       const initialPassword =
-        options?.initialPassword ||
-        (user.phone ? user.phone.replace(/\D/g, "") : undefined);
+        options?.initialPassword || (user.phone ? user.phone.replace(/\D/g, "") : undefined);
 
       if (!initialPassword) {
         throw new Error("Initial password is required when user phone is not provided.");
@@ -35,7 +34,9 @@ export default class UserService extends BaseService<IUser, UserRepository> {
 
       await new EmailService().sendEmail(mailOptions);
     } catch (error) {
-      await new PasswordsService().deletePasswordByUserId(user._id.toString()).catch(() => undefined);
+      await new PasswordsService()
+        .deletePasswordByUserId(user._id.toString())
+        .catch(() => undefined);
       await this.hardDeleteById(user._id.toString()).catch(() => undefined);
       throw error;
     }

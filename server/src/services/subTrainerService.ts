@@ -106,7 +106,9 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
         { initialPassword: password }
       );
 
-      const updatedSubTrainer = await this.updateById(subTrainer._id.toString(), { userId: user._id });
+      const updatedSubTrainer = await this.updateById(subTrainer._id.toString(), {
+        userId: user._id,
+      });
 
       return updatedSubTrainer as ISubTrainer;
     } catch (error) {
