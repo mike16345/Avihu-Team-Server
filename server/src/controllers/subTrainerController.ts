@@ -5,10 +5,7 @@ import SubTrainerService from "../services/subTrainerService";
 import { extractBodyFromEvent, extractPaginationParamsFromEvent } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
-export default class SubTrainerController extends BaseController<
-  ISubTrainer,
-  SubTrainerService
-> {
+export default class SubTrainerController extends BaseController<ISubTrainer, SubTrainerService> {
   constructor() {
     super(new SubTrainerService());
   }
