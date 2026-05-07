@@ -3,28 +3,30 @@ import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
 import { createResponse } from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
-import { getDbName } from "../utils/lambdaHelpers";
-
-export type ApiHandlers = {
-  [key: string]: Function;
-};
-
+import {
+  extractRouteHandler,
+  runMiddlewares,
+  getDbName,
+  isHttpError,
+} from "../utils/lambdaHelpers";
+import { ApiRouteHandlers, OldApiHandlers } from "../types/lambdaTypes";
+import { enforceRequestUserAccess } from "../guards/AdminAccessGuard";
 export const handleApiCall = async (
   event: APIGatewayProxyEvent,
   context: Context,
-  apiHandlers: ApiHandlers,
-  apiValidators?: ApiHandlers
+  apiHandlers: OldApiHandlers | ApiRouteHandlers,
+  apiValidators?: OldApiHandlers
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   try {
     const { httpMethod, path } = event;
-    const routeKey = `${httpMethod} ${path}` as keyof typeof apiHandlers;
-    const handlerFunction = apiHandlers[routeKey];
+    const routeKey = `${httpMethod} ${path}`;
+    const apiHandler = extractRouteHandler(apiHandlers, routeKey);
 
     console.log(`${httpMethod} Event:`, JSON.stringify(event));
 
-    if (!handlerFunction) {
+    if (!apiHandler) {
       console.log(`BAD ROUTE: ${routeKey} is not a valid route!`);
       return {
         statusCode: StatusCode.BAD_GATEWAY,
@@ -35,11 +37,26 @@ export const handleApiCall = async (
     const dbName = getDbName(event);
     await connectToDB(dbName);
 
+    const isProtectedRoute = apiHandler.access !== "public";
+    const hasMiddleWares = apiHandler.middlewares && apiHandler.middlewares.length > 0;
+
+    if (isProtectedRoute) {
+      console.log("Enforcing access control");
+      await enforceRequestUserAccess(event, apiHandler.access);
+    }
+
+    if (hasMiddleWares) {
+      console.log("Running middlewares");
+      await runMiddlewares(apiHandler.middlewares!, event, context);
+    }
+
     if (apiValidators && apiValidators[routeKey]) {
       console.log("Performing validations");
       const validatorFunction = apiValidators[routeKey];
       const validationResult = await validatorFunction(event, context);
+
       console.log("Validation result: ", validationResult);
+
       if (!validationResult.isValid) {
         console.log("JOI Validation middleware failed:", validationResult.message);
         return {
@@ -49,7 +66,7 @@ export const handleApiCall = async (
       }
     }
 
-    const response = await handlerFunction(event, context);
+    const response = await apiHandler.handler(event, context);
     const apiResponse = {
       ...response,
       headers: {
@@ -62,6 +79,15 @@ export const handleApiCall = async (
     return apiResponse;
   } catch (error) {
     console.error("Error in Lambda handler", error);
+
+    if (isHttpError(error)) {
+      return {
+        statusCode: error.statusCode,
+        body: JSON.stringify({ message: error.message }),
+        headers: API_HEADERS,
+      };
+    }
+
     return {
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
       body: JSON.stringify({
