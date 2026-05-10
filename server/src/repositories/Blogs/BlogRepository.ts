@@ -56,7 +56,11 @@ export class BlogRepository extends BaseRepository<IBlog> {
   find = async (options: FindOptions<IBlog>): Promise<any> => {
     const { query, queryOptions, projection } = options;
     const blogs = await this.populateBlogs(
-      this.model.find(this.withScopedSoftDeleteFilter(query as Record<string, any>), projection, queryOptions)
+      this.model.find(
+        this.withScopedSoftDeleteFilter(query as Record<string, any>),
+        projection,
+        queryOptions
+      )
     );
 
     return blogs;
