@@ -142,7 +142,11 @@ export class BaseRepository<T> {
     const filteredQuery = this.withScopedSoftDeleteFilter(query as Record<string, any>);
     const data = await this.model.find(filteredQuery, projection, queryOptions);
 
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
+      return [];
+    }
+
+    if (!data) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_FAILURE };
     }
 
@@ -184,8 +188,10 @@ export class BaseRepository<T> {
     sort = {},
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
-    const parsedQuery = query ?? {};
-    const filteredQuery = this.withScopedSoftDeleteFilter(parsedQuery);
+    const parsedQuery =
+      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : (query ?? {});
+
+    console.log("FINAL QUERY:", parsedQuery);
 
     const [results, totalResults] = await Promise.all([
       this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),
