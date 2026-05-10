@@ -45,7 +45,7 @@ const JWT_REFRESH_EXPIRES_IN_MS = `JWT_REFRESH_EXPIRES_IN_MS=${process.env.JWT_R
 
 const JWT_ENV = `${JWT_ACCESS_SECRET},${JWT_ACCESS_EXPIRES_IN},${JWT_REFRESH_EXPIRES_IN_MS}`;
 const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
-const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI}`;
+const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI},${JWT_ENV}`;
 const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
   signedUrl: `${signedUrlEnv},${apiEnv}`,
