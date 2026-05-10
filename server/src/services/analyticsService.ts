@@ -31,7 +31,11 @@ const buildTrendPercentage = (current: number, previous: number) => {
   return Number((((current - previous) / previous) * 100).toFixed(2));
 };
 
-const buildDashboardMetric = (total: number, currentMonthAdded: number, previousMonthAdded: number) => {
+const buildDashboardMetric = (
+  total: number,
+  currentMonthAdded: number,
+  previousMonthAdded: number
+) => {
   return {
     total,
     currentMonthAdded,
@@ -102,7 +106,10 @@ export class AnalyticsService {
     }
 
     try {
-      const users = await User.find({ isDeleted: false, role: "user" }, { firstName: 1, lastName: 1 });
+      const users = await User.find(
+        { isDeleted: false, role: "user" },
+        { firstName: 1, lastName: 1 }
+      );
       const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
       const usersWithPlanSet = new Set(usersWithPlans.map((user) => user.userId.toString()));
       const usersWithoutPlan = users.filter((user) => !usersWithPlanSet.has(user._id.toString()));

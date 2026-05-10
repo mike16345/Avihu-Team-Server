@@ -59,21 +59,21 @@ export class AnalyticsController {
     }
   }
 
-  static async getDashboardSummary(
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> {
+  static async getDashboardSummary(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
       const summary = await AnalyticsService.getDashboardSummary();
 
-      return createResponseWithData(StatusCode.OK, summary, "Dashboard summary retrieved successfully!");
+      return createResponseWithData(
+        StatusCode.OK,
+        summary,
+        "Dashboard summary retrieved successfully!"
+      );
     } catch (error) {
       return createServerErrorResponse(error);
     }
   }
 
-  static async getDashboardSources(
-    event: APIGatewayProxyEvent
-  ): Promise<APIGatewayProxyResult> {
+  static async getDashboardSources(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
       const { from, to } = extractQueryFromEvent(event);
 
@@ -94,7 +94,11 @@ export class AnalyticsController {
         to,
       });
 
-      return createResponseWithData(StatusCode.OK, sources, "Dashboard sources retrieved successfully!");
+      return createResponseWithData(
+        StatusCode.OK,
+        sources,
+        "Dashboard sources retrieved successfully!"
+      );
     } catch (error) {
       return createServerErrorResponse(error);
     }
