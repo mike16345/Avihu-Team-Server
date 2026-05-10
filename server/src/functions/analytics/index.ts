@@ -10,6 +10,10 @@ const analyticsApiHandlers = {
   [`PATCH ${BASE_PATH}/checkIns/one`]: AnalyticsController.checkOffUser, // Delete user by ID
   [`GET ${BASE_PATH}/users`]: AnalyticsController.getUsersWithNoPlans,
   [`GET ${BASE_PATH}/users/expiring`]: AnalyticsController.getUsersFinishingThisMonth,
+  [`GET ${BASE_PATH}/dashboard/summary`]: AnalyticsController.getDashboardSummary,
+  [`GET ${BASE_PATH}/dashboard/sources`]: AnalyticsController.getDashboardSources,
+  [`GET ${BASE_PATH}/dashboard/joinedByMonth`]: AnalyticsController.getDashboardJoinedByMonth,
+  [`GET ${BASE_PATH}/dashboard/closeToLimit`]: AnalyticsController.getDashboardTrainersCloseToLimit,
 };
 
 const analyticsApiMiddleware = {
