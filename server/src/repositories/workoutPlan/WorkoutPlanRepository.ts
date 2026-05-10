@@ -49,7 +49,10 @@ export class WorkoutPlanRepository<T> extends BaseRepository<T> {
 
   async find(options: FindOptions<IFullWorkoutPlan>): Promise<any> {
     const { query, queryOptions, projection } = options;
-    const plans = await this.populateWorkoutPlan(this.model.find(query, projection, queryOptions));
+    const withScopeQuery = this.withScopedSoftDeleteFilter(query);
+    const plans = await this.populateWorkoutPlan(
+      this.model.find(withScopeQuery, projection, queryOptions)
+    );
 
     return plans;
   }

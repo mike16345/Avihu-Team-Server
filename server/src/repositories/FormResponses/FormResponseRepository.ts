@@ -58,7 +58,7 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
 
   find = async (options: FindOptions<IFormResponse>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const forms = await this.model.find(query, projection, queryOptions);
+    const forms = await this.model.find(this.applyScopeToQuery(query), projection, queryOptions);
     const res = await this.populateForm(forms);
     const finalRes = await this.populateUserId(res);
 
@@ -66,7 +66,7 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
   };
 
   create = async (doc: IFormResponse): Promise<IFormResponse> => {
-    const newDoc = await this.model.create(doc);
+    const newDoc = await this.model.create(this.applyScopeToCreate(doc));
 
     if (doc.formType === "onboarding") {
       await User.findByIdAndUpdate(doc.userId, { onboardingStep: "agreement" });

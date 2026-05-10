@@ -67,15 +67,23 @@ export class BaseRepository<T> {
 
   protected applyScopeToQuery<Q extends Record<string, any>>(query?: Q): Q {
     const baseQuery = { ...((query ?? {}) as Record<string, any>) };
-
-    return {
+    const updatedQuery = {
       ...baseQuery,
       ...this.getScopeMatch(),
     } as Q;
+
+    console.log("Applying scope to query Updated query:", updatedQuery);
+
+    return updatedQuery;
   }
 
   protected withScopedSoftDeleteFilter<Q extends Record<string, any>>(query?: Q): Q {
-    return this.withSoftDeleteFilter(this.applyScopeToQuery(query));
+    const scopedQuery = this.applyScopeToQuery(query);
+    console.log("Applying soft delete filter to query. Before:", scopedQuery);
+    const finalQuery = this.withSoftDeleteFilter(scopedQuery);
+    console.log("Final query after applying soft delete filter:", finalQuery);
+
+    return finalQuery;
   }
 
   protected applyScopeToCreate<D>(doc: D): D {

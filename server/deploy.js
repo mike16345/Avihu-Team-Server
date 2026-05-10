@@ -50,7 +50,7 @@ const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
   signedUrl: `${signedUrlEnv},${apiEnv}`,
   api: apiEnv,
-  otp: `${EMAIL},${APP_PASSWORD},${apiEnv},${JWT_ENV}`,
+  otp: `${EMAIL},${APP_PASSWORD},${apiEnv}`,
   rag: `${ragEnv},${apiEnv}`,
 };
 
