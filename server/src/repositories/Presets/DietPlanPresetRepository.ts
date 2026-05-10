@@ -1,4 +1,4 @@
-import {  IDietPlanPreset } from "../../interfaces/IDietPlan";
+import { IDietPlanPreset } from "../../interfaces/IDietPlan";
 import { DietPlanPresetsModel } from "../../models/dietPlanPresetModel";
 import { BaseRepository } from "../BaseRepository";
 
