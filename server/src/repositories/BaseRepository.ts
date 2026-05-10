@@ -34,7 +34,11 @@ export class BaseRepository<T> {
     const { query, projection, queryOptions } = options;
     const data = await this.model.find(query, projection, queryOptions);
 
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
+      return [];
+    }
+
+    if (!data) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_FAILURE };
     }
 
@@ -72,7 +76,7 @@ export class BaseRepository<T> {
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
     const parsedQuery =
-      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : query ?? {};
+      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : (query ?? {});
 
     console.log("FINAL QUERY:", parsedQuery);
 
