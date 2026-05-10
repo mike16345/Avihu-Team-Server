@@ -94,11 +94,7 @@ export const handleApiCall = async (
       hasAuthorizationHeader,
       statusCode: isHttpError(error) ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR,
       message:
-        error instanceof Error
-          ? error.message
-          : isHttpError(error)
-            ? error.message
-            : String(error),
+        error instanceof Error ? error.message : isHttpError(error) ? error.message : String(error),
     });
 
     if (isHttpError(error)) {

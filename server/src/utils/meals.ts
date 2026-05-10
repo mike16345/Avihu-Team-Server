@@ -19,4 +19,3 @@ export const removeExpiredMeals = (session: ISession) => {
 
   return result;
 };
-

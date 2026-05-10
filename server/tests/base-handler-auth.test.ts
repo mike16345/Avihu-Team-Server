@@ -82,7 +82,9 @@ describe("handleApiCall auth flow", () => {
     );
 
     const logOutput = logSpy.mock.calls.flat().map(String).join(" ");
-    const requestLogCall = logSpy.mock.calls.find(([message]) => message === "Handling API request");
+    const requestLogCall = logSpy.mock.calls.find(
+      ([message]) => message === "Handling API request"
+    );
     expect(logOutput).not.toContain("secret-token");
     expect(requestLogCall?.[1]).toMatchObject({ hasAuthorizationHeader: true });
   });

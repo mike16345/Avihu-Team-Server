@@ -52,7 +52,10 @@ describe("enforceRequestUserAccess", () => {
     } as any);
 
     await expect(
-      enforceRequestUserAccess({ headers: { authorization: "Bearer valid-token" } } as any, "authenticated")
+      enforceRequestUserAccess(
+        { headers: { authorization: "Bearer valid-token" } } as any,
+        "authenticated"
+      )
     ).rejects.toMatchObject({
       statusCode: StatusCode.FORBIDDEN,
     });
