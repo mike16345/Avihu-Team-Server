@@ -183,7 +183,8 @@ export const isSessionExpired = (
   field: keyof ISession = "createdAt"
 ) => {
   const now = new Date().getTime();
-  const workoutExpiration = new Date(session[field]).getTime() + expiresAfter;
+  const sessionTimestamp = session[field] as string | number | Date;
+  const workoutExpiration = new Date(sessionTimestamp).getTime() + expiresAfter;
 
   return now > workoutExpiration;
 };

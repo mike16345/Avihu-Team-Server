@@ -5,16 +5,18 @@ import { SessionRepository } from "../repositories/Sessions/SessionRepository";
 import UserRepository from "../repositories/User/UserRepository";
 import { IUser } from "../interfaces/IUser";
 
-const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
 const REFRESH_EXPIRES_IN_MS = Number(
   process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
 );
 
-interface AccessClaims {
+export interface AccessClaims {
   userId: string;
   role: IUser["role"];
   sessionId: string;
   exp?: number;
+  sub?: string;
+  _id?: string;
+  type?: string;
 }
 
 class JwtAuthService {
@@ -32,6 +34,10 @@ class JwtAuthService {
       throw { message: "Invalid JWT access secret", statusCode: StatusCode.INTERNAL_SERVER_ERROR };
     }
     return secret;
+  }
+
+  private getAccessExpiresIn() {
+    return process.env.JWT_ACCESS_EXPIRES_IN || "15m";
   }
 
   private parseExpiresIn(value: string) {
@@ -67,7 +73,7 @@ class JwtAuthService {
       };
     }
     const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-    const exp = Math.floor(Date.now() / 1000) + this.parseExpiresIn(ACCESS_EXPIRES_IN);
+    const exp = Math.floor(Date.now() / 1000) + this.parseExpiresIn(this.getAccessExpiresIn());
     const payload = Buffer.from(JSON.stringify({ ...claims, exp })).toString("base64url");
     const sig = crypto
       .createHmac("sha256", this.getAccessSecret())
@@ -107,9 +113,10 @@ class JwtAuthService {
 
       if (
         !payload.exp ||
-        payload.exp < Math.floor(Date.now() / 1000) ||
+        payload.exp <= Math.floor(Date.now() / 1000) ||
         !payload.sessionId ||
-        !payload.userId
+        (!payload.sub && !payload.userId && !payload._id) ||
+        (payload.type && payload.type !== "access")
       ) {
         throw new Error("Invalid payload");
       }

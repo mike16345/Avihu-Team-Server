@@ -211,7 +211,11 @@ export class UserController extends BaseController<IUser, UserService> {
     try {
       const token = extractBearerToken(event.headers || {});
       const claims = this.jwtAuthService.verifyAccessToken(token);
-      const user = await this.service.findById(claims.userId);
+      const userId = claims.sub || claims.userId || claims._id;
+
+      if (!userId) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+
+      const user = await this.service.findById(userId);
 
       if (!user) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
       if (!user.hasAccess) return this.errorResponse("Unauthorized", StatusCode.FORBIDDEN);

@@ -29,11 +29,14 @@ class AuthService {
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);
     if (!isMatch) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
+    const now = new Date();
 
     return this.sessionService.create({
       userId: user._id.toString(),
       data: { user, ip: metadata.ip, device: metadata.device },
       type: "login",
+      createdAt: now,
+      updatedAt: now,
     } as ISession);
   }
 

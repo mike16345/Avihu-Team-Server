@@ -1,7 +1,7 @@
-import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda";
+import { Context, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
-import { createResponse } from "../utils/utils";
+import { createResponse, getHeaderValue } from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
 import {
   extractRouteHandler,
@@ -9,22 +9,31 @@ import {
   getDbName,
   isHttpError,
 } from "../utils/lambdaHelpers";
-import { ApiRouteHandlers, OldApiHandlers } from "../types/lambdaTypes";
+import { ApiRouteHandlers, AppEvent, OldApiHandlers } from "../types/lambdaTypes";
 import { enforceRequestUserAccess } from "../guards/AdminAccessGuard";
+
 export const handleApiCall = async (
-  event: APIGatewayProxyEvent,
+  event: AppEvent,
   context: Context,
   apiHandlers: OldApiHandlers | ApiRouteHandlers,
   apiValidators?: OldApiHandlers
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
+  const { httpMethod, path } = event;
+  const routeKey = `${httpMethod} ${path}`;
+  const requestId = event.requestContext?.requestId;
+  const hasAuthorizationHeader = Boolean(getHeaderValue(event.headers || {}, "authorization"));
 
   try {
-    const { httpMethod, path } = event;
-    const routeKey = `${httpMethod} ${path}`;
     const apiHandler = extractRouteHandler(apiHandlers, routeKey);
 
-    console.log(`${httpMethod} Event:`, JSON.stringify(event));
+    console.log("Handling API request", {
+      method: httpMethod,
+      path,
+      routeKey,
+      requestId,
+      hasAuthorizationHeader,
+    });
 
     if (!apiHandler) {
       console.log(`BAD ROUTE: ${routeKey} is not a valid route!`);
@@ -41,7 +50,6 @@ export const handleApiCall = async (
     const hasMiddleWares = apiHandler.middlewares && apiHandler.middlewares.length > 0;
 
     if (isProtectedRoute) {
-      console.log("Enforcing access control");
       await enforceRequestUserAccess(event, apiHandler.access);
     }
 
@@ -78,7 +86,20 @@ export const handleApiCall = async (
 
     return apiResponse;
   } catch (error) {
-    console.error("Error in Lambda handler", error);
+    console.error("Error in Lambda handler", {
+      method: httpMethod,
+      path,
+      routeKey,
+      requestId,
+      hasAuthorizationHeader,
+      statusCode: isHttpError(error) ? error.statusCode : StatusCode.INTERNAL_SERVER_ERROR,
+      message:
+        error instanceof Error
+          ? error.message
+          : isHttpError(error)
+            ? error.message
+            : String(error),
+    });
 
     if (isHttpError(error)) {
       return {

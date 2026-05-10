@@ -1,3 +1,6 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
+import type { IUser } from "../interfaces/IUser";
+
 type RouteAccess = "public" | "authenticated" | "admin" | "trainerOrAdmin";
 
 type ApiRouteHandler = {
@@ -14,4 +17,8 @@ type OldApiHandlers = {
   [key: string]: Function;
 };
 
-export { ApiRouteHandler, OldApiHandlers, ApiRouteHandlers, RouteAccess };
+type AppEvent = APIGatewayProxyEvent & {
+  authUser?: IUser;
+};
+
+export { ApiRouteHandler, OldApiHandlers, ApiRouteHandlers, RouteAccess, AppEvent };

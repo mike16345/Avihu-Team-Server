@@ -28,7 +28,7 @@ export class RecordedSetsService extends BaseService<
     activeSession: ISession | null = null
   ): ISessionCreate {
     const plan = recordedSet.plan;
-    const existingData = activeSession?.data ?? {};
+    const existingData = (activeSession?.data ?? {}) as Record<string, any>;
     const existingPlanData = existingData[plan] ?? {};
     const sessionDetails: ISessionCreate = {
       userId,

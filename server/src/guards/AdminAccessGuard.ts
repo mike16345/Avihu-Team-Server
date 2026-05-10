@@ -1,18 +1,26 @@
 import { IUser } from "../interfaces/IUser";
 import { StatusCode } from "../enums/StatusCode";
-import { APIGatewayProxyEvent } from "aws-lambda";
 import { User as UserModel } from "../models/userModel";
-import type { RouteAccess } from "../types/lambdaTypes";
+import JwtAuthService, { AccessClaims } from "../services/JwtAuthService";
+import { extractBearerToken } from "../utils/utils";
+import type { AppEvent, RouteAccess } from "../types/lambdaTypes";
 
 type UserRole = IUser["role"];
+type VerifiedAccessClaims = AccessClaims & { sub?: string; _id?: string; type?: string };
+
+const jwtAuthService = new JwtAuthService();
 
 const AUTH_ERRORS = {
+  unauthorized: {
+    message: "Unauthorized",
+    statusCode: StatusCode.UNAUTHORIZED,
+  },
   userNotFound: {
-    message: "משתמש לא נמצא!",
-    statusCode: StatusCode.NOT_FOUND,
+    message: "User not found",
+    statusCode: StatusCode.UNAUTHORIZED,
   },
   forbidden: {
-    message: "אין לך הרשאה לבצע פעולה זו!",
+    message: "Forbidden",
     statusCode: StatusCode.FORBIDDEN,
   },
 };
@@ -43,33 +51,14 @@ export const requireTrainer = requireRoles("trainer", "admin");
 
 export const requireAdminOrTrainer = requireRoles("admin", "trainer");
 
-const parseBody = (event: APIGatewayProxyEvent): Record<string, unknown> => {
-  if (!event.body) {
-    return {};
+const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
+  const userId = claims.sub || claims.userId || claims._id;
+
+  if (!userId) {
+    throw AUTH_ERRORS.unauthorized;
   }
 
-  try {
-    return JSON.parse(event.body);
-  } catch {
-    return {};
-  }
-};
-
-const getRequestUserId = (event: APIGatewayProxyEvent): string | null => {
-  const body = parseBody(event);
-
-  const bodyUserId = body.userId;
-  const bodyTrainerId = body.trainerId;
-
-  const queryUserId = event.queryStringParameters?.userId;
-  const queryTrainerId = event.queryStringParameters?.trainerId;
-
-  if (typeof bodyUserId === "string") return bodyUserId;
-  if (typeof bodyTrainerId === "string") return bodyTrainerId;
-  if (typeof queryUserId === "string") return queryUserId;
-  if (typeof queryTrainerId === "string") return queryTrainerId;
-
-  return null;
+  return userId;
 };
 
 const isRoleAllowed = (role: string, access: RouteAccess): boolean => {
@@ -91,36 +80,26 @@ const isRoleAllowed = (role: string, access: RouteAccess): boolean => {
   }
 };
 
-export const enforceRequestUserAccess = async (
-  event: APIGatewayProxyEvent,
-  access: RouteAccess
-) => {
-  // TODO: Refactor to use session tokens instead of userId in body/query
-  const userId = getRequestUserId(event);
-
-  console.log("Enforcing access control for userId:", userId, "with access level:", access);
-  if (!userId) {
-    throw {
-      message: "משתמש לא נמצא בבקשה!",
-      statusCode: StatusCode.UNAUTHORIZED,
-    };
-  }
+export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAccess) => {
+  const token = extractBearerToken(event.headers || {});
+  const claims = jwtAuthService.verifyAccessToken(token) as VerifiedAccessClaims;
+  const userId = getVerifiedUserId(claims);
 
   const user = await UserModel.findById(userId);
 
-  if (!user) {
-    throw {
-      message: "משתמש לא נמצא!",
-      statusCode: StatusCode.UNAUTHORIZED,
-    };
+  if (!user || user.isDeleted) {
+    throw AUTH_ERRORS.userNotFound;
+  }
+
+  if (!user.hasAccess) {
+    throw AUTH_ERRORS.forbidden;
   }
 
   if (!isRoleAllowed(user.role, access)) {
-    throw {
-      message: "אין לך הרשאה לבצע פעולה זו!",
-      statusCode: StatusCode.FORBIDDEN,
-    };
+    throw AUTH_ERRORS.forbidden;
   }
+
+  event.authUser = user;
 
   return user;
 };

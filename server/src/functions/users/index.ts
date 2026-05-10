@@ -11,7 +11,7 @@ const userController = new UserController();
 const userApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: userController.getAll,
-    access: "admin",
+    access: "trainerOrAdmin",
   },
 
   [`GET ${BASE_PATH}/one`]: {
