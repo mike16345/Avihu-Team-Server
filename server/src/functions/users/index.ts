@@ -37,7 +37,7 @@ const userApiRoutes: ApiRouteHandlers = {
 
   [`PUT ${BASE_PATH}/one/field`]: {
     handler: userController.updateUserField,
-    access: "trainerOrAdmin",
+    access: "public",
     middlewares: [scheduleUserChecks],
   },
 
@@ -80,11 +80,6 @@ const userApiRoutes: ApiRouteHandlers = {
     handler: userController.me,
     access: "public",
   },
-};
-
-const userValidaters = {
-  [`POST ${BASE_PATH}`]: validateUser,
-  [`PUT ${BASE_PATH}/one/field`]: scheduleUserChecks,
 };
 
 export const handler = async (

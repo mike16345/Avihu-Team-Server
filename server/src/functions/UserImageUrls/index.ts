@@ -2,23 +2,27 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { handleApiCall } from "../baseHandler";
 import { UserImageUrlController } from "../../controllers/UserImageUrlController";
 import { validateUserImageUrl } from "../../middleware/UserImageUrlMiddleware";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 const BASE_PATH = "/userImageUrls";
 
 const userImageUrlController = new UserImageUrlController();
 
-const userImageApiHandlers = {
-  [`GET ${BASE_PATH}/user`]: userImageUrlController.getOne,
-  [`POST ${BASE_PATH}`]: userImageUrlController.addImageUrl,
-};
-
-export const userImageMiddleWare = {
-  [`POST ${BASE_PATH}`]: validateUserImageUrl,
+const userImageApiRoutes: ApiRouteHandlers = {
+  [`GET ${BASE_PATH}/user`]: {
+    handler: userImageUrlController.getOne,
+    access: "trainerOrAdmin",
+  },
+  [`POST ${BASE_PATH}`]: {
+    handler: userImageUrlController.addImageUrl,
+    access: "public",
+    middlewares: [validateUserImageUrl],
+  },
 };
 
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, userImageApiHandlers, userImageMiddleWare);
+  return await handleApiCall(event, context, userImageApiRoutes);
 };

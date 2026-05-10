@@ -2,25 +2,39 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import { handleApiCall } from "../baseHandler";
 import MuscleGroupController from "../../controllers/muscleGroupController";
 import { checkIfMuscleGroupExists } from "../../middleware/muscleGroupMiddleWare";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 const BASE_PATH = "/muscleGroups";
 
-const muscleGroupController=new MuscleGroupController()
+const muscleGroupController = new MuscleGroupController();
 
-const muscleGroupApiHandlers = {
-  [`GET ${BASE_PATH}`]: muscleGroupController.getAll,
-  [`GET ${BASE_PATH}/one`]: muscleGroupController.getById,
-  [`PUT ${BASE_PATH}/one`]: muscleGroupController.updateById,
-  [`POST ${BASE_PATH}`]: muscleGroupController.create,
-  [`DELETE ${BASE_PATH}/one`]: muscleGroupController.deleteById,
-};
-const muscleGroupValidators = {
-  [`POST ${BASE_PATH}`]: checkIfMuscleGroupExists,
+const muscleGroupApiRoutes: ApiRouteHandlers = {
+  [`GET ${BASE_PATH}`]: {
+    handler: muscleGroupController.getAll,
+    access: "trainerOrAdmin",
+  },
+  [`GET ${BASE_PATH}/one`]: {
+    handler: muscleGroupController.getById,
+    access: "trainerOrAdmin",
+  },
+  [`PUT ${BASE_PATH}/one`]: {
+    handler: muscleGroupController.updateById,
+    access: "trainerOrAdmin",
+  },
+  [`POST ${BASE_PATH}`]: {
+    handler: muscleGroupController.create,
+    access: "trainerOrAdmin",
+    middlewares: [checkIfMuscleGroupExists],
+  },
+  [`DELETE ${BASE_PATH}/one`]: {
+    handler: muscleGroupController.deleteById,
+    access: "trainerOrAdmin",
+  },
 };
 
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, muscleGroupApiHandlers, muscleGroupValidators);
+  return await handleApiCall(event, context, muscleGroupApiRoutes);
 };

@@ -188,10 +188,8 @@ export class BaseRepository<T> {
     sort = {},
   }: PaginationParams): Promise<PaginationResult<T>> {
     const skip = (page - 1) * limit;
-    const parsedQuery =
-      typeof query === "string" ? (query.trim() ? JSON.parse(query) : {}) : (query ?? {});
-
-    console.log("FINAL QUERY:", parsedQuery);
+    const parsedQuery = query ?? {};
+    const filteredQuery = this.withScopedSoftDeleteFilter(parsedQuery);
 
     const [results, totalResults] = await Promise.all([
       this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),

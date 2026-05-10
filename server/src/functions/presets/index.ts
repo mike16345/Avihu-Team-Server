@@ -1,42 +1,24 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import {
-  BASE_PATH as DIET_PLANS_BASE_PATH,
-  dietPlanPresetApiHandlers,
-  dietPlanPresetsMiddleware,
-} from "./dietPlans";
 import { handleApiCall } from "../baseHandler";
-import {
-  exercisePresetApiHandlers,
-  exerciseMiddlewareHandlers,
-  EXERCISES_BASE_PATH,
-} from "./exercises";
-import {
-  workoutPlanPresetApiHandlers,
-  BASE_PATH as WORKOUT_BASE_PATH,
-  workoutPlanPresetApiMiddleware,
-} from "./workoutPlans";
 import { StatusCode } from "../../enums/StatusCode";
 import { API_HEADERS } from "../../constants/Constants";
-import { EXERCISE_METHODS_BASE_PATH, exerciseMethodsApiHandlers } from "./exerciseMethods";
-import { CARDIO_WORKOUT_BASE_PATH, cardioWorkoutApiHandlers } from "./cardioWorkout";
-import { FORM_PRESET_BASE_PATH, formPresetApiHandlers, formPresetsMiddleware } from "./formPreset";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
+import { BASE_PATH as DIET_PLANS_BASE_PATH, dietPlanPresetApiRoutes } from "./dietPlans";
+import { EXERCISES_BASE_PATH, exercisePresetApiRoutes } from "./exercises";
+import { BASE_PATH as WORKOUT_BASE_PATH, workoutPlanPresetApiRoutes } from "./workoutPlans";
+import { EXERCISE_METHODS_BASE_PATH, exerciseMethodsApiRoutes } from "./exerciseMethods";
+import { CARDIO_WORKOUT_BASE_PATH, cardioWorkoutApiRoutes } from "./cardioWorkout";
+import { FORM_PRESET_BASE_PATH, formPresetApiRoutes } from "./formPreset";
 
 export const BASE_PATH = "/presets";
 
-const routeToPresetMap: Record<string, Record<string, Function>> = {
-  [DIET_PLANS_BASE_PATH]: dietPlanPresetApiHandlers,
-  [EXERCISES_BASE_PATH]: exercisePresetApiHandlers,
-  [WORKOUT_BASE_PATH]: workoutPlanPresetApiHandlers,
-  [EXERCISE_METHODS_BASE_PATH]: exerciseMethodsApiHandlers,
-  [CARDIO_WORKOUT_BASE_PATH]: cardioWorkoutApiHandlers,
-  [FORM_PRESET_BASE_PATH]: formPresetApiHandlers,
-};
-
-const presetMiddleWareMap: Record<string, Record<string, Function>> = {
-  [EXERCISES_BASE_PATH]: exerciseMiddlewareHandlers,
-  [WORKOUT_BASE_PATH]: workoutPlanPresetApiMiddleware,
-  [DIET_PLANS_BASE_PATH]: dietPlanPresetsMiddleware,
-  [FORM_PRESET_BASE_PATH]: formPresetsMiddleware,
+const routeToPresetMap: Record<string, ApiRouteHandlers> = {
+  [DIET_PLANS_BASE_PATH]: dietPlanPresetApiRoutes,
+  [EXERCISES_BASE_PATH]: exercisePresetApiRoutes,
+  [WORKOUT_BASE_PATH]: workoutPlanPresetApiRoutes,
+  [EXERCISE_METHODS_BASE_PATH]: exerciseMethodsApiRoutes,
+  [CARDIO_WORKOUT_BASE_PATH]: cardioWorkoutApiRoutes,
+  [FORM_PRESET_BASE_PATH]: formPresetApiRoutes,
 };
 
 export const handler = async (
@@ -44,10 +26,9 @@ export const handler = async (
   context: Context
 ): Promise<APIGatewayProxyResult> => {
   const presetHandlerKey = determinePreset(event.path) as keyof typeof routeToPresetMap;
-  const middlewareHandler = presetMiddleWareMap[presetHandlerKey];
-  const presetApiHandler = routeToPresetMap[presetHandlerKey];
+  const presetApiRoutes = routeToPresetMap[presetHandlerKey];
 
-  if (!presetApiHandler) {
+  if (!presetApiRoutes) {
     return {
       statusCode: StatusCode.NOT_FOUND,
       body: JSON.stringify({ message: `No preset handlers found for: ${presetHandlerKey}` }),
@@ -55,7 +36,7 @@ export const handler = async (
     };
   }
 
-  return await handleApiCall(event, context, presetApiHandler, middlewareHandler);
+  return await handleApiCall(event, context, presetApiRoutes);
 };
 
 function determinePreset(path: string): string {

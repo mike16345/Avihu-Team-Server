@@ -1,14 +1,33 @@
 import ExerciseMethodController from "../../controllers/exerciseMethodController";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 export const EXERCISE_METHODS_BASE_PATH = "/presets/exerciseMethods";
 
 const exerciseMethodController = new ExerciseMethodController();
 
-export const exerciseMethodsApiHandlers = {
-  [`GET ${EXERCISE_METHODS_BASE_PATH}`]: exerciseMethodController.getAll,
-  [`GET ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.getById,
-  [`GET ${EXERCISE_METHODS_BASE_PATH}/name`]: exerciseMethodController.getOne,
-  [`POST ${EXERCISE_METHODS_BASE_PATH}`]: exerciseMethodController.create,
-  [`PUT ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.updateById,
-  [`DELETE ${EXERCISE_METHODS_BASE_PATH}/one`]: exerciseMethodController.deleteById,
+export const exerciseMethodsApiRoutes: ApiRouteHandlers = {
+  [`GET ${EXERCISE_METHODS_BASE_PATH}`]: {
+    handler: exerciseMethodController.getAll,
+    access: "trainerOrAdmin",
+  },
+  [`GET ${EXERCISE_METHODS_BASE_PATH}/one`]: {
+    handler: exerciseMethodController.getById,
+    access: "trainerOrAdmin",
+  },
+  [`GET ${EXERCISE_METHODS_BASE_PATH}/name`]: {
+    handler: exerciseMethodController.getOne,
+    access: "public",
+  },
+  [`POST ${EXERCISE_METHODS_BASE_PATH}`]: {
+    handler: exerciseMethodController.create,
+    access: "trainerOrAdmin",
+  },
+  [`PUT ${EXERCISE_METHODS_BASE_PATH}/one`]: {
+    handler: exerciseMethodController.updateById,
+    access: "trainerOrAdmin",
+  },
+  [`DELETE ${EXERCISE_METHODS_BASE_PATH}/one`]: {
+    handler: exerciseMethodController.deleteById,
+    access: "trainerOrAdmin",
+  },
 };
