@@ -11,6 +11,7 @@ const REFRESH_EXPIRES_IN_MS = Number(
 
 export interface AccessClaims {
   userId: string;
+  trainerId?: string;
   role: IUser["role"];
   sessionId: string;
   exp?: number;

@@ -10,7 +10,7 @@ import { PaginationParams, PaginationResult } from "../../utils/pagination";
 
 export class BlogRepository extends BaseRepository<IBlog> {
   constructor() {
-    super(BlogModel);
+    super(BlogModel, { type: "trainer", field: "trainerId" });
   }
 
   private async populateBlogs(queryOrDocs: any) {
@@ -26,7 +26,11 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
   findOne = async (options: FindOptions<IBlog>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const queryResult = this.model.findOne(query, projection, queryOptions);
+    const queryResult = this.model.findOne(
+      this.withScopedSoftDeleteFilter(query as Record<string, any>),
+      projection,
+      queryOptions
+    );
 
     const blog = await this.populateBlogs(queryResult);
 
@@ -38,7 +42,9 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   findById = async (id: string | Types.ObjectId): Promise<any> => {
-    const blog = await this.populateBlogs(this.model.findById(id));
+    const blog = await this.populateBlogs(
+      this.model.findOne(this.withScopedSoftDeleteFilter({ _id: id }))
+    );
 
     if (!blog) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -49,7 +55,9 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
   find = async (options: FindOptions<IBlog>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const blogs = await this.populateBlogs(this.model.find(query, projection, queryOptions));
+    const blogs = await this.populateBlogs(
+      this.model.find(this.withScopedSoftDeleteFilter(query as Record<string, any>), projection, queryOptions)
+    );
 
     return blogs;
   };
@@ -80,8 +88,8 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   addViewer = async (id: string, userId: string) => {
-    const blog = await this.model.findByIdAndUpdate(
-      id,
+    const blog = await this.model.findOneAndUpdate(
+      this.applyScopeToQuery({ _id: id }),
       { $addToSet: { views: userId } },
       { new: true }
     );
@@ -94,7 +102,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   changeLikedStatus = async (id: string, userId: string) => {
-    const blog = await this.model.findById(id);
+    const blog = await this.model.findOne(this.withScopedSoftDeleteFilter({ _id: id }));
 
     if (!blog) {
       throw { status: StatusCode.NOT_FOUND, message: "Article not found" };
@@ -102,8 +110,8 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
     const hasLiked = blog.likes.includes(userId);
 
-    const updatedBlog = await this.model.findByIdAndUpdate(
-      id,
+    const updatedBlog = await this.model.findOneAndUpdate(
+      this.applyScopeToQuery({ _id: id }),
       hasLiked
         ? { $pull: { likes: userId } } // remove if exists
         : { $addToSet: { likes: userId } }, // add if not
@@ -115,6 +123,13 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
   getBlogCountsByGroup = async (planType?: string) => {
     const pipeline: any[] = [];
+
+    const scopeMatch = this.getScopeMatch();
+    if (Object.keys(scopeMatch).length > 0) {
+      pipeline.push({
+        $match: scopeMatch,
+      });
+    }
 
     if (planType) {
       pipeline.push({

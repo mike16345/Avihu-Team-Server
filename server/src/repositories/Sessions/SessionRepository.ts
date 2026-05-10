@@ -4,7 +4,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export class SessionRepository extends BaseRepository<ISession> {
   constructor() {
-    super(Session);
+    super(Session, { type: "global" });
   }
 
   async getSessionById(id: string, options?: FindOptionsNoQuery<ISession> | undefined) {

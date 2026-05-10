@@ -71,9 +71,6 @@ export interface IExerciseMethod {
   description: string;
 }
 
-export interface ICardioWorkout {
-  name: string;
-}
 export interface IMuscleGroup {
   name: string;
 }

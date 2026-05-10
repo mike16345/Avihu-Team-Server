@@ -7,7 +7,7 @@ import { DELETE_FAILURE } from "../../constants/repository";
 
 export class ProgressNotesRepository extends BaseRepository<IProgressNotes> {
   constructor() {
-    super(ProgressNote);
+    super(ProgressNote, { type: "global" });
   }
 
   async addProgressNote(userId: string, note: IProgressNote) {

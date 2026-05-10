@@ -8,7 +8,7 @@ import { PaginationParams } from "../../utils/pagination";
 
 export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> {
   constructor() {
-    super(SignedAgreementModel);
+    super(SignedAgreementModel, { type: "trainer", field: "trainerId" });
   }
 
   private populateUserId(docs: any[]) {

@@ -42,6 +42,11 @@ export const blogSchema = new Schema<IBlog>({
     type: [String],
     default: [],
   },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
+  },
 });
 
 export const BlogModel = model("blogs", blogSchema);

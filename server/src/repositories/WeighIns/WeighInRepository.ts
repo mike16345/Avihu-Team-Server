@@ -7,7 +7,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class WeighInsRepository extends BaseRepository<IWeighIns> {
   constructor() {
-    super(WeighIns);
+    super(WeighIns, { type: "global" });
   }
 
   addWeighIn = async (weighIn: IWeighIn, userId: string): Promise<IWeighIns> => {

@@ -4,6 +4,6 @@ import { FormModel } from "../../models/formPresetModel";
 
 export class FormPresetRepository extends BaseRepository<IForm> {
   constructor() {
-    super(FormModel);
+    super(FormModel, { type: "trainer", field: "trainerId" });
   }
 }

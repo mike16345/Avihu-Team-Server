@@ -3,6 +3,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class RagTraceRepository extends BaseRepository<IRagTrace> {
   constructor() {
-    super(RagTraceModel);
+    super(RagTraceModel, { type: "global" });
   }
 }

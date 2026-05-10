@@ -1,14 +1,16 @@
 import { Schema, model } from "mongoose";
 import { IAgreementAnswer, ISignedAgreement } from "../interfaces/IAgreement";
+import { IModel } from "../interfaces/IModel";
 
 const answerSchema = new Schema<IAgreementAnswer>({
   questionId: { type: String, required: true },
   value: { type: Schema.Types.Mixed, required: true },
 });
 
-const signedAgreementSchema = new Schema<ISignedAgreement>({
+const signedAgreementSchema = new Schema<ISignedAgreement & IModel>({
   groupId: { type: String, required: false },
   userId: { type: String, required: true },
+  trainerId: { type: Schema.Types.ObjectId, required: true, ref: "trainers" },
   agreementId: { type: String, required: true },
   agreementVersion: { type: Number, required: true },
   answers: { type: [answerSchema], default: [] },

@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class DietPlanPresetRepository extends BaseRepository<IDietPlanPreset> {
   constructor() {
-    super(DietPlanPresetsModel);
+    super(DietPlanPresetsModel, { type: "trainer", field: "trainerId" });
   }
 }

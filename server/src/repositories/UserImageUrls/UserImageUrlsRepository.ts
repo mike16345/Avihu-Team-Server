@@ -4,7 +4,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class UserImageUrlsRepository extends BaseRepository<IUserImageUrls> {
   constructor() {
-    super(UserImageUrlsModel);
+    super(UserImageUrlsModel, { type: "global" });
   }
 
   async upsertImageUrl(filter: FilterQuery<IUserImageUrls>, imageUrl: string) {

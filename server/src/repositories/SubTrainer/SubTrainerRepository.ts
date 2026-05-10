@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class SubTrainerRepository extends BaseRepository<ISubTrainer> {
   constructor() {
-    super(SubTrainerModel);
+    super(SubTrainerModel, { type: "trainer", field: "trainerId" });
   }
 }

@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class TrainerRepository extends BaseRepository<ITrainer> {
   constructor() {
-    super(TrainerModel);
+    super(TrainerModel, { type: "global" });
   }
 }

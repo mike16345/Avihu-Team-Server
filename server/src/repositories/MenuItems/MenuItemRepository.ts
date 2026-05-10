@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class MenuItemRepository extends BaseRepository<ICustomItemInstructions> {
   constructor() {
-    super(fullMenuItemPresets);
+    super(fullMenuItemPresets, { type: "trainer", field: "trainerId" });
   }
 }

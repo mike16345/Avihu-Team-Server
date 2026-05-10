@@ -5,7 +5,7 @@ import { LeadsModel } from "../models/LeadsModel";
 
 export default class LeadsRepository extends BaseRepository<ILead> {
   constructor() {
-    super(LeadsModel);
+    super(LeadsModel, { type: "trainer", field: "trainerId" });
   }
 
   async create(doc: Partial<ILead>): Promise<ILead> {

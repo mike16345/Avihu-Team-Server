@@ -10,7 +10,7 @@ import { User } from "../../models/userModel";
 
 export class FormResponseRepository extends BaseRepository<IFormResponse> {
   constructor() {
-    super(FormResponseModel);
+    super(FormResponseModel, { type: "trainer", field: "trainerId" });
   }
 
   private async populateForm(queryOrDocs: any) {

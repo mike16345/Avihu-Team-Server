@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import Joi from "joi";
 import { IFormResponse } from "../interfaces/IFormResponse";
+import { IModel } from "../interfaces/IModel";
 
 const FormResponseQuestionSchema = new Schema(
   {
@@ -41,7 +42,7 @@ const FormResponseSectionSchema = new Schema(
   { _id: false }
 );
 
-export const FormResponseSchema = new Schema<IFormResponse>({
+export const FormResponseSchema = new Schema<IFormResponse & IModel>({
   formId: {
     type: Schema.Types.ObjectId,
     ref: "forms",
@@ -50,6 +51,11 @@ export const FormResponseSchema = new Schema<IFormResponse>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
+    required: true,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    ref: "trainers",
     required: true,
   },
   submittedAt: {
@@ -76,7 +82,7 @@ export const FormResponseSchema = new Schema<IFormResponse>({
 
 FormResponseSchema.index({ userId: 1, formId: 1, submittedAt: -1 });
 
-export const FormResponseModel = model<IFormResponse>("formResponses", FormResponseSchema);
+export const FormResponseModel = model<IFormResponse & IModel>("formResponses", FormResponseSchema);
 
 export const formResponseQuestionValidator = Joi.object({
   _id: Joi.string().required(),

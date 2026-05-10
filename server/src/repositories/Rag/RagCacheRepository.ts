@@ -4,7 +4,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export class RagCacheRepository extends BaseRepository<IRagCacheEntry> {
   constructor() {
-    super(RagCacheModel);
+    super(RagCacheModel, { type: "global" });
   }
 
   findByNormalizedQuestion = async (
