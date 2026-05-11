@@ -233,12 +233,8 @@ export class UserController extends BaseController<IUser, UserService> {
 
   private toSafeUser(user: IUser) {
     return {
-      _id: user._id,
-      email: user.email,
-      role: user.role,
+      ...user,
       status: user.hasAccess ? "active" : "inactive",
-      firstName: user.firstName,
-      lastName: user.lastName,
       isSuperAdmin: user.role === "admin",
       isTrainer: user.role === "trainer",
     };

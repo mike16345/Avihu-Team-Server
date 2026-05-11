@@ -42,6 +42,10 @@ export const requireTrainerAuthContext = (): AuthContext & { trainerId: string }
   const authContext = requireAuthContext();
   const isAdmin = authContext.role === "admin";
 
+  console.log("Current auth userId in requireTrainerAuthContext:", authContext.userId);
+  console.log("Current auth trainerId in requireTrainerAuthContext:", authContext.trainerId);
+  console.log("Current auth role in requireTrainerAuthContext:", authContext.role);
+
   if (isAdmin && !authContext.trainerId) {
     const updatedContext = { ...authContext, trainerId: authContext.userId };
     authContextStorage.enterWith(updatedContext);

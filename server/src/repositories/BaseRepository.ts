@@ -163,11 +163,10 @@ export class BaseRepository<T> {
 
   async findById(id: string, options?: FindOptionsNoQuery<T>) {
     const { projection = {}, queryOptions = {} } = options || {};
-    const item = await this.model.findOne(
-      this.withSoftDeleteFilter({ _id: id }),
-      projection,
-      queryOptions
-    );
+    const item = await this.model
+      .findOne(this.withSoftDeleteFilter({ _id: id }), projection, queryOptions)
+      .lean()
+      .exec();
 
     if (!item) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -180,7 +179,7 @@ export class BaseRepository<T> {
     const { projection, queryOptions, query } = options;
     const filteredQuery = this.withSoftDeleteFilter(query as Record<string, any>);
 
-    const item = await this.model.findOne(filteredQuery, projection, queryOptions);
+    const item = await this.model.findOne(filteredQuery, projection, queryOptions).lean().exec();
 
     if (!item) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -233,11 +232,7 @@ export class BaseRepository<T> {
 
   async updateById(id: string | ObjectId, updateOptions: Omit<UpdateOptions<T>, "filter">) {
     const { options, update } = updateOptions;
-    const updatedDoc = await this.model.findOneAndUpdate(
-      this.withScopedSoftDeleteFilter({ _id: id }),
-      this.applyScopeToUpdate(update),
-      options
-    );
+    const updatedDoc = await this.model.findByIdAndUpdate(id, update, options);
 
     if (!updatedDoc) {
       throw { status: StatusCode.NOT_FOUND, message: UPDATE_FAILURE };

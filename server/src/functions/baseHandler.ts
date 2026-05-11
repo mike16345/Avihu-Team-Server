@@ -26,10 +26,11 @@ const buildAuthContextFromClaims = (claims?: VerifiedAccessClaims) => {
     return {};
   }
   const isAdminOrTrainer = claims.role === "admin" || claims.role === "trainer";
+  console.log("Building auth context from claims:", claims);
 
   return {
     userId: claims.sub || claims.userId || claims._id,
-    trainerId: isAdminOrTrainer ? (claims.trainerId ? claims.userId : undefined) : undefined,
+    trainerId: isAdminOrTrainer ? claims.trainerId || claims.userId : claims.trainerId,
     role: claims.role,
   };
 };

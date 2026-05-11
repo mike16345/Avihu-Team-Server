@@ -69,11 +69,11 @@ export class BlogRepository extends BaseRepository<IBlog> {
   getPaginatedBlogs = async (
     paginationParams: PaginationParams
   ): Promise<PaginationResult<IBlog>> => {
-    const query = paginationParams.query ?? {};
+    const query = this.withScopedSoftDeleteFilter(paginationParams.query ?? {});
 
     if (query.planType) {
       const planType = query.planType;
-      query.planType = { $in: [planType, "כללי"] };
+      query.planType = { $in: [planType, "×›×œ×œ×™"] };
       console.log("NEW PLAN TYPE QUERY!", query.planType);
     }
 
@@ -116,9 +116,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
     const updatedBlog = await this.model.findOneAndUpdate(
       this.applyScopeToQuery({ _id: id }),
-      hasLiked
-        ? { $pull: { likes: userId } } // remove if exists
-        : { $addToSet: { likes: userId } }, // add if not
+      hasLiked ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } },
       { new: true }
     );
 
@@ -126,27 +124,19 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   getBlogCountsByGroup = async (planType?: string) => {
-    const pipeline: any[] = [];
-
-    const scopeMatch = this.getScopeMatch();
-    if (Object.keys(scopeMatch).length > 0) {
-      pipeline.push({
-        $match: scopeMatch,
-      });
-    }
+    const query: Record<string, any> = {};
 
     if (planType) {
-      pipeline.push({
-        $match: {
-          planType: { $in: [planType, "כללי"] },
-        },
-      });
+      query.planType = { $in: [planType, "כללי"] };
     }
 
-    pipeline.push(
+    const pipeline: any[] = [
+      {
+        $match: this.withScopedSoftDeleteFilter(query),
+      },
       {
         $group: {
-          _id: "$group", // lessonGroup ObjectId
+          _id: "$group",
           count: { $sum: 1 },
         },
       },
@@ -166,8 +156,8 @@ export class BlogRepository extends BaseRepository<IBlog> {
           description: "$lessonGroup.description",
           count: 1,
         },
-      }
-    );
+      },
+    ];
 
     return this.model.aggregate(pipeline);
   };
