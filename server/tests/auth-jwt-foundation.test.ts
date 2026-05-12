@@ -81,9 +81,7 @@ describe("JwtAuthService", () => {
   test("missing sessionId in signing claims", () => {
     const service = new JwtAuthService();
 
-    expect(() =>
-      service.signAccessToken({ userId: "u1", role: "admin", sessionId: "" })
-    ).toThrow(
+    expect(() => service.signAccessToken({ userId: "u1", role: "admin", sessionId: "" })).toThrow(
       expect.objectContaining({
         message: "Missing sessionId in claims",
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
@@ -164,12 +162,10 @@ describe("JwtAuthService", () => {
   test("revoked refresh token", async () => {
     const service = new JwtAuthService() as any;
     service.sessionRepository = {
-      findRefreshSessionByHash: jest
-        .fn()
-        .mockResolvedValue({
-          userId: "u1",
-          data: { revokedAt: new Date(), expiresAt: new Date(Date.now() + 10000) },
-        }),
+      findRefreshSessionByHash: jest.fn().mockResolvedValue({
+        userId: "u1",
+        data: { revokedAt: new Date(), expiresAt: new Date(Date.now() + 10000) },
+      }),
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
@@ -179,12 +175,10 @@ describe("JwtAuthService", () => {
   test("expired refresh token", async () => {
     const service = new JwtAuthService() as any;
     service.sessionRepository = {
-      findRefreshSessionByHash: jest
-        .fn()
-        .mockResolvedValue({
-          userId: "u1",
-          data: { revokedAt: null, expiresAt: new Date(Date.now() - 1000) },
-        }),
+      findRefreshSessionByHash: jest.fn().mockResolvedValue({
+        userId: "u1",
+        data: { revokedAt: null, expiresAt: new Date(Date.now() - 1000) },
+      }),
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
@@ -194,12 +188,10 @@ describe("JwtAuthService", () => {
   test("inactive user", async () => {
     const service = new JwtAuthService() as any;
     service.sessionRepository = {
-      findRefreshSessionByHash: jest
-        .fn()
-        .mockResolvedValue({
-          userId: "u1",
-          data: { revokedAt: null, expiresAt: new Date(Date.now() + 1000) },
-        }),
+      findRefreshSessionByHash: jest.fn().mockResolvedValue({
+        userId: "u1",
+        data: { revokedAt: null, expiresAt: new Date(Date.now() + 1000) },
+      }),
     };
     service.userRepository = { findById: jest.fn().mockResolvedValue({ hasAccess: false }) };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({

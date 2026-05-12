@@ -83,7 +83,10 @@ describe("enforceRequestUserAccess", () => {
     expect(subtrainerEvent.authUser).toMatchObject({ _id: "u1", role: "subTrainer" });
 
     await expect(
-      enforceRequestUserAccess({ headers: { authorization: "Bearer valid-token" } } as any, "trainer")
+      enforceRequestUserAccess(
+        { headers: { authorization: "Bearer valid-token" } } as any,
+        "trainer"
+      )
     ).rejects.toMatchObject({
       statusCode: StatusCode.FORBIDDEN,
     });

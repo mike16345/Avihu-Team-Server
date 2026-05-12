@@ -26,16 +26,14 @@ describe("Bearer token transport", () => {
     const controller = new UserController() as any;
     controller.jwtAuthService = { verifyAccessToken: jest.fn().mockReturnValue({ userId: "u1" }) };
     controller.service = {
-      findById: jest
-        .fn()
-        .mockResolvedValue({
-          _id: "u1",
-          email: "a@a.com",
-          role: "admin",
-          hasAccess: true,
-          firstName: "A",
-          lastName: "B",
-        }),
+      findById: jest.fn().mockResolvedValue({
+        _id: "u1",
+        email: "a@a.com",
+        role: "admin",
+        hasAccess: true,
+        firstName: "A",
+        lastName: "B",
+      }),
     };
 
     const response = await controller.me({ headers: { Authorization: "Bearer valid" } });
@@ -46,16 +44,14 @@ describe("Bearer token transport", () => {
     const controller = new UserController() as any;
     controller.jwtAuthService = { verifyAccessToken: jest.fn().mockReturnValue({ userId: "u1" }) };
     controller.service = {
-      findById: jest
-        .fn()
-        .mockResolvedValue({
-          _id: "u1",
-          email: "a@a.com",
-          role: "admin",
-          hasAccess: true,
-          firstName: "A",
-          lastName: "B",
-        }),
+      findById: jest.fn().mockResolvedValue({
+        _id: "u1",
+        email: "a@a.com",
+        role: "admin",
+        hasAccess: true,
+        firstName: "A",
+        lastName: "B",
+      }),
     };
 
     const response = await controller.me({ headers: { authorization: "Bearer valid" } });
