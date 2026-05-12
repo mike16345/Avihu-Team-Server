@@ -47,9 +47,10 @@ No standalone `requireAuth`/`requireRole` middleware module was introduced yet; 
 
 ## Token Design
 
-- Access tokens: HMAC-signed JWT-compatible format (header.payload.signature) with `exp` claim and minimal identity claims.
-- Refresh strategy: opaque random token, hashed via SHA-256 before persistence.
-- Secrets: `JWT_ACCESS_SECRET`.
+- Access tokens: signed and verified with `jsonwebtoken` using `HS256`.
+- Access signing secret: `JWT_ACCESS_SECRET`, required and must be at least 32 characters long.
+- Access token TTL: `JWT_ACCESS_EXPIRES_IN`, default `15m`. Values like `15m`, `1h`, and `7d` are supported, and bare numeric strings like `900` are treated as seconds.
+- Refresh strategy: opaque random token from `crypto.randomBytes(48).toString("hex")`, hashed via SHA-256 before persistence.
 - Authorization truth remains DB-backed (user existence/status checked on authenticated flows).
 
 ## Environment Variables

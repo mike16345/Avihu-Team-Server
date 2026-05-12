@@ -1,4 +1,5 @@
 import JwtAuthService from "../src/services/JwtAuthService";
+import jwt from "jsonwebtoken";
 import { StatusCode } from "../src/enums/StatusCode";
 
 describe("JwtAuthService", () => {
@@ -13,17 +14,34 @@ describe("JwtAuthService", () => {
     const claims = service.verifyAccessToken(token);
     expect(claims.userId).toBe("u1");
     expect(claims.sessionId).toBe("s1");
+    expect(typeof claims.exp).toBe("number");
   });
 
   test("malformed token", () => {
     const service = new JwtAuthService();
-    expect(() => service.verifyAccessToken("bad")).toThrow();
+    expect(() => service.verifyAccessToken("bad")).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
   });
 
   test("invalid signature", () => {
+    process.env.JWT_ACCESS_SECRET = "abcdefghijklmnopqrstuvwxyz123456";
     const service = new JwtAuthService();
-    const token = service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" });
-    expect(() => service.verifyAccessToken(token + "tamper")).toThrow();
+    const token = jwt.sign(
+      { userId: "u1", role: "admin", sessionId: "s1" },
+      "abcdefghijklmnopqrstuvwxyz654321",
+      { algorithm: "HS256", expiresIn: 60, noTimestamp: true }
+    );
+
+    expect(() => service.verifyAccessToken(token)).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
   });
 
   test("expired token", async () => {
@@ -31,6 +49,17 @@ describe("JwtAuthService", () => {
     const token = service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" });
     await new Promise((r) => setTimeout(r, 1200));
     expect(() => service.verifyAccessToken(token)).toThrow();
+  });
+
+  test("numeric expiration strings still behave as seconds", () => {
+    process.env.JWT_ACCESS_EXPIRES_IN = "900";
+    const service = new JwtAuthService();
+    const token = service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" });
+    const claims = service.verifyAccessToken(token);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    expect((claims.exp ?? 0) - nowInSeconds).toBeGreaterThan(890);
+    expect((claims.exp ?? 0) - nowInSeconds).toBeLessThanOrEqual(900);
   });
 
   test("invalid expiration config", () => {
@@ -47,6 +76,81 @@ describe("JwtAuthService", () => {
     expect(() =>
       service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" })
     ).toThrow();
+  });
+
+  test("missing sessionId in signing claims", () => {
+    const service = new JwtAuthService();
+
+    expect(() =>
+      service.signAccessToken({ userId: "u1", role: "admin", sessionId: "" })
+    ).toThrow(
+      expect.objectContaining({
+        message: "Missing sessionId in claims",
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+      })
+    );
+  });
+
+  test("rejects token missing sessionId", () => {
+    const service = new JwtAuthService();
+    const token = jwt.sign({ userId: "u1", role: "admin" }, process.env.JWT_ACCESS_SECRET!, {
+      algorithm: "HS256",
+      expiresIn: 60,
+      noTimestamp: true,
+    });
+
+    expect(() => service.verifyAccessToken(token)).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
+  });
+
+  test("rejects token missing identity fields", () => {
+    const service = new JwtAuthService();
+    const token = jwt.sign({ role: "admin", sessionId: "s1" }, process.env.JWT_ACCESS_SECRET!, {
+      algorithm: "HS256",
+      expiresIn: 60,
+      noTimestamp: true,
+    });
+
+    expect(() => service.verifyAccessToken(token)).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
+  });
+
+  test("rejects token with non-access type", () => {
+    const service = new JwtAuthService();
+    const token = jwt.sign(
+      { userId: "u1", role: "admin", sessionId: "s1", type: "refresh" },
+      process.env.JWT_ACCESS_SECRET!,
+      {
+        algorithm: "HS256",
+        expiresIn: 60,
+        noTimestamp: true,
+      }
+    );
+
+    expect(() => service.verifyAccessToken(token)).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
+  });
+
+  test("refresh token hashing stays SHA256-based and deterministic", () => {
+    const service = new JwtAuthService();
+    const hashA = service.hashToken("refresh-token");
+    const hashB = service.hashToken("refresh-token");
+
+    expect(hashA).toBe(hashB);
+    expect(hashA).toHaveLength(64);
+    expect(hashA).toMatch(/^[a-f0-9]+$/);
   });
 
   test("refresh token not found", async () => {

@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { StatusCode } from "../enums/StatusCode";
 import { IRefreshSessionData, ISession } from "../models/sessionModel";
 import { SessionRepository } from "../repositories/Sessions/SessionRepository";
@@ -19,6 +20,8 @@ export interface AccessClaims {
   _id?: string;
   type?: string;
 }
+
+type VerifiedAccessPayload = JwtPayload & Partial<AccessClaims>;
 
 class JwtAuthService {
   private sessionRepository = new SessionRepository();
@@ -41,29 +44,51 @@ class JwtAuthService {
     return process.env.JWT_ACCESS_EXPIRES_IN || "15m";
   }
 
-  private parseExpiresIn(value: string) {
-    const match = /^(\d+)([mhd]?)$/.exec(value.trim());
-    if (!match) {
-      throw {
-        message: "Invalid JWT_ACCESS_EXPIRES_IN value",
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-      };
+  private invalidAccessExpiresInError() {
+    return {
+      message: "Invalid JWT_ACCESS_EXPIRES_IN value",
+      statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+    };
+  }
+
+  private getAccessTokenExpiresIn(): NonNullable<SignOptions["expiresIn"]> {
+    const value = this.getAccessExpiresIn().trim();
+
+    if (!value) {
+      throw this.invalidAccessExpiresInError();
     }
-    const amount = Number(match[1]);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      throw {
-        message: "Invalid JWT_ACCESS_EXPIRES_IN value",
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-      };
+
+    if (/^\d+$/.test(value)) {
+      const seconds = Number(value);
+
+      if (!Number.isFinite(seconds) || seconds <= 0) {
+        throw this.invalidAccessExpiresInError();
+      }
+
+      return seconds;
     }
-    const unit = match[2] || "s";
-    return unit === "m"
-      ? amount * 60
-      : unit === "h"
-        ? amount * 3600
-        : unit === "d"
-          ? amount * 86400
-          : amount;
+
+    return value as NonNullable<SignOptions["expiresIn"]>;
+  }
+
+  private isAccessPayload(payload: JwtPayload | string): payload is VerifiedAccessPayload {
+    if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+      return false;
+    }
+
+    const identity = payload.sub || payload.userId || payload._id;
+
+    if (
+      typeof payload.exp !== "number" ||
+      typeof payload.sessionId !== "string" ||
+      !payload.sessionId ||
+      !identity ||
+      (payload.type && payload.type !== "access")
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   signAccessToken(claims: AccessClaims) {
@@ -73,56 +98,33 @@ class JwtAuthService {
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
       };
     }
-    const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-    const exp = Math.floor(Date.now() / 1000) + this.parseExpiresIn(this.getAccessExpiresIn());
-    const payload = Buffer.from(JSON.stringify({ ...claims, exp })).toString("base64url");
-    const sig = crypto
-      .createHmac("sha256", this.getAccessSecret())
-      .update(`${header}.${payload}`)
-      .digest("base64url");
-    return `${header}.${payload}.${sig}`;
+
+    const { exp: _ignoredExp, ...payloadClaims } = claims;
+    const secret = this.getAccessSecret();
+    const expiresIn = this.getAccessTokenExpiresIn();
+
+    try {
+      return jwt.sign(payloadClaims, secret, {
+        algorithm: "HS256",
+        expiresIn,
+        noTimestamp: true,
+      });
+    } catch {
+      throw this.invalidAccessExpiresInError();
+    }
   }
 
   verifyAccessToken(token: string) {
     try {
-      const parts = token.split(".");
-      if (parts.length !== 3) throw new Error("Malformed token");
-      const [headerPart, payloadPart, signaturePart] = parts;
+      const payload = jwt.verify(token, this.getAccessSecret(), {
+        algorithms: ["HS256"],
+      });
 
-      let header: { alg?: string; typ?: string };
-      let payload: AccessClaims;
-      try {
-        header = JSON.parse(Buffer.from(headerPart, "base64url").toString("utf8"));
-        payload = JSON.parse(Buffer.from(payloadPart, "base64url").toString("utf8"));
-      } catch {
-        throw new Error("Malformed token");
-      }
-
-      if (header.alg !== "HS256" || header.typ !== "JWT") throw new Error("Invalid header");
-
-      const expectedSig = crypto
-        .createHmac("sha256", this.getAccessSecret())
-        .update(`${headerPart}.${payloadPart}`)
-        .digest();
-      const providedSig = Buffer.from(signaturePart, "base64url");
-      if (
-        expectedSig.length !== providedSig.length ||
-        !crypto.timingSafeEqual(expectedSig, providedSig)
-      ) {
-        throw new Error("Invalid signature");
-      }
-
-      if (
-        !payload.exp ||
-        payload.exp <= Math.floor(Date.now() / 1000) ||
-        !payload.sessionId ||
-        (!payload.sub && !payload.userId && !payload._id) ||
-        (payload.type && payload.type !== "access")
-      ) {
+      if (!this.isAccessPayload(payload)) {
         throw new Error("Invalid payload");
       }
 
-      return payload;
+      return payload as AccessClaims;
     } catch {
       throw this.unauthorizedError();
     }
@@ -168,7 +170,7 @@ class JwtAuthService {
     }
     if (!session.userId || typeof session.userId !== "string") throw this.unauthorizedError();
 
-    const user = await this.userRepository.findById(session.userId);
+    const user = (await this.userRepository.findById(session.userId)) as unknown as IUser | null;
     if (!user || !user.hasAccess) throw this.unauthorizedError();
 
     return { session, user };
