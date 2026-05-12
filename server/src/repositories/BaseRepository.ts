@@ -137,12 +137,22 @@ export class BaseRepository<T> {
     return newDoc;
   }
 
+  async createWithoutScope(doc: T): Promise<T> {
+    return await this.model.create(doc);
+  }
+
   async isExists(filter: RootFilterQuery<T>): Promise<boolean> {
     const count = await this.model.exists(
       this.withScopedSoftDeleteFilter(filter as Record<string, any>)
     );
 
     return count !== null;
+  }
+
+  async countDocuments(filter: RootFilterQuery<T> = {}): Promise<number> {
+    return await this.model.countDocuments(
+      this.withScopedSoftDeleteFilter(filter as Record<string, any>)
+    );
   }
 
   async find(options: FindOptions<T> = { query: {} }) {
@@ -197,6 +207,33 @@ export class BaseRepository<T> {
     const skip = (page - 1) * limit;
     const parsedQuery = query ?? {};
     const filteredQuery = this.withScopedSoftDeleteFilter(parsedQuery);
+
+    const [results, totalResults] = await Promise.all([
+      this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),
+      this.model.countDocuments(filteredQuery).exec(),
+    ]);
+
+    const totalPages = Math.ceil(totalResults / limit);
+
+    return {
+      results,
+      totalResults,
+      totalPages,
+      currentPage: page,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
+  }
+
+  async getPaginatedWithoutScope({
+    limit,
+    page,
+    query = {},
+    sort = {},
+  }: PaginationParams): Promise<PaginationResult<T>> {
+    const skip = (page - 1) * limit;
+    const parsedQuery = query ?? {};
+    const filteredQuery = this.withSoftDeleteFilter(parsedQuery as Record<string, any>);
 
     const [results, totalResults] = await Promise.all([
       this.model.find(filteredQuery).sort(sort).skip(skip).limit(limit),
