@@ -1,7 +1,7 @@
 import { IBlog } from "../interfaces/IBlog";
 import { BlogRepository } from "../repositories/Blogs/BlogRepository";
 import { generatePaginationCacheKey, PaginationParams } from "../utils/pagination";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "blogs";
 

@@ -1,7 +1,7 @@
 import { ISubTrainer } from "../interfaces/ISubTrainer";
 import { IUser } from "../interfaces/IUser";
 import SubTrainerRepository from "../repositories/SubTrainer/SubTrainerRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import UserService from "./userService";
 import { User } from "../models/userModel";
 import { SubTrainerModel } from "../models/subTrainerModel";

@@ -2,7 +2,7 @@ import { IMuscleGroupRecordedSets, IRecordedSet } from "../interfaces/ISet";
 import { type RecordedSetsQueryParams } from "../types/QueryParams";
 import SessionService from "./sessionService";
 import { ISession, ISessionCreate } from "../models/sessionModel";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import { RecordedSetsRepository } from "../repositories/RecordedSets/RecordedSetsRepository";
 import { stableStringify } from "../utils/utils";
 import mongoose from "mongoose";
@@ -146,10 +146,10 @@ export class RecordedSetsService extends BaseService<
     const { userId, muscleGroup, exercise } = query;
 
     try {
-      const result = await this.repository.findOne({
+      const result = (await this.repository.findOne({
         query: { userId, muscleGroup },
         projection: { [`recordedSets.${exercise}`]: 1 },
-      });
+      })) as unknown as IMuscleGroupRecordedSets | null;
 
       const sets = result?.recordedSets?.[exercise];
       if (!sets) return [];

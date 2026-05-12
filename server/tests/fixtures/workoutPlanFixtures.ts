@@ -1,3 +1,5 @@
+const validExerciseId = "507f1f77bcf86cd799439011";
+
 export const ValidSet = {
   minReps: 8,
   maxReps: 12,
@@ -8,6 +10,7 @@ export const InvalidSet = {
 };
 
 export const ValidWorkout: any = {
+  exerciseId: validExerciseId,
   sets: [ValidSet],
   tipFromTrainer: "Keep your back straight.",
 };
@@ -47,5 +50,14 @@ export const InvalidDetailedWorkoutPlan = {
 };
 
 export const validFullWorkoutPlan = {
+  tips: ["Brace before each rep"],
   workoutPlans: [ValidWorkoutPlan],
+  cardio: {
+    type: "simple",
+    plan: {
+      minsPerWeek: 90,
+      timesPerWeek: 3,
+      minsPerWorkout: 30,
+    },
+  },
 };

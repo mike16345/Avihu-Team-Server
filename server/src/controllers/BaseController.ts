@@ -12,7 +12,7 @@ import { IServerResponseParams } from "../interfaces/IResponse";
 import { BaseRepository } from "../repositories/BaseRepository";
 import { MongoCode } from "../enums/MongoCode";
 import { DUPLICATE_PRESET_ERROR } from "../constants/Constants";
-import { BaseService } from "../services/BaseService";
+import { BaseService } from "../services/baseService";
 
 export default class BaseController<
   T,

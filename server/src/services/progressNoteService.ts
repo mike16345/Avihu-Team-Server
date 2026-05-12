@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import { IProgressNote, IProgressNotes } from "../interfaces/userProgress";
 import { ProgressNotesRepository } from "../repositories/ProgressNotes/ProgressNotesRepository";
 import mongoose from "mongoose";

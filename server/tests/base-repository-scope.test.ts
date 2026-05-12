@@ -17,7 +17,11 @@ const createModelDouble = (hasTrainerId: boolean) => {
     create: jest.fn(async (doc: any) => doc),
     exists: jest.fn(async () => ({ _id: "doc-1" })),
     find: jest.fn(async () => [{ _id: "doc-1" }]),
-    findOne: jest.fn(async (query: any) => ({ _id: "doc-1", ...query })),
+    findOne: jest.fn((query: any) => ({
+      lean: () => ({
+        exec: async () => ({ _id: "doc-1", ...query }),
+      }),
+    })),
     findOneAndUpdate: jest.fn(async (query: any, update: any) => ({ _id: "doc-1", query, update })),
     findOneAndDelete: jest.fn(() => ({
       lean: () => ({

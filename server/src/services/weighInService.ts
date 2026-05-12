@@ -1,6 +1,6 @@
 import { IWeighIn, IWeighIns } from "../interfaces/IWeighIns";
 import { HALF_DAY_IN_MILLISECONDS } from "../constants/Constants";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import WeighInsRepository from "../repositories/WeighIns/WeighInRepository";
 import { StatusCode } from "../enums/StatusCode";
 
@@ -27,7 +27,9 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
     const cached = this.cache.get(id);
 
     if (cached) return cached.weighIns;
-    const weighIns = await this.repository.findOne({ query: { userId: id } });
+    const weighIns = (await this.repository.findOne({
+      query: { userId: id },
+    })) as unknown as IWeighIns | null;
 
     if (!weighIns?.weighIns) return [];
     weighIns.weighIns = weighIns.weighIns.sort(
@@ -39,9 +41,8 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
   }
 
   async updateWeighIn(weighInId: string, newWeighIn: any) {
-    const parentDoc = await this.repository.findOne({ query: { "weighIns._id": weighInId } });
+    const parentDoc = await this.repository.updateWeighInById(weighInId, newWeighIn);
 
-    // Find the index of the subdocument
     const subDocIndex = parentDoc.weighIns.findIndex(
       (item: any) => item._id.toString() === weighInId
     );
@@ -49,12 +50,8 @@ export default class WeighInService extends BaseService<IWeighIns, WeighInsRepos
     if (subDocIndex === -1) {
       throw { message: "Subdocument not found", statusCode: StatusCode.NOT_FOUND };
     }
-    // Update the specific subdocument
-    parentDoc.weighIns[subDocIndex].weight = newWeighIn;
-    await parentDoc.save();
     this.cache.invalidateAllContaining(parentDoc.userId);
 
-    // Return the updated subdocument
     return parentDoc.weighIns[subDocIndex];
   }
 

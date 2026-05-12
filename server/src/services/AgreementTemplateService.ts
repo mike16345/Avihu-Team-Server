@@ -1,7 +1,7 @@
 import { FilterQuery } from "mongoose";
 import { IAgreementTemplate } from "../interfaces/IAgreement";
 import { AgreementTemplateRepository } from "../repositories/Agreements/AgreementTemplateRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "agreement-templates";
 

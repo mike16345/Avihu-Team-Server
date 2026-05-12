@@ -1,6 +1,6 @@
 import { ISignedAgreement } from "../interfaces/IAgreement";
 import { SignedAgreementRepository } from "../repositories/Agreements/SignedAgreementRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "signed-agreements";
 

@@ -177,7 +177,7 @@ export class BaseRepository<T> {
 
   async findOne(options: FindOptions<T>) {
     const { projection, queryOptions, query } = options;
-    const filteredQuery = this.withSoftDeleteFilter(query as Record<string, any>);
+    const filteredQuery = this.withScopedSoftDeleteFilter(query as Record<string, any>);
 
     const item = await this.model.findOne(filteredQuery, projection, queryOptions).lean().exec();
 

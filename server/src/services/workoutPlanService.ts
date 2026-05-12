@@ -2,7 +2,7 @@ import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 import { workoutPlanRepository } from "../repositories/workoutPlan/WorkoutPlanRepository";
 import { removeNestedIds } from "../utils/utils";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = `workout-plan`;
 

@@ -12,7 +12,10 @@ export class SessionRepository extends BaseRepository<ISession> {
   }
 
   async findRefreshSessionByHash(tokenHash: string): Promise<ISession | null> {
-    return this.model.findOne({ type: "auth_refresh", "data.tokenHash": tokenHash }).lean();
+    return this.model
+      .findOne({ type: "auth_refresh", "data.tokenHash": tokenHash })
+      .lean<ISession>()
+      .exec();
   }
 
   async revokeRefreshSession(session: ISession): Promise<void> {

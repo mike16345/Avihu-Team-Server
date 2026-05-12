@@ -1,6 +1,6 @@
 import { IExercisePreset } from "../interfaces/IWorkoutPlan";
 import { ExercisePresetsRepository } from "../repositories/Presets/ExercisePresetsRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = "exercise-preset";
 

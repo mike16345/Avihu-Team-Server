@@ -1,6 +1,6 @@
 import { IUserImageUrls } from "../models/urlModel";
 import UserImageUrlsRepository from "../repositories/UserImageUrls/UserImageUrlsRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "user-image-urls";
 

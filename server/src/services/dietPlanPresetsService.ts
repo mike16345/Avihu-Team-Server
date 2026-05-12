@@ -1,6 +1,6 @@
 import { IDietPlanPreset } from "../interfaces/IDietPlan";
 import { DietPlanPresetRepository } from "../repositories/Presets/DietPlanPresetRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 
 const baseKey='diet-plan-preset';

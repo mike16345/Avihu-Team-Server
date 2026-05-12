@@ -1,6 +1,6 @@
 import { IUser } from "../interfaces/IUser";
 import { deleteUserDataFromAllCollections } from "../utils/utils";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import UserRepository from "../repositories/User/UserRepository";
 import PasswordsService from "./PasswordsService";
 import { EmailService } from "./EmailService";

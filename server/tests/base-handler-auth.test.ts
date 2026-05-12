@@ -16,6 +16,10 @@ describe("handleApiCall auth flow", () => {
   });
 
   test("enforces auth on protected routes before middleware, validators, and handler", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ userId: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
+
     const executionOrder: string[] = [];
     const middleware = jest.fn().mockImplementation(async () => {
       executionOrder.push("middleware");
@@ -136,6 +140,10 @@ describe("handleApiCall auth flow", () => {
   });
 
   test("logs request metadata without leaking the authorization header value", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ userId: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
+
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
     await handleApiCall(
