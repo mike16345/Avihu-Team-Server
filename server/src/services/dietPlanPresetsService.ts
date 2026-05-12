@@ -2,21 +2,10 @@ import { IDietPlanPreset } from "../interfaces/IDietPlan";
 import { DietPlanPresetRepository } from "../repositories/Presets/DietPlanPresetRepository";
 import { BaseService } from "./baseService";
 
+const baseKey = "diet-plan-preset";
 
-const baseKey='diet-plan-preset';
-
-export class DietPlanPresetsService extends BaseService<IDietPlanPreset,DietPlanPresetRepository> {
-  constructor(){
-    super(new DietPlanPresetRepository(),baseKey)
+export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPlanPresetRepository> {
+  constructor() {
+    super(new DietPlanPresetRepository(), baseKey);
   }
-
-
-
-
-
-   
-
-  
- 
-
 }
