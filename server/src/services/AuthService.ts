@@ -4,7 +4,7 @@ import SessionService from "./sessionService";
 import { ISession } from "../models/sessionModel";
 import { IUser } from "../interfaces/IUser";
 import { StatusCode } from "../enums/StatusCode";
-import { requireAdmin } from "../guards/AdminAccessGuard";
+import { allowedAdminAppRoles, requireAdmin, requireRoles } from "../guards/AdminAccessGuard";
 
 class AuthService {
   private userService = new UserService();
@@ -21,10 +21,10 @@ class AuthService {
 
     if (!user) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
     if (isAdminApp) {
-      requireAdmin(user);
+      requireRoles(...allowedAdminAppRoles, user.role);
     }
     if (!user.hasAccess) throw { message: "User is inactive", statusCode: StatusCode.FORBIDDEN };
-    if (user.onboardingStep !== "completed")
+    if (user.onboardingStep !== "completed" && !isAdminApp)
       throw { message: "User invite pending", statusCode: StatusCode.FORBIDDEN };
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);

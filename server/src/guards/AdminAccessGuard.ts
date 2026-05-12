@@ -53,6 +53,8 @@ export const requireUser = (user: IUser | null): IUser => {
   return user;
 };
 
+export const allowedAdminAppRoles: UserRole[] = ["admin", "trainer", "subTrainer"];
+
 export const requireRoles = (...allowedRoles: UserRole[]) => {
   return (user: IUser | null): IUser => {
     const existingUser = requireUser(user);

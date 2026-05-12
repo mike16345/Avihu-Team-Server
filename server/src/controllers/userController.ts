@@ -154,7 +154,8 @@ export class UserController extends BaseController<IUser, UserService> {
       });
       const user = (session.data as any)?.user;
 
-      const isAdminOrTrainer = user.role === "admin" || user.role === "trainer";
+      const isAdminOrTrainer =
+        user.role === "admin" || user.role === "trainer" || user.role == "subTrainer";
 
       const { refreshToken } = await this.jwtAuthService.createRefreshSession(user, { ip, device });
 
