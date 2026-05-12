@@ -1,7 +1,7 @@
 import { ISubTrainer } from "../interfaces/ISubTrainer";
 import { IUser } from "../interfaces/IUser";
 import SubTrainerRepository from "../repositories/SubTrainer/SubTrainerRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import UserService from "./userService";
 import { User } from "../models/userModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
@@ -102,7 +102,9 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
         { initialPassword: password }
       );
 
-      const updatedSubTrainer = await this.updateById(subTrainer._id.toString(), { userId: user._id });
+      const updatedSubTrainer = await this.updateById(subTrainer._id.toString(), {
+        userId: user._id,
+      });
 
       return updatedSubTrainer as ISubTrainer;
     } catch (error) {

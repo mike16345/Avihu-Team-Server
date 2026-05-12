@@ -2,6 +2,7 @@ import FormPresetController from "../../controllers/FormPresetController";
 import FormResponseController from "../../controllers/FormResponseController";
 import { validateFormPreset } from "../../middleware/formPresetMiddleware";
 import { validateFormResponse } from "../../middleware/formResponseMiddleware";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 export const FORM_PRESET_BASE_PATH = "/presets/forms";
 export const FORM_RESPONSE_BASE_PATH = `${FORM_PRESET_BASE_PATH}/responses`;
@@ -9,26 +10,62 @@ export const FORM_RESPONSE_BASE_PATH = `${FORM_PRESET_BASE_PATH}/responses`;
 const formPresetController = new FormPresetController();
 const formResponseController = new FormResponseController();
 
-export const formPresetApiHandlers = {
-  [`GET ${FORM_PRESET_BASE_PATH}`]: formPresetController.getAll,
-  [`GET ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.getById,
-  [`GET ${FORM_PRESET_BASE_PATH}/form/one`]: formPresetController.getOne,
-  [`POST ${FORM_PRESET_BASE_PATH}`]: formPresetController.create,
-  [`PUT ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.updateById,
-  [`DELETE ${FORM_PRESET_BASE_PATH}/one`]: formPresetController.deleteById,
+export const formPresetApiRoutes: ApiRouteHandlers = {
+  [`GET ${FORM_PRESET_BASE_PATH}`]: {
+    handler: formPresetController.getAll,
+    access: "subtrainer",
+  },
+  [`GET ${FORM_PRESET_BASE_PATH}/one`]: {
+    handler: formPresetController.getById,
+    access: "public",
+  },
+  [`GET ${FORM_PRESET_BASE_PATH}/form/one`]: {
+    handler: formPresetController.getOne,
+    access: "public",
+  },
+  [`POST ${FORM_PRESET_BASE_PATH}`]: {
+    handler: formPresetController.create,
+    access: "subtrainer",
+    middlewares: [validateFormPreset],
+  },
+  [`PUT ${FORM_PRESET_BASE_PATH}/one`]: {
+    handler: formPresetController.updateById,
+    access: "subtrainer",
+    middlewares: [validateFormPreset],
+  },
+  [`DELETE ${FORM_PRESET_BASE_PATH}/one`]: {
+    handler: formPresetController.deleteById,
+    access: "subtrainer",
+  },
 
-  [`GET ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.getAll,
-  [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.getById,
-  [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: formResponseController.getOne,
-  [`POST ${FORM_RESPONSE_BASE_PATH}`]: formResponseController.create,
-  [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.updateById,
-  [`PUT ${FORM_RESPONSE_BASE_PATH}/one/check-off`]: formResponseController.checkOffResponse,
-  [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: formResponseController.deleteById,
-};
-
-export const formPresetsMiddleware = {
-  [`POST ${FORM_PRESET_BASE_PATH}`]: validateFormPreset,
-  [`PUT ${FORM_PRESET_BASE_PATH}/one`]: validateFormPreset,
-  [`POST ${FORM_RESPONSE_BASE_PATH}`]: validateFormResponse,
-  [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: validateFormResponse,
+  [`GET ${FORM_RESPONSE_BASE_PATH}`]: {
+    handler: formResponseController.getAll,
+    access: "subtrainer",
+  },
+  [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: {
+    handler: formResponseController.getById,
+    access: "subtrainer",
+  },
+  [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: {
+    handler: formResponseController.getOne,
+    access: "subtrainer",
+  },
+  [`POST ${FORM_RESPONSE_BASE_PATH}`]: {
+    handler: formResponseController.create,
+    access: "public",
+    middlewares: [validateFormResponse],
+  },
+  [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: {
+    handler: formResponseController.updateById,
+    access: "subtrainer",
+    middlewares: [validateFormResponse],
+  },
+  [`PUT ${FORM_RESPONSE_BASE_PATH}/one/check-off`]: {
+    handler: formResponseController.checkOffResponse,
+    access: "subtrainer",
+  },
+  [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: {
+    handler: formResponseController.deleteById,
+    access: "subtrainer",
+  },
 };

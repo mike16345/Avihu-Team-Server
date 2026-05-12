@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import { MuscleMeasurementsRepository } from "../repositories/MuscleMeasurments/MuscleMeasurmentsRepository";
 import { IUserMuscleMeasurements } from "../interfaces/IMuscleMeasurment";
 

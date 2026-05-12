@@ -1,5 +1,6 @@
 import joi from "joi";
 import { model, Schema, Types } from "mongoose";
+import { IModel } from "../interfaces/IModel";
 
 export interface ILessonGroup {
   _id?: Types.ObjectId;
@@ -7,11 +8,16 @@ export interface ILessonGroup {
   description?: string;
 }
 
-const LessonSchema = new Schema<ILessonGroup>({
+const LessonSchema = new Schema<ILessonGroup & IModel>({
   name: {
     type: String,
     required: true,
     unique: true,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
   },
   description: {
     type: String,

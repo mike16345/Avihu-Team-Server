@@ -1,21 +1,29 @@
 import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import { extractBodyFromEvent, extractQueryFromEvent, getHeaderValue } from "../utils/utils";
+import {
+  extractBearerToken,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+  getHeaderValue,
+} from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
 import AuthService from "../services/AuthService";
+import JwtAuthService from "../services/JwtAuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
   private authService: AuthService;
   private sessionService: SessionService;
+  private jwtAuthService: JwtAuthService;
 
   constructor() {
     super(new UserService());
     this.sessionService = new SessionService();
     this.authService = new AuthService();
+    this.jwtAuthService = new JwtAuthService();
   }
 
   private validateUserAccess(user: IUser | null): APIGatewayProxyResult | null {
@@ -144,16 +152,94 @@ export class UserController extends BaseController<IUser, UserService> {
         ip,
         device,
       });
+      const user = (session.data as any)?.user;
+
+      const isAdminOrTrainer =
+        user.role === "admin" || user.role === "trainer" || user.role == "subTrainer";
+
+      const { refreshToken } = await this.jwtAuthService.createRefreshSession(user, { ip, device });
+
+      const accessToken = this.jwtAuthService.signAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        sessionId: String(session._id),
+        trainerId: isAdminOrTrainer ? user.trainerId || user._id.toString() : undefined,
+      });
 
       return this.successResponse({
         status: StatusCode.OK,
-        data: session,
+        data: { accessToken, refreshToken, sessionId: session._id, user: this.toSafeUser(user) },
         message: "התחברות בוצעה בהצלחה!",
       });
     } catch (err: any) {
       return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
+
+  refreshAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
+    if (error) return error;
+
+    try {
+      const { user } = await this.jwtAuthService.validateRefreshToken(refreshToken);
+      const { refreshToken: nextRefreshToken, session } =
+        await this.jwtAuthService.rotateRefreshToken(refreshToken);
+      const accessToken = this.jwtAuthService.signAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        sessionId: String(session._id),
+      });
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: { accessToken, refreshToken: nextRefreshToken, user: this.toSafeUser(user) },
+      });
+    } catch (err: any) {
+      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  logoutAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
+
+    if (error) return error;
+
+    try {
+      await this.jwtAuthService.revokeRefreshToken(refreshToken);
+
+      return this.successResponse({ status: StatusCode.OK, message: "Logged out" });
+    } catch (err: any) {
+      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  me = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const token = extractBearerToken(event.headers || {});
+      const claims = this.jwtAuthService.verifyAccessToken(token);
+      const userId = claims.sub || claims.userId || claims._id;
+
+      if (!userId) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+
+      const user = await this.service.findById(userId);
+
+      if (!user) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+      if (!user.hasAccess) return this.errorResponse("Unauthorized", StatusCode.FORBIDDEN);
+
+      return this.successResponse({ status: StatusCode.OK, data: this.toSafeUser(user) });
+    } catch (err) {
+      return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  private toSafeUser(user: IUser) {
+    return {
+      ...user,
+      status: user.hasAccess ? "active" : "inactive",
+      isSuperAdmin: user.role === "admin",
+      isTrainer: user.role === "trainer",
+    };
+  }
 
   checkUserSessionToken = async (event: APIGatewayEvent) => {
     try {

@@ -10,7 +10,7 @@ import { PaginationParams, PaginationResult } from "../../utils/pagination";
 
 export class BlogRepository extends BaseRepository<IBlog> {
   constructor() {
-    super(BlogModel);
+    super(BlogModel, { type: "trainer", field: "trainerId" });
   }
 
   private async populateBlogs(queryOrDocs: any) {
@@ -26,7 +26,11 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
   findOne = async (options: FindOptions<IBlog>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const queryResult = this.model.findOne(query, projection, queryOptions);
+    const queryResult = this.model.findOne(
+      this.withScopedSoftDeleteFilter(query as Record<string, any>),
+      projection,
+      queryOptions
+    );
 
     const blog = await this.populateBlogs(queryResult);
 
@@ -38,7 +42,9 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   findById = async (id: string | Types.ObjectId): Promise<any> => {
-    const blog = await this.populateBlogs(this.model.findById(id));
+    const blog = await this.populateBlogs(
+      this.model.findOne(this.withScopedSoftDeleteFilter({ _id: id }))
+    );
 
     if (!blog) {
       throw { status: StatusCode.NOT_FOUND, message: FIND_ONE_FAILURE };
@@ -49,7 +55,13 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
   find = async (options: FindOptions<IBlog>): Promise<any> => {
     const { query, queryOptions, projection } = options;
-    const blogs = await this.populateBlogs(this.model.find(query, projection, queryOptions));
+    const blogs = await this.populateBlogs(
+      this.model.find(
+        this.withScopedSoftDeleteFilter(query as Record<string, any>),
+        projection,
+        queryOptions
+      )
+    );
 
     return blogs;
   };
@@ -57,11 +69,11 @@ export class BlogRepository extends BaseRepository<IBlog> {
   getPaginatedBlogs = async (
     paginationParams: PaginationParams
   ): Promise<PaginationResult<IBlog>> => {
-    const query = paginationParams.query ?? {};
+    const query = this.withScopedSoftDeleteFilter(paginationParams.query ?? {});
 
     if (query.planType) {
       const planType = query.planType;
-      query.planType = { $in: [planType, "כללי"] };
+      query.planType = { $in: [planType, "×›×œ×œ×™"] };
       console.log("NEW PLAN TYPE QUERY!", query.planType);
     }
 
@@ -80,8 +92,8 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   addViewer = async (id: string, userId: string) => {
-    const blog = await this.model.findByIdAndUpdate(
-      id,
+    const blog = await this.model.findOneAndUpdate(
+      this.applyScopeToQuery({ _id: id }),
       { $addToSet: { views: userId } },
       { new: true }
     );
@@ -94,7 +106,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   changeLikedStatus = async (id: string, userId: string) => {
-    const blog = await this.model.findById(id);
+    const blog = await this.model.findOne(this.withScopedSoftDeleteFilter({ _id: id }));
 
     if (!blog) {
       throw { status: StatusCode.NOT_FOUND, message: "Article not found" };
@@ -102,11 +114,9 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
     const hasLiked = blog.likes.includes(userId);
 
-    const updatedBlog = await this.model.findByIdAndUpdate(
-      id,
-      hasLiked
-        ? { $pull: { likes: userId } } // remove if exists
-        : { $addToSet: { likes: userId } }, // add if not
+    const updatedBlog = await this.model.findOneAndUpdate(
+      this.applyScopeToQuery({ _id: id }),
+      hasLiked ? { $pull: { likes: userId } } : { $addToSet: { likes: userId } },
       { new: true }
     );
 
@@ -114,20 +124,19 @@ export class BlogRepository extends BaseRepository<IBlog> {
   };
 
   getBlogCountsByGroup = async (planType?: string) => {
-    const pipeline: any[] = [];
+    const query: Record<string, any> = {};
 
     if (planType) {
-      pipeline.push({
-        $match: {
-          planType: { $in: [planType, "כללי"] },
-        },
-      });
+      query.planType = { $in: [planType, "כללי"] };
     }
 
-    pipeline.push(
+    const pipeline: any[] = [
+      {
+        $match: this.withScopedSoftDeleteFilter(query),
+      },
       {
         $group: {
-          _id: "$group", // lessonGroup ObjectId
+          _id: "$group",
           count: { $sum: 1 },
         },
       },
@@ -147,8 +156,8 @@ export class BlogRepository extends BaseRepository<IBlog> {
           description: "$lessonGroup.description",
           count: 1,
         },
-      }
-    );
+      },
+    ];
 
     return this.model.aggregate(pipeline);
   };

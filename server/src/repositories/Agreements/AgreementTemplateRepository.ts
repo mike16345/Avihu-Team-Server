@@ -5,7 +5,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export class AgreementTemplateRepository extends BaseRepository<IAgreementTemplate> {
   constructor() {
-    super(AgreementTemplateModel);
+    super(AgreementTemplateModel, { type: "trainer", field: "trainerId" });
   }
 
   findActiveTemplate = async (query: FilterQuery<IAgreementTemplate>) => {

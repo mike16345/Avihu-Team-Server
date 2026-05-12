@@ -1,10 +1,21 @@
 import { model, Schema } from "mongoose";
+import { IModel } from "../interfaces/IModel";
 
-export const exerciseMethodSchema = new Schema({
+interface IExerciseMethod extends IModel {
+  title: string;
+  description: string;
+}
+
+export const exerciseMethodSchema = new Schema<IExerciseMethod>({
   title: {
     type: String,
     required: true,
     minlength: 1,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
   },
   description: {
     type: String,
@@ -13,4 +24,4 @@ export const exerciseMethodSchema = new Schema({
   },
 });
 
-export const exerciseMethods = model(`exerciseMethod`, exerciseMethodSchema);
+export const exerciseMethods = model<IExerciseMethod>(`exerciseMethod`, exerciseMethodSchema);

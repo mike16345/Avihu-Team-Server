@@ -5,7 +5,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export class RecordedSetsRepository extends BaseRepository<IMuscleGroupRecordedSets> {
   constructor() {
-    super(MuscleGroupRecordedSets);
+    super(MuscleGroupRecordedSets, { type: "global" });
   }
 
   async findOrCreate(userId: mongoose.Types.ObjectId, muscleGroup: string) {

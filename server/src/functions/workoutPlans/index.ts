@@ -2,30 +2,49 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda
 import WorkoutPlanController from "../../controllers/workoutPlanController";
 import { handleApiCall } from "../baseHandler";
 import { validateWorkoutPlan } from "../../middleware/workoutPlanMiddleware";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 const BASE_PATH = "/workoutPlans";
 
 const workoutPlanController = new WorkoutPlanController();
 
-const workoutPlanApiHandlers = {
-  [`GET ${BASE_PATH}`]: workoutPlanController.getAll,
-  [`GET ${BASE_PATH}/one`]: workoutPlanController.getById,
-  [`GET ${BASE_PATH}/user`]: workoutPlanController.getOne,
-  [`PUT ${BASE_PATH}/one`]: workoutPlanController.updateById,
-  [`PUT ${BASE_PATH}/one/user`]: workoutPlanController.update,
-  [`POST ${BASE_PATH}`]: workoutPlanController.addWorkoutPlan,
-  [`DELETE ${BASE_PATH}/one`]: workoutPlanController.deleteById,
-};
-
-const workoutPlanMiddleware = {
-  [`POST ${BASE_PATH}`]: validateWorkoutPlan,
-  [`PUT ${BASE_PATH}/one`]: validateWorkoutPlan,
-  [`PUT ${BASE_PATH}/one/user`]: validateWorkoutPlan,
+const workoutPlanApiRoutes: ApiRouteHandlers = {
+  [`GET ${BASE_PATH}`]: {
+    handler: workoutPlanController.getAll,
+    access: "subtrainer",
+  },
+  [`GET ${BASE_PATH}/one`]: {
+    handler: workoutPlanController.getById,
+    access: "authenticated",
+  },
+  [`GET ${BASE_PATH}/user`]: {
+    handler: workoutPlanController.getOne,
+    access: "authenticated",
+  },
+  [`PUT ${BASE_PATH}/one`]: {
+    handler: workoutPlanController.updateById,
+    access: "subtrainer",
+    middlewares: [validateWorkoutPlan],
+  },
+  [`PUT ${BASE_PATH}/one/user`]: {
+    handler: workoutPlanController.update,
+    access: "subtrainer",
+    middlewares: [validateWorkoutPlan],
+  },
+  [`POST ${BASE_PATH}`]: {
+    handler: workoutPlanController.addWorkoutPlan,
+    access: "subtrainer",
+    middlewares: [validateWorkoutPlan],
+  },
+  [`DELETE ${BASE_PATH}/one`]: {
+    handler: workoutPlanController.deleteById,
+    access: "subtrainer",
+  },
 };
 
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, workoutPlanApiHandlers, workoutPlanMiddleware);
+  return await handleApiCall(event, context, workoutPlanApiRoutes);
 };

@@ -1,12 +1,18 @@
 import Joi from "joi";
 import { model, Schema } from "mongoose";
 import { IExercisePreset } from "../interfaces/IWorkoutPlan";
+import { IModel } from "../interfaces/IModel";
 
-export const exercisePresetSchema = new Schema<IExercisePreset>({
+export const exercisePresetSchema = new Schema<IExercisePreset & IModel>({
   name: {
     type: String,
     required: true,
     minlength: 1,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
   },
   linkToVideo: {
     type: String,

@@ -1,5 +1,5 @@
 import { ILessonGroup } from "../models/lessonGroupsModel";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import { LessonGroupRepository } from "../repositories/LessonGroups/LessonGroupRepository";
 
 const baseKey = "lesson-groups";

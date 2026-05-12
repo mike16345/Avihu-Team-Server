@@ -1,11 +1,7 @@
-// fixtures/dietPlanPresetFixtures.ts
 export const validDietItem = {
   quantity: 100,
-  unit: "grams",
-  customInstructions: [
-    { item: "chicken", quantity: 50 },
-    { item: "rice", quantity: 50 },
-  ],
+  customItems: ["507f1f77bcf86cd799439011"],
+  extraItems: ["chicken", "rice"],
 };
 
 export const validMeal = {
@@ -18,21 +14,26 @@ export const validMeal = {
 export const validDietPlanPreset = {
   name: "Preset 1",
   meals: [validMeal],
+  supplements: [],
   totalCalories: 2000,
 };
 
 export const invalidDietItem = {
-  quantity: -100,
-  unit: "liters", // invalid unit
-  customInstructions: [{ item: "chicken", quantity: 50 }],
+  extraItems: ["missing quantity"],
 };
 
 export const invalidMeal = {
   totalProtein: invalidDietItem,
   totalCarbs: validDietItem,
+  totalFats: validDietItem,
+  totalVeggies: validDietItem,
 };
 
 export const invalidDietPlanPreset = {
+  meals: [invalidMeal],
+};
+
+export const invalidNamedDietPlanPreset = {
   name: "",
   meals: [invalidMeal],
 };

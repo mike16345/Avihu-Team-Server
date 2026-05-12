@@ -1,6 +1,6 @@
 import { IForm } from "../interfaces/IForm";
 import { FormPresetRepository } from "../repositories/Presets/FormPresetRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = "form-preset";
 

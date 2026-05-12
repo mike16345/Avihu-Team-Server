@@ -4,7 +4,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class PasswordRepository extends BaseRepository<IPassword> {
   constructor() {
-    super(Password);
+    super(Password, { type: "global" });
   }
 
   createByUser(doc: IPassword, userId: string) {

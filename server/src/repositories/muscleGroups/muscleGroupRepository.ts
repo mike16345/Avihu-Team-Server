@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class MuscleGroupRepository extends BaseRepository<IMuscleGroup> {
   constructor() {
-    super(muscleGroupPresets);
+    super(muscleGroupPresets, { type: "trainer", field: "trainerId" });
   }
 }

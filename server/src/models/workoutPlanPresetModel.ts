@@ -7,16 +7,22 @@ import {
   WorkoutPlanSchemaValidation,
 } from "./workoutPlanModel";
 import Joi from "joi";
+import { IModel } from "../interfaces/IModel";
 
 export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
   name: string;
 }
 
-export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset>({
+export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset & IModel>({
   name: {
     type: String,
     required: true,
     unique: true,
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
   },
   tips: {
     type: [String],

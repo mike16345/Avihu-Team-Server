@@ -75,7 +75,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const cached = this.cache.get(key);
 
     if (cached) return cached;
-    const item = await this.repository.findById(id);
+    const item = (await this.repository.findById(id)) as T;
 
     this.cache.set(key, item);
 
@@ -87,7 +87,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const cached = this.cache.get(key);
 
     if (cached) return cached;
-    const item = await this.repository.findOne({ query: filter });
+    const item = (await this.repository.findOne({ query: filter })) as T;
 
     this.cache.set(key, item);
 

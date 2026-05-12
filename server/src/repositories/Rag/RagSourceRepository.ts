@@ -3,7 +3,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export class RagSourceRepository extends BaseRepository<IRagSourceChunk> {
   constructor() {
-    super(RagSourceModel);
+    super(RagSourceModel, { type: "global" });
   }
 
   async findByHash(userId: string, hash: string) {

@@ -3,7 +3,7 @@ import { IUser } from "../interfaces/IUser";
 import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import TrainerRepository from "../repositories/Trainer/TrainerRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import UserService from "./userService";
 
 type TrainerOverview = {

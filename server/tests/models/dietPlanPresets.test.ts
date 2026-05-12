@@ -1,15 +1,21 @@
 // tests/dietPlanPresetModel.test.ts
 import mongoose from "mongoose";
 import {
-  dietPlanSchema,
   DietPlanPresetsModel,
   DietPlanPresetSchemaValidation,
 } from "../../src/models/dietPlanPresetModel";
-import { validDietPlanPreset, invalidDietPlanPreset } from "../fixtures/dietPlanPresetFixtures";
+import {
+  validDietPlanPreset,
+  invalidDietPlanPreset,
+  invalidNamedDietPlanPreset,
+} from "../fixtures/dietPlanPresetFixtures";
 
 describe("Mongoose Schemas for Diet Plan Presets", () => {
   test("should validate a valid diet plan preset", async () => {
-    const validPreset = new DietPlanPresetsModel(validDietPlanPreset);
+    const validPreset = new DietPlanPresetsModel({
+      ...validDietPlanPreset,
+      trainerId: new mongoose.Types.ObjectId(),
+    });
     const savedPreset = await validPreset.save();
 
     expect(savedPreset.name).toBe(validDietPlanPreset.name);
@@ -37,9 +43,7 @@ describe("Joi Validation for Diet Plan Presets", () => {
   });
 
   test("should return validation error for missing required fields", () => {
-    const invalidPreset = {
-      meals: [],
-    };
+    const invalidPreset = invalidNamedDietPlanPreset;
     const { error } = DietPlanPresetSchemaValidation.validate(invalidPreset);
 
     expect(error).not.toBeUndefined();
