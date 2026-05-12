@@ -48,6 +48,7 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
       role: "trainer",
       trainerId: trainer._id,
       hasAccess: statusToAccess(trainer.status),
+      onboardingStep: "completed",
     };
   }
 

@@ -6,6 +6,7 @@ import UserService from "./userService";
 import { User } from "../models/userModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
+import TrainerRepository from "../repositories/Trainer/TrainerRepository";
 
 type SubTrainerOverview = {
   trainees: {
@@ -84,6 +85,7 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
 
   async createSubTrainer(payload: CreateSubTrainerPayload): Promise<ISubTrainer> {
     const { password, ...subTrainerPayload } = payload;
+
     const subTrainer = await this.create(subTrainerPayload as ISubTrainer);
 
     try {
@@ -98,6 +100,7 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
           trainerId: subTrainer.trainerId,
           subTrainerId: subTrainer._id,
           hasAccess: statusToAccess(subTrainer.status),
+          onboardingStep: "completed",
         },
         { initialPassword: password }
       );

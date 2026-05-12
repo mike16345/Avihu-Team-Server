@@ -6,6 +6,7 @@ import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import { WorkoutPlan } from "../models/workoutPlanModel";
 import { Cache } from "../utils/cache";
+import { requireTrainerAuthContext } from "../utils/authContext";
 
 const userCache = new Cache<any>();
 const checkInCache = new Cache<any>();
@@ -64,10 +65,15 @@ export class AnalyticsService {
       return cachedCheckIns;
     }
 
+    const { trainerId } = requireTrainerAuthContext();
+
     try {
-      const allUsers = await User.find({ isDeleted: false, role: "user", isChecked: false }).select(
-        `firstName lastName isChecked`
-      );
+      const allUsers = await User.find({
+        isDeleted: false,
+        role: "user",
+        isChecked: false,
+        trainerId,
+      }).select(`firstName lastName isChecked`);
 
       for (const u of allUsers) {
         if (u) {
@@ -105,9 +111,11 @@ export class AnalyticsService {
       return null;
     }
 
+    const { trainerId } = requireTrainerAuthContext();
+
     try {
       const users = await User.find(
-        { isDeleted: false, role: "user" },
+        { isDeleted: false, role: "user", trainerId },
         { firstName: 1, lastName: 1 }
       );
       const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
@@ -127,12 +135,14 @@ export class AnalyticsService {
     const date = new Date();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
+    const { trainerId } = requireTrainerAuthContext();
 
     try {
       const users = await User.find(
         {
           isDeleted: false,
           role: "user",
+          trainerId,
           $expr: {
             $and: [
               { $eq: [{ $month: "$dateFinished" }, month] },
