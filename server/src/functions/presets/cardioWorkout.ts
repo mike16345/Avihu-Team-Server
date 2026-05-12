@@ -8,22 +8,22 @@ const cardioWorkoutController = new CardioWorkoutController();
 export const cardioWorkoutApiRoutes: ApiRouteHandlers = {
   [`GET ${CARDIO_WORKOUT_BASE_PATH}`]: {
     handler: cardioWorkoutController.getAll,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${CARDIO_WORKOUT_BASE_PATH}/one`]: {
     handler: cardioWorkoutController.getById,
-    access: "trainerOrAdmin",
+    access: "authenticated",
   },
   [`POST ${CARDIO_WORKOUT_BASE_PATH}`]: {
     handler: cardioWorkoutController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`PUT ${CARDIO_WORKOUT_BASE_PATH}/one`]: {
     handler: cardioWorkoutController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`DELETE ${CARDIO_WORKOUT_BASE_PATH}/one`]: {
     handler: cardioWorkoutController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };

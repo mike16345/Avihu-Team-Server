@@ -10,7 +10,7 @@ const PasswordController = new PasswordsController();
 const passwordApiRoutes: ApiRouteHandlers = {
   [`POST ${BASE_PATH}`]: {
     handler: PasswordController.hashPassword,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`PUT ${BASE_PATH}`]: {
     handler: PasswordController.updatePassword,

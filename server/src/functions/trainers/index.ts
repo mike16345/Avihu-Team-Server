@@ -11,29 +11,29 @@ const trainerController = new TrainerController();
 const trainerApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: trainerController.getAll,
-    access: "trainerOrAdmin",
+    access: "admin",
   },
   [`GET ${BASE_PATH}/paginated`]: {
     handler: trainerController.getPaginated,
-    access: "trainerOrAdmin",
+    access: "admin",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: trainerController.getOne,
-    access: "trainerOrAdmin",
+    access: "admin",
   },
   [`POST ${BASE_PATH}`]: {
     handler: trainerController.create,
-    access: "trainerOrAdmin",
+    access: "admin",
     middlewares: [validateTrainer],
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: trainerController.update,
-    access: "trainerOrAdmin",
+    access: "admin",
     middlewares: [validateTrainer],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: trainerController.delete,
-    access: "trainerOrAdmin",
+    access: "admin",
   },
 };
 

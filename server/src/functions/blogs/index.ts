@@ -11,41 +11,41 @@ const blogController = new BlogController();
 const blogApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: blogController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/paginate`]: {
     handler: blogController.getPaginated,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}/count`]: {
     handler: blogController.getBlogCountByGroup,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: blogController.updateBlog,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateBlogPost],
   },
   [`PUT ${BASE_PATH}/one/like`]: {
     handler: blogController.changeLikedStatus,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one/viewer`]: {
     handler: blogController.addViewer,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${BASE_PATH}`]: {
     handler: blogController.addBlog,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateBlogPost],
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: blogController.getById,
-    access: "public",
+    access: "authenticated",
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: blogController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

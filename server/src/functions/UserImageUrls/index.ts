@@ -11,11 +11,11 @@ const userImageUrlController = new UserImageUrlController();
 const userImageApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/user`]: {
     handler: userImageUrlController.getOne,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${BASE_PATH}`]: {
     handler: userImageUrlController.addImageUrl,
-    access: "public",
+    access: "authenticated",
     middlewares: [validateUserImageUrl],
   },
 };

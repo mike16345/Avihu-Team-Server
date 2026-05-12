@@ -9,21 +9,21 @@ const BASE_PATH = "/analytics";
 const analyticsApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/checkIns`]: {
     handler: AnalyticsController.getAllCheckInUsers,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [scheduleUserChecks],
   },
   [`PATCH ${BASE_PATH}/checkIns/one`]: {
     handler: AnalyticsController.checkOffUser,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [scheduleUserChecks],
   },
   [`GET ${BASE_PATH}/users`]: {
     handler: AnalyticsController.getUsersWithNoPlans,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/users/expiring`]: {
     handler: AnalyticsController.getUsersFinishingThisMonth,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

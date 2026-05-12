@@ -14,29 +14,29 @@ const subTrainerController = new SubTrainerController();
 const subTrainerApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: subTrainerController.getAll,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`GET ${BASE_PATH}/paginated`]: {
     handler: subTrainerController.getPaginated,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: subTrainerController.getOne,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`POST ${BASE_PATH}`]: {
     handler: subTrainerController.create,
-    access: "trainerOrAdmin",
+    access: "trainer",
     middlewares: [validateCreateSubTrainer],
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: subTrainerController.update,
-    access: "trainerOrAdmin",
+    access: "trainer",
     middlewares: [validateUpdateSubTrainer],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: subTrainerController.delete,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
 };
 

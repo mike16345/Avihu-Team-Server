@@ -24,11 +24,11 @@ const controller = new RagController();
 const ragApiRoutes: ApiRouteHandlers = {
   [`POST ${BASE_PATH}/query`]: {
     handler: controller.ask,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${BASE_PATH}/ingest`]: {
     handler: controller.ingest,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

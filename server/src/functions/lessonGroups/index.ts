@@ -11,29 +11,29 @@ const lessonGroupController = new LessonGroupsController();
 const lessonGroupApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: lessonGroupController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/paginated`]: {
     handler: lessonGroupController.getPaginated,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: lessonGroupController.getById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: lessonGroupController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateLessonGroup],
   },
   [`POST ${BASE_PATH}`]: {
     handler: lessonGroupController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateLessonGroup],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: lessonGroupController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

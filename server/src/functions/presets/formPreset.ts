@@ -13,7 +13,7 @@ const formResponseController = new FormResponseController();
 export const formPresetApiRoutes: ApiRouteHandlers = {
   [`GET ${FORM_PRESET_BASE_PATH}`]: {
     handler: formPresetController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${FORM_PRESET_BASE_PATH}/one`]: {
     handler: formPresetController.getById,
@@ -25,30 +25,30 @@ export const formPresetApiRoutes: ApiRouteHandlers = {
   },
   [`POST ${FORM_PRESET_BASE_PATH}`]: {
     handler: formPresetController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateFormPreset],
   },
   [`PUT ${FORM_PRESET_BASE_PATH}/one`]: {
     handler: formPresetController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateFormPreset],
   },
   [`DELETE ${FORM_PRESET_BASE_PATH}/one`]: {
     handler: formPresetController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 
   [`GET ${FORM_RESPONSE_BASE_PATH}`]: {
     handler: formResponseController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${FORM_RESPONSE_BASE_PATH}/one`]: {
     handler: formResponseController.getById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${FORM_RESPONSE_BASE_PATH}/response/one`]: {
     handler: formResponseController.getOne,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${FORM_RESPONSE_BASE_PATH}`]: {
     handler: formResponseController.create,
@@ -57,15 +57,15 @@ export const formPresetApiRoutes: ApiRouteHandlers = {
   },
   [`PUT ${FORM_RESPONSE_BASE_PATH}/one`]: {
     handler: formResponseController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateFormResponse],
   },
   [`PUT ${FORM_RESPONSE_BASE_PATH}/one/check-off`]: {
     handler: formResponseController.checkOffResponse,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`DELETE ${FORM_RESPONSE_BASE_PATH}/one`]: {
     handler: formResponseController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };

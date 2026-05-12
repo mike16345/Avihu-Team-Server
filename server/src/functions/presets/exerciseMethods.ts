@@ -8,26 +8,26 @@ const exerciseMethodController = new ExerciseMethodController();
 export const exerciseMethodsApiRoutes: ApiRouteHandlers = {
   [`GET ${EXERCISE_METHODS_BASE_PATH}`]: {
     handler: exerciseMethodController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${EXERCISE_METHODS_BASE_PATH}/one`]: {
     handler: exerciseMethodController.getById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${EXERCISE_METHODS_BASE_PATH}/name`]: {
     handler: exerciseMethodController.getOne,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${EXERCISE_METHODS_BASE_PATH}`]: {
     handler: exerciseMethodController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`PUT ${EXERCISE_METHODS_BASE_PATH}/one`]: {
     handler: exerciseMethodController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`DELETE ${EXERCISE_METHODS_BASE_PATH}/one`]: {
     handler: exerciseMethodController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };

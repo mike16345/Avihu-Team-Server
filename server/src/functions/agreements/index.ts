@@ -27,20 +27,20 @@ const agreementApiRoutes: ApiRouteHandlers = {
   },
   [`GET ${BASE_ADMIN_PATH}/signed`]: {
     handler: agreementAdminController.listSignedAgreements,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`GET ${BASE_ADMIN_PATH}/signed/download`]: {
     handler: agreementAdminController.getSignedAgreementDownloadUrl,
-    access: "trainerOrAdmin",
+    access: "trainer",
   },
   [`POST ${BASE_ADMIN_PATH}/templates/upload-url`]: {
     handler: agreementAdminController.createTemplateUploadUrl,
-    access: "trainerOrAdmin",
+    access: "trainer",
     middlewares: [validateAgreementTemplateUpload],
   },
   [`POST ${BASE_ADMIN_PATH}/templates/activate`]: {
     handler: agreementAdminController.activateTemplateVersion,
-    access: "trainerOrAdmin",
+    access: "trainer",
     middlewares: [validateAgreementTemplateActivation],
   },
 };

@@ -7,28 +7,29 @@ import { ApiRouteHandlers } from "../../types/lambdaTypes";
 const BASE_PATH = "/recordedSets";
 
 const recordedSetsController = new RecordedSetsController();
+
 const recordedSetsApiRoutes: ApiRouteHandlers = {
   [`POST ${BASE_PATH}`]: {
     handler: recordedSetsController.addRecordedSet,
-    access: "public",
+    access: "authenticated",
     middlewares: [validateRecordedSet],
   },
   [`GET ${BASE_PATH}/user`]: {
     handler: recordedSetsController.getRecordedSetsByUserId,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}/user/exercise`]: {
     handler: recordedSetsController.getUserRecordedSetsByExercise,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: recordedSetsController.updateRecordedSetById,
-    access: "public",
+    access: "authenticated",
     middlewares: [validateRecordedSet],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: recordedSetsController.deleteRecordedSetById,
-    access: "public",
+    access: "authenticated",
   },
 };
 

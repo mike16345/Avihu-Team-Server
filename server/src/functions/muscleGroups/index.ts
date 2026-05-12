@@ -11,24 +11,24 @@ const muscleGroupController = new MuscleGroupController();
 const muscleGroupApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: muscleGroupController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: muscleGroupController.getById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: muscleGroupController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${BASE_PATH}`]: {
     handler: muscleGroupController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [checkIfMuscleGroupExists],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: muscleGroupController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

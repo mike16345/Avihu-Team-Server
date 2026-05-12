@@ -9,28 +9,28 @@ const exercisePresetControllser = new ExercisePresetController();
 export const exercisePresetApiRoutes: ApiRouteHandlers = {
   [`GET ${EXERCISES_BASE_PATH}`]: {
     handler: exercisePresetControllser.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${EXERCISES_BASE_PATH}/one`]: {
     handler: exercisePresetControllser.getById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${EXERCISES_BASE_PATH}/muscleGroup`]: {
     handler: exercisePresetControllser.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${EXERCISES_BASE_PATH}`]: {
     handler: exercisePresetControllser.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateExercise],
   },
   [`PUT ${EXERCISES_BASE_PATH}/one`]: {
     handler: exercisePresetControllser.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateExercise],
   },
   [`DELETE ${EXERCISES_BASE_PATH}/one`]: {
     handler: exercisePresetControllser.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };

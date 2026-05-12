@@ -11,33 +11,33 @@ const userController = new UserController();
 const userApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: userController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 
   [`GET ${BASE_PATH}/one`]: {
     handler: userController.getById,
-    access: "public",
+    access: "authenticated",
   },
 
   [`PUT ${BASE_PATH}/one`]: {
     handler: userController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 
   [`POST ${BASE_PATH}`]: {
     handler: userController.addUser,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateUser],
   },
 
   [`DELETE ${BASE_PATH}/one`]: {
     handler: userController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 
   [`PUT ${BASE_PATH}/one/field`]: {
     handler: userController.updateUserField,
-    access: "public",
+    access: "authenticated",
     middlewares: [scheduleUserChecks],
   },
 
@@ -78,7 +78,7 @@ const userApiRoutes: ApiRouteHandlers = {
 
   [`GET ${BASE_PATH}/auth/me`]: {
     handler: userController.me,
-    access: "public",
+    access: "authenticated",
   },
 };
 

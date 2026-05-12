@@ -11,21 +11,21 @@ const progressNoteController = new ProgressNotesController();
 const progressNoteApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/one`]: {
     handler: progressNoteController.getProgressNotesByUserId,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${BASE_PATH}`]: {
     handler: progressNoteController.addProgressNote,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateUserProgressNote],
   },
   [`PUT ${BASE_PATH}`]: {
     handler: progressNoteController.updateProgressNote,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateUserProgressNote],
   },
   [`DELETE ${BASE_PATH}`]: {
     handler: progressNoteController.removeProgressNote,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

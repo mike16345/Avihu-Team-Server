@@ -9,6 +9,26 @@ type UserRole = IUser["role"];
 type VerifiedAccessClaims = AccessClaims & { sub?: string; _id?: string; type?: string };
 
 const jwtAuthService = new JwtAuthService();
+const accessRank = {
+  public: 0,
+  authenticated: 1,
+  subtrainer: 2,
+  trainer: 3,
+  admin: 4,
+} as const;
+
+const roleRank: Record<
+  UserRole,
+  | typeof accessRank.authenticated
+  | typeof accessRank.subtrainer
+  | typeof accessRank.trainer
+  | typeof accessRank.admin
+> = {
+  user: accessRank.authenticated,
+  subTrainer: accessRank.subtrainer,
+  trainer: accessRank.trainer,
+  admin: accessRank.admin,
+};
 
 const AUTH_ERRORS = {
   unauthorized: {
@@ -49,8 +69,6 @@ export const requireAdmin = requireRoles("admin");
 
 export const requireTrainer = requireRoles("trainer", "admin");
 
-export const requireAdminOrTrainer = requireRoles("admin", "trainer");
-
 const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
   const userId = claims.sub || claims.userId || claims._id;
 
@@ -61,26 +79,18 @@ const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
   return userId;
 };
 
-const isRoleAllowed = (role: string, access: RouteAccess): boolean => {
-  switch (access) {
-    case "authenticated":
-      return true;
-
-    case "admin":
-      return role === "admin";
-
-    case "trainerOrAdmin":
-      return role === "trainer" || role === "admin";
-
-    case "public":
-      return true;
-
-    default:
-      return false;
-  }
+const isRoleAllowed = (
+  role: UserRole,
+  access: Exclude<RouteAccess, "public" | "authenticated">
+): boolean => {
+  return roleRank[role] >= accessRank[access];
 };
 
 export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAccess) => {
+  if (access === "public") {
+    return null;
+  }
+
   const token = extractBearerToken(event.headers || {});
   const claims = jwtAuthService.verifyAccessToken(token) as VerifiedAccessClaims;
   const userId = getVerifiedUserId(claims);
@@ -95,7 +105,7 @@ export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAcc
     throw AUTH_ERRORS.forbidden;
   }
 
-  if (!isRoleAllowed(user.role, access)) {
+  if (access !== "authenticated" && !isRoleAllowed(user.role, access)) {
     throw AUTH_ERRORS.forbidden;
   }
 

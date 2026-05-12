@@ -11,29 +11,29 @@ const menuItemPresetController = new MenuItemPresetController();
 const menuItemApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: menuItemPresetController.getAllMenuItems,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: menuItemPresetController.getById,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}/foodGroup`]: {
     handler: menuItemPresetController.getMenuItems,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: menuItemPresetController.updateById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateMenuItem],
   },
   [`POST ${BASE_PATH}`]: {
     handler: menuItemPresetController.create,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateMenuItem],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: menuItemPresetController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

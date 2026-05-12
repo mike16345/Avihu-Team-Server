@@ -11,38 +11,38 @@ const dietPlanController = new DietPlanController();
 const dietPlanApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: dietPlanController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: dietPlanController.getDietPlanById,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}/user`]: {
     handler: dietPlanController.getDietPlanByUserId,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: dietPlanController.updateDietPlan,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateDietPlan],
   },
   [`PUT ${BASE_PATH}/one/user`]: {
     handler: dietPlanController.updateDietPlanByUserId,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateDietPlan],
   },
   [`POST ${BASE_PATH}`]: {
     handler: dietPlanController.addDietPlan,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateDietPlan],
   },
   [`DELETE ${BASE_PATH}/one/user`]: {
     handler: dietPlanController.deleteDietPlanByUserId,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: dietPlanController.deleteById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

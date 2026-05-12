@@ -8,11 +8,11 @@ const BASE_PATH = "/s3/photos";
 const s3ApiRoutes: ApiRouteHandlers = {
   [`DELETE ${BASE_PATH}/one`]: {
     handler: S3Controller.handleDeletePhoto,
-    access: "public",
+    access: "authenticated",
   },
   [`DELETE ${BASE_PATH}/many`]: {
     handler: S3Controller.handleDeleteManyPhotos,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };
 

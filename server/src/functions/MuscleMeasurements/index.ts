@@ -10,15 +10,15 @@ const muscleMeasurementController = new MuscleMeasurementController();
 const muscleMeasurementsApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/one`]: {
     handler: muscleMeasurementController.getMeasurementsByUserId,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${BASE_PATH}`]: {
     handler: muscleMeasurementController.saveMeasurement,
-    access: "public",
+    access: "authenticated",
   },
   [`DELETE ${BASE_PATH}`]: {
     handler: muscleMeasurementController.removeMeasurement,
-    access: "public",
+    access: "authenticated",
   },
 };
 

@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import type { IUser } from "../interfaces/IUser";
 
-type RouteAccess = "public" | "authenticated" | "admin" | "trainerOrAdmin";
+type RouteAccess = "public" | "authenticated" | "subtrainer" | "trainer" | "admin";
 
 type ApiRouteHandler = {
   handler: Function;

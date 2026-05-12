@@ -9,24 +9,24 @@ const workoutPlanPresetController = new WorkoutPlanPresetsController();
 export const workoutPlanPresetApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
     handler: workoutPlanPresetController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: workoutPlanPresetController.getWorkoutPlanPresetById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`POST ${BASE_PATH}`]: {
     handler: workoutPlanPresetController.addWorkoutPlanPreset,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateWorkoutPlanPreset],
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: workoutPlanPresetController.updateWorkoutPlanPresetById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
     middlewares: [validateWorkoutPlanPreset],
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: workoutPlanPresetController.deleteWorkoutPlanPresetById,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
 };

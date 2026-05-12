@@ -10,27 +10,27 @@ const sessionController = new SessionController();
 const sessionApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/one`]: {
     handler: sessionController.getSessionById,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${BASE_PATH}`]: {
     handler: sessionController.getAll,
-    access: "trainerOrAdmin",
+    access: "subtrainer",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: sessionController.refreshSession,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${BASE_PATH}`]: {
     handler: sessionController.startSession,
-    access: "public",
+    access: "authenticated",
   },
   [`PUT ${BASE_PATH}/update`]: {
     handler: sessionController.updateSession,
-    access: "public",
+    access: "authenticated",
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: sessionController.endSession,
-    access: "public",
+    access: "authenticated",
   },
 };
 

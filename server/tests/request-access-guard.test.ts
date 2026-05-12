@@ -60,4 +60,36 @@ describe("enforceRequestUserAccess", () => {
       statusCode: StatusCode.FORBIDDEN,
     });
   });
+
+  test("allows subtrainers to pass subtrainer routes but not trainer routes", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ sub: "u1", sessionId: "s1", role: "subTrainer", exp: 9999999999 } as any);
+    jest.spyOn(UserModel, "findById").mockResolvedValue({
+      _id: "u1",
+      role: "subTrainer",
+      hasAccess: true,
+      isDeleted: false,
+    } as any);
+
+    const subtrainerEvent: any = {
+      headers: { authorization: "Bearer valid-token" },
+    };
+
+    await expect(enforceRequestUserAccess(subtrainerEvent, "subtrainer")).resolves.toMatchObject({
+      _id: "u1",
+      role: "subTrainer",
+    });
+    expect(subtrainerEvent.authUser).toMatchObject({ _id: "u1", role: "subTrainer" });
+
+    await expect(
+      enforceRequestUserAccess({ headers: { authorization: "Bearer valid-token" } } as any, "trainer")
+    ).rejects.toMatchObject({
+      statusCode: StatusCode.FORBIDDEN,
+    });
+  });
+
+  test("allows public routes to bypass authentication", async () => {
+    await expect(enforceRequestUserAccess({ headers: {} } as any, "public")).resolves.toBeNull();
+  });
 });
