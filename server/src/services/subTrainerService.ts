@@ -18,10 +18,6 @@ type SubTrainerWithOverview = {
   overview: SubTrainerOverview;
 };
 
-type SubTrainerListItem = ISubTrainer & {
-  traineeCount: number;
-};
-
 type CreateSubTrainerPayload = Partial<ISubTrainer> & {
   password: string;
 };
@@ -138,7 +134,7 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
 
   async findPaginatedWithTraineeCounts(
     params: PaginationParams
-  ): Promise<PaginationResult<SubTrainerListItem>> {
+  ): Promise<PaginationResult<ISubTrainer>> {
     const paginated = await this.findPaginated(params);
     const results = await Promise.all(
       paginated.results.map(async (subTrainer) => {
@@ -156,7 +152,7 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
         return {
           ...subTrainerObject,
           traineeCount,
-        } as SubTrainerListItem;
+        } as ISubTrainer;
       })
     );
 

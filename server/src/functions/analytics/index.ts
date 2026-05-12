@@ -25,6 +25,22 @@ const analyticsApiRoutes: ApiRouteHandlers = {
     handler: AnalyticsController.getUsersFinishingThisMonth,
     access: "subtrainer",
   },
+  [`GET ${BASE_PATH}/dashboard/summary`]: {
+    handler: AnalyticsController.getDashboardSummary,
+    access: "admin",
+  },
+  [`GET ${BASE_PATH}/dashboard/sources`]: {
+    handler: AnalyticsController.getDashboardSources,
+    access: "admin",
+  },
+  [`GET ${BASE_PATH}/dashboard/joinedByMonth`]: {
+    handler: AnalyticsController.getDashboardJoinedByMonth,
+    access: "admin",
+  },
+  [`GET ${BASE_PATH}/dashboard/closeToLimit`]: {
+    handler: AnalyticsController.getDashboardTrainersCloseToLimit,
+    access: "admin",
+  },
 };
 
 export const handler = async (
