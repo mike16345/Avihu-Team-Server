@@ -60,12 +60,14 @@ const getCurrentAndPreviousMonthRanges = () => {
 
 export class AnalyticsService {
   static async getAllCheckInUsers() {
-    const cachedCheckIns = checkInCache.get("all");
+    const { trainerId } = requireTrainerAuthContext();
+
+    const cachkey = `all-${trainerId}`;
+
+    const cachedCheckIns = checkInCache.get(cachkey);
     if (cachedCheckIns) {
       return cachedCheckIns;
     }
-
-    const { trainerId } = requireTrainerAuthContext();
 
     try {
       const allUsers = await User.find({
@@ -81,7 +83,7 @@ export class AnalyticsService {
         }
       }
 
-      checkInCache.set("all", allUsers);
+      checkInCache.set(cachkey, allUsers);
       return allUsers;
     } catch (error) {
       throw error;
@@ -129,13 +131,15 @@ export class AnalyticsService {
   }
 
   static async getUsersFinishingThisMonth() {
-    const cached = checkInCache.get(`usersExpiring`);
+    const { trainerId } = requireTrainerAuthContext();
+
+    const cachekey = `usersExpiring-${trainerId}`;
+    const cached = checkInCache.get(cachekey);
     if (cached) return cached;
 
     const date = new Date();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const { trainerId } = requireTrainerAuthContext();
 
     try {
       const users = await User.find(
@@ -153,7 +157,7 @@ export class AnalyticsService {
         { firstName: 1, lastName: 1 }
       );
 
-      checkInCache.set(`usersExpiring`, users);
+      checkInCache.set(cachekey, users);
 
       return users;
     } catch (error) {

@@ -21,7 +21,7 @@ export default class UserService extends BaseService<IUser, UserRepository> {
   }
 
   private shouldCreateUnscoped(userToCreate: Partial<IUser>) {
-    Boolean(userToCreate.trainerId);
+    return Boolean(userToCreate.trainerId);
   }
 
   private async enforceTrainerTraineeLimit(userToCreate: Partial<IUser>) {
@@ -33,7 +33,7 @@ export default class UserService extends BaseService<IUser, UserRepository> {
     }
 
     const { trainerId } = requireTrainerAuthContext();
-    const trainer = (await this.trainerRepository.findById(trainerId)) as ITrainer | null;
+    const trainer = (await this.trainerRepository.findById(trainerId)) as any as ITrainer | null;
 
     if (!trainer) {
       throw {
@@ -89,7 +89,7 @@ export default class UserService extends BaseService<IUser, UserRepository> {
   };
 
   findOneUnscoped = async (filter: Partial<Record<keyof IUser, any>>): Promise<IUser | null> => {
-    return (await this.globalUserRepository.findOne({ query: filter })) as IUser | null;
+    return (await this.globalUserRepository.findOne({ query: filter })) as any as IUser | null;
   };
 
   deleteUser = async (id: string) => {
