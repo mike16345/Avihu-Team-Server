@@ -1,11 +1,15 @@
 import { ISubTrainer } from "../interfaces/ISubTrainer";
+import { ITrainer } from "../interfaces/ITrainer";
 import { IUser } from "../interfaces/IUser";
+import { StatusCode } from "../enums/StatusCode";
 import SubTrainerRepository from "../repositories/SubTrainer/SubTrainerRepository";
+import { getAuthContext, requireTrainerAuthContext } from "../utils/authContext";
 import { BaseService } from "./baseService";
 import UserService from "./userService";
 import { User } from "../models/userModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
 import { PaginationParams, PaginationResult } from "../utils/pagination";
+import TrainerRepository from "../repositories/Trainer/TrainerRepository";
 
 type SubTrainerOverview = {
   trainees: {
@@ -33,10 +37,45 @@ const statusToAccess = (status: ISubTrainer["status"]) => status === "active";
 
 export default class SubTrainerService extends BaseService<ISubTrainer, SubTrainerRepository> {
   private userService: UserService;
+  private trainerRepository: TrainerRepository;
 
   constructor() {
     super(new SubTrainerRepository(), "sub-trainers");
     this.userService = new UserService();
+    this.trainerRepository = new TrainerRepository();
+  }
+
+  private shouldCreateUnscoped(payload: Partial<ISubTrainer>) {
+    const authContext = getAuthContext();
+
+    return authContext?.role === "admin" && Boolean(payload.trainerId);
+  }
+
+  private async enforceTrainerSubTrainerLimit() {
+    const authContext = getAuthContext();
+
+    if (authContext?.role !== "trainer") {
+      return;
+    }
+
+    const { trainerId } = requireTrainerAuthContext();
+    const trainer = (await this.trainerRepository.findById(trainerId)) as ITrainer | null;
+
+    if (!trainer) {
+      throw {
+        statusCode: StatusCode.NOT_FOUND,
+        message: "Trainer not found.",
+      };
+    }
+
+    const currentSubTrainerCount = await this.countDocuments();
+
+    if (currentSubTrainerCount >= trainer.subTrainerLimit) {
+      throw {
+        statusCode: StatusCode.FORBIDDEN,
+        message: "Trainer sub trainer limit reached.",
+      };
+    }
   }
 
   private buildSubTrainerUserUpdate(payload: Partial<ISubTrainer>): Partial<IUser> {
@@ -83,8 +122,12 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
   }
 
   async createSubTrainer(payload: CreateSubTrainerPayload): Promise<ISubTrainer> {
+    await this.enforceTrainerSubTrainerLimit();
     const { password, ...subTrainerPayload } = payload;
-    const subTrainer = await this.create(subTrainerPayload as ISubTrainer);
+
+    const subTrainer = this.shouldCreateUnscoped(subTrainerPayload)
+      ? await this.createWithoutScope(subTrainerPayload as ISubTrainer)
+      : await this.create(subTrainerPayload as ISubTrainer);
 
     try {
       const { firstName, lastName } = splitFullName(subTrainer.fullName);
@@ -98,6 +141,7 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
           trainerId: subTrainer.trainerId,
           subTrainerId: subTrainer._id,
           hasAccess: statusToAccess(subTrainer.status),
+          onboardingStep: "completed",
         },
         { initialPassword: password }
       );
@@ -135,7 +179,13 @@ export default class SubTrainerService extends BaseService<ISubTrainer, SubTrain
   async findPaginatedWithTraineeCounts(
     params: PaginationParams
   ): Promise<PaginationResult<ISubTrainer>> {
-    const paginated = await this.findPaginated(params);
+    const authContext = getAuthContext();
+    const shouldBypassScopeForAdmin =
+      authContext?.role === "admin" && Boolean(params.query?.trainerId);
+
+    const paginated = shouldBypassScopeForAdmin
+      ? await this.findPaginatedWithoutScope(params)
+      : await this.findPaginated(params);
     const results = await Promise.all(
       paginated.results.map(async (subTrainer) => {
         const traineeCount = await User.countDocuments({

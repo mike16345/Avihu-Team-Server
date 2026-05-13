@@ -6,6 +6,7 @@ import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import { WorkoutPlan } from "../models/workoutPlanModel";
 import { Cache } from "../utils/cache";
+import { requireTrainerAuthContext } from "../utils/authContext";
 
 const userCache = new Cache<any>();
 const checkInCache = new Cache<any>();
@@ -59,15 +60,22 @@ const getCurrentAndPreviousMonthRanges = () => {
 
 export class AnalyticsService {
   static async getAllCheckInUsers() {
-    const cachedCheckIns = checkInCache.get("all");
+    const { trainerId } = requireTrainerAuthContext();
+
+    const cachkey = `all-${trainerId}`;
+
+    const cachedCheckIns = checkInCache.get(cachkey);
     if (cachedCheckIns) {
       return cachedCheckIns;
     }
 
     try {
-      const allUsers = await User.find({ isDeleted: false, role: "user", isChecked: false }).select(
-        `firstName lastName isChecked`
-      );
+      const allUsers = await User.find({
+        isDeleted: false,
+        role: "user",
+        isChecked: false,
+        trainerId,
+      }).select(`firstName lastName isChecked`);
 
       for (const u of allUsers) {
         if (u) {
@@ -75,7 +83,7 @@ export class AnalyticsService {
         }
       }
 
-      checkInCache.set("all", allUsers);
+      checkInCache.set(cachkey, allUsers);
       return allUsers;
     } catch (error) {
       throw error;
@@ -105,9 +113,11 @@ export class AnalyticsService {
       return null;
     }
 
+    const { trainerId } = requireTrainerAuthContext();
+
     try {
       const users = await User.find(
-        { isDeleted: false, role: "user" },
+        { isDeleted: false, role: "user", trainerId },
         { firstName: 1, lastName: 1 }
       );
       const usersWithPlans = await modelList[collection].find({}, { userId: 1 });
@@ -121,7 +131,10 @@ export class AnalyticsService {
   }
 
   static async getUsersFinishingThisMonth() {
-    const cached = checkInCache.get(`usersExpiring`);
+    const { trainerId } = requireTrainerAuthContext();
+
+    const cachekey = `usersExpiring-${trainerId}`;
+    const cached = checkInCache.get(cachekey);
     if (cached) return cached;
 
     const date = new Date();
@@ -133,6 +146,7 @@ export class AnalyticsService {
         {
           isDeleted: false,
           role: "user",
+          trainerId,
           $expr: {
             $and: [
               { $eq: [{ $month: "$dateFinished" }, month] },
@@ -143,7 +157,7 @@ export class AnalyticsService {
         { firstName: 1, lastName: 1 }
       );
 
-      checkInCache.set(`usersExpiring`, users);
+      checkInCache.set(cachekey, users);
 
       return users;
     } catch (error) {

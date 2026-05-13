@@ -30,6 +30,13 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return newDoc;
   }
 
+  async createWithoutScope(doc: T) {
+    const newDoc = await this.repository.createWithoutScope(doc);
+    this.cache.invalidateAll();
+
+    return newDoc;
+  }
+
   async isExists(fields: Partial<T>): Promise<boolean> {
     const conditions = Object.entries(fields).map(([key, value]) => ({
       [key as any]: value as any,
@@ -38,6 +45,10 @@ export class BaseService<T, R extends BaseRepository<T>> {
     if (conditions.length === 0) return false;
 
     return await this.repository.isExists({ $or: conditions });
+  }
+
+  async countDocuments(filter: Partial<Record<keyof T, any>> = {}): Promise<number> {
+    return await this.repository.countDocuments(filter);
   }
 
   async find(filter: Partial<Record<keyof T, any>> = {}): Promise<T[]> {
@@ -65,6 +76,24 @@ export class BaseService<T, R extends BaseRepository<T>> {
     if (cached) return cached;
 
     const data = await this.repository.getPaginated(params);
+
+    this.cache.set(cacheKey, data);
+    return data;
+  }
+
+  async findPaginatedWithoutScope(
+    params: PaginationParams,
+    resource: string = ""
+  ): Promise<PaginationResult<T>> {
+    const cacheKey = this.generateCacheKey(
+      "paginated-unscoped",
+      generatePaginationCacheKey(resource || this.baseCacheKey, params)
+    );
+
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.repository.getPaginatedWithoutScope(params);
 
     this.cache.set(cacheKey, data);
     return data;
