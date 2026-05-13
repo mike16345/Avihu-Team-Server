@@ -58,7 +58,7 @@ Current repo evidence shows this request pipeline:
 #### 1. Route / Lambda Layer
 
 - Files live in `server/src/functions/**/index.ts`.
-- Each module defines an `ApiRouteHandlers` map keyed as ``"${METHOD} ${PATH}"``.
+- Each module defines an `ApiRouteHandlers` map keyed as `"${METHOD} ${PATH}"`.
 - Example: `server/src/functions/users/index.ts`.
 - Route objects should declare:
   - `handler`
@@ -807,4 +807,3 @@ These are not the current baseline; they are follow-up work future agents should
 ### 5. Reduce Client-Supplied Admin Checks
 
 - Prefer server-derived authenticated identity over `adminId` from query/body in admin-only flows.
-
