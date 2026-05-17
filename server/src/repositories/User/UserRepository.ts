@@ -7,3 +7,9 @@ export default class UserRepository extends BaseRepository<IUser> {
     super(User, { type: "trainer", field: "trainerId" });
   }
 }
+
+export class GlobalUserRepository extends BaseRepository<IUser> {
+  constructor() {
+    super(User, { type: "global" });
+  }
+}

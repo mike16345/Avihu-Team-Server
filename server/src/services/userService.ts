@@ -1,21 +1,65 @@
 import { IUser } from "../interfaces/IUser";
+import { StatusCode } from "../enums/StatusCode";
+import { ITrainer } from "../interfaces/ITrainer";
+import TrainerRepository from "../repositories/Trainer/TrainerRepository";
 import { deleteUserDataFromAllCollections } from "../utils/utils";
+import { getAuthContext, requireTrainerAuthContext } from "../utils/authContext";
 import { BaseService } from "./baseService";
-import UserRepository from "../repositories/User/UserRepository";
+import UserRepository, { GlobalUserRepository } from "../repositories/User/UserRepository";
 import PasswordsService from "./PasswordsService";
 import { EmailService } from "./EmailService";
 import { welcomeEmailTemplate } from "../utils/emailTemplates";
 
 export default class UserService extends BaseService<IUser, UserRepository> {
+  private trainerRepository: TrainerRepository;
+  private globalUserRepository: GlobalUserRepository;
+
   constructor() {
     super(new UserRepository(), "users");
+    this.trainerRepository = new TrainerRepository();
+    this.globalUserRepository = new GlobalUserRepository();
+  }
+
+  private shouldCreateUnscoped(userToCreate: Partial<IUser>) {
+    return Boolean(userToCreate.trainerId);
+  }
+
+  private async enforceTrainerTraineeLimit(userToCreate: Partial<IUser>) {
+    const authContext = getAuthContext();
+    const targetRole = userToCreate.role || "user";
+
+    if (authContext?.role !== "trainer" || targetRole !== "user") {
+      return;
+    }
+
+    const { trainerId } = requireTrainerAuthContext();
+    const trainer = (await this.trainerRepository.findById(trainerId)) as any as ITrainer | null;
+
+    if (!trainer) {
+      throw {
+        statusCode: StatusCode.NOT_FOUND,
+        message: "Trainer not found.",
+      };
+    }
+
+    const currentTraineeCount = await this.countDocuments({ role: "user" });
+
+    if (currentTraineeCount >= trainer.clientLimit) {
+      throw {
+        statusCode: StatusCode.FORBIDDEN,
+        message: "Trainer trainee limit reached.",
+      };
+    }
   }
 
   createUserWithWelcome = async (
     userToCreate: Partial<IUser>,
     options?: { initialPassword?: string }
   ) => {
-    const user = await this.create(userToCreate as IUser);
+    await this.enforceTrainerTraineeLimit(userToCreate);
+    const user = this.shouldCreateUnscoped(userToCreate)
+      ? await this.createWithoutScope(userToCreate as IUser)
+      : await this.create(userToCreate as IUser);
 
     try {
       const initialPassword =
@@ -42,6 +86,10 @@ export default class UserService extends BaseService<IUser, UserRepository> {
     }
 
     return user;
+  };
+
+  findOneUnscoped = async (filter: Partial<Record<keyof IUser, any>>): Promise<IUser | null> => {
+    return (await this.globalUserRepository.findOne({ query: filter })) as any as IUser | null;
   };
 
   deleteUser = async (id: string) => {

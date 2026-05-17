@@ -17,7 +17,13 @@ class AuthService {
     isAdminApp = false,
     metadata: { ip?: string; device?: string } = {}
   ): Promise<ISession> {
-    const user = await this.userService.findOne({ email: email.toLowerCase() });
+    console.warn(
+      `Login attempt for email: ${email} from IP: ${metadata.ip} using device: ${metadata.device}`
+    );
+    const user = await this.userService.findOneUnscoped({ email: email.toLowerCase() });
+    console.warn(
+      `passing user service, found user: ${user ? user._id : "no user found"} with email: ${email}`
+    );
 
     if (!user) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
     if (isAdminApp) {
@@ -41,7 +47,7 @@ class AuthService {
   }
 
   async register(email: string, password: string): Promise<IUser> {
-    const user = await this.userService.findOne({ email: email.toLowerCase() });
+    const user = await this.userService.findOneUnscoped({ email: email.toLowerCase() });
 
     if (!user) {
       throw { message: "משתמש לא נמצא!", statusCode: StatusCode.NOT_FOUND };

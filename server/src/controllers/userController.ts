@@ -98,7 +98,7 @@ export class UserController extends BaseController<IUser, UserService> {
     const { email } = extractQueryFromEvent(event);
 
     try {
-      const user = await this.service.findOne({ email: email?.toLowerCase() });
+      const user = await this.service.findOneUnscoped({ email: email?.toLowerCase() });
       const error = this.validateUserAccess(user);
       if (error) return error;
 
