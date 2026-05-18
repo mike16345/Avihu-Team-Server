@@ -61,7 +61,6 @@ export const subTrainerSchema = new Schema<ISubTrainer>(
   }
 );
 
-subTrainerSchema.index({ email: 1 }, { unique: true });
 subTrainerSchema.index({ trainerId: 1 });
 subTrainerSchema.index({ userId: 1 }, { unique: true, sparse: true });
 

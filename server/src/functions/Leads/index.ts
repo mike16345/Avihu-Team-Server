@@ -16,19 +16,19 @@ const leadsApiRoutes: ApiRouteHandlers = {
   },
   [`GET ${BASE_PATH}`]: {
     handler: leadsController.list,
-    access: "subtrainer",
+    access: "admin",
   },
   [`GET ${BASE_PATH}/one`]: {
     handler: leadsController.getById,
-    access: "subtrainer",
+    access: "admin",
   },
   [`PUT ${BASE_PATH}/one`]: {
     handler: leadsController.update,
-    access: "subtrainer",
+    access: "admin",
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: leadsController.remove,
-    access: "subtrainer",
+    access: "admin",
   },
 };
 

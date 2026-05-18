@@ -1,4 +1,4 @@
-import {
+import mongoose, {
   FilterQuery,
   Model,
   ObjectId,
@@ -59,9 +59,10 @@ export class BaseRepository<T> {
     }
 
     const { trainerId } = requireTrainerAuthContext();
+    const objectId = new mongoose.Types.ObjectId(trainerId);
 
     return {
-      [this.scope.field]: trainerId,
+      [this.scope.field]: objectId,
     };
   }
 
