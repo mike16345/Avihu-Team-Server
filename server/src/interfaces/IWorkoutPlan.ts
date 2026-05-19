@@ -1,6 +1,9 @@
 import { Types } from "mongoose";
 import { ISet } from "./ISet";
 
+export const EXERCISE_LIBRARY_SCOPES = ["private", "system"] as const;
+export type ExerciseLibraryScope = (typeof EXERCISE_LIBRARY_SCOPES)[number];
+
 export interface IMuscleGroupWorkoutPlan {
   muscleGroup: string;
   exercises: IExercise[];
@@ -17,8 +20,14 @@ export interface IExercise {
   imageUrl?: string;
 }
 
-export interface IExercisePreset extends Omit<IExercise, "sets" | "restTime" | "exerciseMethod"> {
+export interface IExercisePreset
+  extends Omit<IExercise, "sets" | "restTime" | "exerciseMethod" | "exerciseId"> {
+  _id?: Types.ObjectId;
+  trainerId?: Types.ObjectId;
   muscleGroup: string;
+  libraryScope?: ExerciseLibraryScope;
+  sourceExerciseId?: Types.ObjectId;
+  sourceOwnerId?: Types.ObjectId;
 }
 
 export interface IDetailedWorkoutPlan {

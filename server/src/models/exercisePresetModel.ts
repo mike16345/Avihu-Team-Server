@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { model, Schema } from "mongoose";
-import { IExercisePreset } from "../interfaces/IWorkoutPlan";
+import { EXERCISE_LIBRARY_SCOPES, IExercisePreset } from "../interfaces/IWorkoutPlan";
 import { IModel } from "../interfaces/IModel";
 
 export const exercisePresetSchema = new Schema<IExercisePreset & IModel>({
@@ -31,7 +31,33 @@ export const exercisePresetSchema = new Schema<IExercisePreset & IModel>({
     type: String,
     required: false,
   },
+  libraryScope: {
+    type: String,
+    enum: EXERCISE_LIBRARY_SCOPES,
+    default: "private",
+    required: true,
+  },
+  sourceExerciseId: {
+    type: Schema.Types.ObjectId,
+    ref: "exercisePresets",
+    required: false,
+  },
+  sourceOwnerId: {
+    type: Schema.Types.ObjectId,
+    ref: "trainers",
+    required: false,
+  },
 });
+
+exercisePresetSchema.index(
+  { trainerId: 1, sourceExerciseId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      sourceExerciseId: { $exists: true },
+    },
+  }
+);
 
 export const exercisePresets = model(`exercisePresets`, exercisePresetSchema);
 
@@ -43,4 +69,7 @@ export const exercisePresetValidationSchema = Joi.object({
   muscleGroup: Joi.string().min(1).required(),
   imageUrl: Joi.string().allow(""),
   tipFromTrainer: Joi.string().allow(""),
+  libraryScope: Joi.string()
+    .valid(...EXERCISE_LIBRARY_SCOPES)
+    .optional(),
 });

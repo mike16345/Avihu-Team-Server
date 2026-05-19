@@ -65,7 +65,7 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
     }
 
     try {
-      const user = await this.userService.findOne({ email: email.toLowerCase() });
+      const user = await this.userService.findOneUnscoped({ email: email.toLowerCase() });
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, `משתמש לא נמצא במערכת! ${email}`);

@@ -4,6 +4,7 @@ import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import TrainerRepository from "../repositories/Trainer/TrainerRepository";
 import { BaseService } from "./baseService";
+import ExerciseLibraryAccessService from "./ExerciseLibraryAccessService";
 import UserService from "./userService";
 
 type TrainerOverview = {
@@ -31,10 +32,12 @@ const statusToAccess = (status: ITrainer["status"]) => status === "active";
 
 export default class TrainerService extends BaseService<ITrainer, TrainerRepository> {
   private userService: UserService;
+  private exerciseLibraryAccessService: ExerciseLibraryAccessService;
 
   constructor() {
     super(new TrainerRepository(), "trainers");
     this.userService = new UserService();
+    this.exerciseLibraryAccessService = new ExerciseLibraryAccessService();
   }
 
   private buildTrainerUserPayload(trainer: ITrainer): Partial<IUser> {
@@ -97,12 +100,18 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     }
   }
 
-  async createTrainer(payload: Partial<ITrainer>): Promise<ITrainer> {
-    const trainer = await this.create(payload as ITrainer);
+  async createTrainer(payload: Partial<ITrainer> & { password: string }): Promise<ITrainer> {
+    const { password, ...trainerPayload } = payload;
+    const trainer = await this.create(trainerPayload as ITrainer);
 
     try {
+      if (trainer.videoLibraryAccess) {
+        await this.exerciseLibraryAccessService.copyAvihuLibraryToTrainer(trainer._id.toString());
+      }
+
       const user = await this.userService.createUserWithWelcome(
-        this.buildTrainerUserPayload(trainer)
+        this.buildTrainerUserPayload(trainer),
+        { initialPassword: password }
       );
       const updatedTrainer = await this.updateById(trainer._id.toString(), { userId: user._id });
 

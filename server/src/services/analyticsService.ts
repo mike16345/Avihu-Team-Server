@@ -5,11 +5,7 @@ import { DietPlan } from "../models/dietPlanModel";
 import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import { WorkoutPlan } from "../models/workoutPlanModel";
-import { Cache } from "../utils/cache";
 import { requireTrainerAuthContext } from "../utils/authContext";
-
-const userCache = new Cache<any>();
-const checkInCache = new Cache<any>();
 
 type DashboardMetric = {
   total: number;
@@ -62,13 +58,6 @@ export class AnalyticsService {
   static async getAllCheckInUsers() {
     const { trainerId } = requireTrainerAuthContext();
 
-    const cachkey = `all-${trainerId}`;
-
-    const cachedCheckIns = checkInCache.get(cachkey);
-    if (cachedCheckIns) {
-      return cachedCheckIns;
-    }
-
     try {
       const allUsers = await User.find({
         isDeleted: false,
@@ -77,13 +66,6 @@ export class AnalyticsService {
         trainerId,
       }).select(`firstName lastName isChecked`);
 
-      for (const u of allUsers) {
-        if (u) {
-          userCache.set(u._id.toString());
-        }
-      }
-
-      checkInCache.set(cachkey, allUsers);
       return allUsers;
     } catch (error) {
       throw error;
@@ -93,9 +75,6 @@ export class AnalyticsService {
   static async checkOffUser(id: string) {
     try {
       const updatedCheckIn = await User.findByIdAndUpdate(id, { isChecked: true }, { new: true });
-
-      checkInCache.invalidate(id);
-      checkInCache.invalidate("all");
 
       return updatedCheckIn;
     } catch (error) {
@@ -133,10 +112,6 @@ export class AnalyticsService {
   static async getUsersFinishingThisMonth() {
     const { trainerId } = requireTrainerAuthContext();
 
-    const cachekey = `usersExpiring-${trainerId}`;
-    const cached = checkInCache.get(cachekey);
-    if (cached) return cached;
-
     const date = new Date();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
@@ -156,8 +131,6 @@ export class AnalyticsService {
         },
         { firstName: 1, lastName: 1 }
       );
-
-      checkInCache.set(cachekey, users);
 
       return users;
     } catch (error) {
