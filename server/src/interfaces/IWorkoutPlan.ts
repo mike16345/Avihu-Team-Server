@@ -20,8 +20,10 @@ export interface IExercise {
   imageUrl?: string;
 }
 
-export interface IExercisePreset
-  extends Omit<IExercise, "sets" | "restTime" | "exerciseMethod" | "exerciseId"> {
+export interface IExercisePreset extends Omit<
+  IExercise,
+  "sets" | "restTime" | "exerciseMethod" | "exerciseId"
+> {
   _id?: Types.ObjectId;
   trainerId?: Types.ObjectId;
   muscleGroup: string;

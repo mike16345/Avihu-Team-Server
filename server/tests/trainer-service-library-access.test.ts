@@ -8,7 +8,11 @@ jest.mock("../src/utils/utils", () => ({
 }));
 
 import mongoose from "mongoose";
-import { TRAINER_SOURCES, TRAINER_STATUSES, TRAINER_SUBSCRIPTION_PLANS } from "../src/interfaces/ITrainer";
+import {
+  TRAINER_SOURCES,
+  TRAINER_STATUSES,
+  TRAINER_SUBSCRIPTION_PLANS,
+} from "../src/interfaces/ITrainer";
 import TrainerService from "../src/services/trainerService";
 
 const buildTrainerPayload = (overrides: Record<string, unknown> = {}) => ({

@@ -75,7 +75,10 @@ export default class ExerciseLibraryAccessService {
   }
 
   async copyNewAvihuExerciseToAllEligibleTrainers(sourceExercise: ExerciseSourceDocument) {
-    if (!isSystemLibraryOwner(sourceExercise.trainerId) || sourceExercise.libraryScope !== "system") {
+    if (
+      !isSystemLibraryOwner(sourceExercise.trainerId) ||
+      sourceExercise.libraryScope !== "system"
+    ) {
       return null;
     }
 

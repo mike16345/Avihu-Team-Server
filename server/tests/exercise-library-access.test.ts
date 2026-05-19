@@ -72,17 +72,15 @@ describe("Exercise library access", () => {
     await service.copyAvihuLibraryToTrainer(targetTrainer._id);
     await service.copyAvihuLibraryToTrainer(targetTrainer._id);
 
-    const copies = await exercisePresets
-      .find({ trainerId: targetTrainer._id })
-      .lean<
-        {
-          trainerId: mongoose.Types.ObjectId;
-          sourceExerciseId: mongoose.Types.ObjectId;
-          sourceOwnerId: mongoose.Types.ObjectId;
-          libraryScope: string;
-          name: string;
-        }[]
-      >();
+    const copies = await exercisePresets.find({ trainerId: targetTrainer._id }).lean<
+      {
+        trainerId: mongoose.Types.ObjectId;
+        sourceExerciseId: mongoose.Types.ObjectId;
+        sourceOwnerId: mongoose.Types.ObjectId;
+        libraryScope: string;
+        name: string;
+      }[]
+    >();
 
     expect(copies).toHaveLength(1);
     expect(String(copies[0].trainerId)).toBe(String(targetTrainer._id));
