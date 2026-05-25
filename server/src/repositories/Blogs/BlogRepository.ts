@@ -73,7 +73,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
 
     if (query.planType) {
       const planType = query.planType;
-      query.planType = { $in: [planType, "×›×œ×œ×™"] };
+      query.planType = { $in: [planType, "כללי"] };
       console.log("NEW PLAN TYPE QUERY!", query.planType);
     }
 
