@@ -25,17 +25,19 @@ describe("TrainerService counts", () => {
     const trainerIdOne = new mongoose.Types.ObjectId();
     const trainerIdTwo = new mongoose.Types.ObjectId();
 
-    jest.spyOn(service, "find").mockResolvedValue([
-      { _id: trainerIdOne, fullName: "Trainer One" } as any,
-      { _id: trainerIdTwo, fullName: "Trainer Two" } as any,
-    ]);
+    jest
+      .spyOn(service, "find")
+      .mockResolvedValue([
+        { _id: trainerIdOne, fullName: "Trainer One" } as any,
+        { _id: trainerIdTwo, fullName: "Trainer Two" } as any,
+      ]);
     jest.spyOn(User, "aggregate").mockResolvedValue([
       { _id: trainerIdOne, count: 7 },
       { _id: trainerIdTwo, count: 3 },
     ] as any);
-    jest.spyOn(SubTrainerModel, "aggregate").mockResolvedValue([
-      { _id: trainerIdOne, count: 2 },
-    ] as any);
+    jest
+      .spyOn(SubTrainerModel, "aggregate")
+      .mockResolvedValue([{ _id: trainerIdOne, count: 2 }] as any);
 
     const result = await service.findWithCounts({});
 
@@ -70,7 +72,9 @@ describe("TrainerService counts", () => {
       hasPreviousPage: false,
     });
     jest.spyOn(User, "aggregate").mockResolvedValue([{ _id: trainerId, count: 4 }] as any);
-    jest.spyOn(SubTrainerModel, "aggregate").mockResolvedValue([{ _id: trainerId, count: 1 }] as any);
+    jest
+      .spyOn(SubTrainerModel, "aggregate")
+      .mockResolvedValue([{ _id: trainerId, count: 1 }] as any);
 
     const result = await service.findPaginatedWithCounts({
       page: 1,

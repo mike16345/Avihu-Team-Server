@@ -2,7 +2,11 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ITrainer } from "../interfaces/ITrainer";
 import BaseController from "./BaseController";
 import TrainerService from "../services/trainerService";
-import { extractBodyFromEvent, extractPaginationParamsFromEvent, extractQueryFromEvent } from "../utils/utils";
+import {
+  extractBodyFromEvent,
+  extractPaginationParamsFromEvent,
+  extractQueryFromEvent,
+} from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
 export default class TrainerController extends BaseController<ITrainer, TrainerService> {
