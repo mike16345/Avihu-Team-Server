@@ -85,10 +85,7 @@ function getLambdaFunctions() {
     .sort((a, b) => a.value.localeCompare(b.value));
 }
 
-function getLambdaConfigByFunctionName(
-  functionName,
-  lambdaDefinitions = lambdaFunctionsMap
-) {
+function getLambdaConfigByFunctionName(functionName, lambdaDefinitions = lambdaFunctionsMap) {
   return (
     Object.values(lambdaDefinitions).find(
       (lambdaDefinition) => lambdaDefinition.functionName === functionName
