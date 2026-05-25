@@ -2,7 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ITrainer } from "../interfaces/ITrainer";
 import BaseController from "./BaseController";
 import TrainerService from "../services/trainerService";
-import { extractBodyFromEvent } from "../utils/utils";
+import { extractBodyFromEvent, extractPaginationParamsFromEvent, extractQueryFromEvent } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
 
 export default class TrainerController extends BaseController<ITrainer, TrainerService> {
@@ -20,6 +20,46 @@ export default class TrainerController extends BaseController<ITrainer, TrainerS
         status: StatusCode.CREATED,
         data: trainer,
         message: "Trainer created successfully!",
+      });
+
+      await this.afterAction(response);
+
+      return response;
+    } catch (err) {
+      return this.errorResponse(err);
+    }
+  };
+
+  getAll = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    await this.beforeAction(event);
+
+    try {
+      const query = extractQueryFromEvent(event);
+      const data = await this.service.findWithCounts(query);
+      const response = this.successResponse({
+        status: StatusCode.OK,
+        data,
+        message: "Trainers retrieved successfully!",
+      });
+
+      await this.afterAction(response);
+
+      return response;
+    } catch (err) {
+      return this.errorResponse(err);
+    }
+  };
+
+  getPaginated = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    await this.beforeAction(event);
+
+    try {
+      const query = extractPaginationParamsFromEvent(event);
+      const data = await this.service.findPaginatedWithCounts(query);
+      const response = this.successResponse({
+        status: StatusCode.OK,
+        data,
+        message: "Trainers retrieved successfully!",
       });
 
       await this.afterAction(response);

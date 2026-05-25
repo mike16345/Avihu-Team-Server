@@ -1,8 +1,10 @@
 import { ITrainer } from "../interfaces/ITrainer";
 import { IUser } from "../interfaces/IUser";
 import { TrainerModel } from "../models/trainerModel";
+import { SubTrainerModel } from "../models/subTrainerModel";
 import { User } from "../models/userModel";
 import TrainerRepository from "../repositories/Trainer/TrainerRepository";
+import { PaginationParams, PaginationResult } from "../utils/pagination";
 import { BaseService } from "./baseService";
 import ExerciseLibraryAccessService from "./ExerciseLibraryAccessService";
 import UserService from "./userService";
@@ -100,6 +102,81 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     }
   }
 
+  private async attachCountsToTrainers<T extends ITrainer>(trainers: T[]): Promise<T[]> {
+    if (trainers.length === 0) {
+      return trainers;
+    }
+
+    const trainerIds = trainers.map((trainer) => trainer._id);
+
+    const [traineeCounts, subTrainerCounts] = await Promise.all([
+      User.aggregate<{ _id: any; count: number }>([
+        {
+          $match: {
+            isDeleted: false,
+            role: "user",
+            trainerId: { $in: trainerIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$trainerId",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      SubTrainerModel.aggregate<{ _id: any; count: number }>([
+        {
+          $match: {
+            isDeleted: false,
+            trainerId: { $in: trainerIds },
+          },
+        },
+        {
+          $group: {
+            _id: "$trainerId",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
+    const traineeCountByTrainerId = new Map(
+      traineeCounts.map(({ _id, count }) => [_id.toString(), count])
+    );
+    const subTrainerCountByTrainerId = new Map(
+      subTrainerCounts.map(({ _id, count }) => [_id.toString(), count])
+    );
+
+    return trainers.map((trainer) => {
+      const trainerObject =
+        typeof (trainer as any)?.toObject === "function" ? (trainer as any).toObject() : trainer;
+      const trainerId = trainer._id.toString();
+
+      return {
+        ...trainerObject,
+        traineeCount: traineeCountByTrainerId.get(trainerId) || 0,
+        subTrainerCount: subTrainerCountByTrainerId.get(trainerId) || 0,
+      };
+    });
+  }
+
+  async findWithCounts(filter: Partial<Record<keyof ITrainer, any>> = {}): Promise<ITrainer[]> {
+    const trainers = await this.find(filter);
+
+    return this.attachCountsToTrainers(trainers as ITrainer[]);
+  }
+
+  async findPaginatedWithCounts(params: PaginationParams): Promise<PaginationResult<ITrainer>> {
+    const paginated = await this.findPaginated(params);
+    const results = await this.attachCountsToTrainers(paginated.results as ITrainer[]);
+
+    return {
+      ...paginated,
+      results,
+    };
+  }
+
   async createTrainer(payload: Partial<ITrainer> & { password: string }): Promise<ITrainer> {
     const { password, ...trainerPayload } = payload;
     const trainer = await this.create(trainerPayload as ITrainer);
@@ -131,9 +208,8 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
         role: "user",
         trainerId: trainer._id,
       }),
-      User.countDocuments({
+      SubTrainerModel.countDocuments({
         isDeleted: false,
-        role: "subTrainer",
         trainerId: trainer._id,
       }),
     ]);

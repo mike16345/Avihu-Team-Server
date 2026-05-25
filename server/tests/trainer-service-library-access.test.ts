@@ -13,6 +13,9 @@ import {
   TRAINER_STATUSES,
   TRAINER_SUBSCRIPTION_PLANS,
 } from "../src/interfaces/ITrainer";
+
+process.env.AVIHU_TRAINER_ID = new mongoose.Types.ObjectId().toString();
+
 import TrainerService from "../src/services/trainerService";
 
 const buildTrainerPayload = (overrides: Record<string, unknown> = {}) => ({

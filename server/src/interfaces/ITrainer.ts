@@ -21,6 +21,8 @@ export interface ITrainer {
   email: string;
   phone: string;
   isDeleted?: boolean;
+  traineeCount?: number;
+  subTrainerCount?: number;
   subscriptionPlan: TrainerSubscriptionPlan;
   clientLimit: number;
   subTrainerLimit: number;
