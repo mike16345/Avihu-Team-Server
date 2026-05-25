@@ -163,7 +163,7 @@ export class UserController extends BaseController<IUser, UserService> {
         userId: user._id.toString(),
         role: user.role,
         sessionId: String(session._id),
-        trainerId: isAdminOrTrainer ? user.trainerId || user._id.toString() : undefined,
+        trainerId: isAdminOrTrainer ? user.trainerId || user._id.toString() : user.trainerId,
       });
 
       return this.successResponse({

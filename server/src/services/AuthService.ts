@@ -25,16 +25,14 @@ class AuthService {
       `passing user service, found user: ${user ? user._id : "no user found"} with email: ${email}`
     );
 
-    if (!user) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
+    if (!user) throw { message: "משתמש לא קיים במערכת", statusCode: StatusCode.UNAUTHORIZED };
     if (isAdminApp) {
       requireRoles(...allowedAdminAppRoles, user.role);
     }
-    if (!user.hasAccess) throw { message: "User is inactive", statusCode: StatusCode.FORBIDDEN };
-    if (user.onboardingStep !== "completed" && !isAdminApp)
-      throw { message: "User invite pending", statusCode: StatusCode.FORBIDDEN };
+    if (!user.hasAccess) throw { message: "אין למשתמש גישה", statusCode: StatusCode.FORBIDDEN };
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);
-    if (!isMatch) throw { message: "Invalid credentials", statusCode: StatusCode.UNAUTHORIZED };
+    if (!isMatch) throw { message: "פרטי גישה שגויים", statusCode: StatusCode.UNAUTHORIZED };
     const now = new Date();
 
     return this.sessionService.create({
