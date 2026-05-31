@@ -47,6 +47,7 @@ export class AgreementService {
   }
 
   async createTemplateUploadUrl(params: {
+    title?: string;
     agreementId?: string;
     groupId?: string;
     contentType: string;
@@ -64,6 +65,7 @@ export class AgreementService {
     const templatePdfS3Key = `agreements/templates/${agreementId}/${nextVersion}.pdf`;
 
     const template: Omit<IAgreementTemplate, "_id"> = {
+      title: params.title,
       agreementId,
       groupId: params.groupId,
       version: nextVersion,
@@ -93,6 +95,7 @@ export class AgreementService {
     agreementId: string;
     version: number;
     groupId?: string;
+    title?: string;
     questions: IFormQuestion[];
   }) {
     const templateQuery = {
@@ -102,7 +105,7 @@ export class AgreementService {
 
     const updated = await this.templateService.updateOne(
       { ...templateQuery, version: params.version },
-      { active: true, questions: params.questions }
+      { active: true, questions: params.questions, title: params.title }
     );
 
     if (!updated) {

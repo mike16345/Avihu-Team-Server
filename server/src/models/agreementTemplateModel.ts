@@ -5,6 +5,7 @@ import { FormQuestionSchema, formQuestionValidator } from "./formPresetModel";
 import { IModel } from "../interfaces/IModel";
 
 const agreementTemplateSchema = new Schema<IAgreementTemplate & IModel>({
+  title: { type: String, required: false },
   groupId: { type: String, required: false },
   agreementId: { type: String, required: true },
   version: { type: Number, required: true },
@@ -31,6 +32,7 @@ export const AgreementTemplateActivationSchema = Joi.object({
 });
 
 export const AgreementTemplateUploadSchema = Joi.object({
+  title: Joi.string().optional(),
   groupId: Joi.string().optional(),
   contentType: Joi.string().valid("application/pdf").required(),
   adminId: Joi.string().optional(),

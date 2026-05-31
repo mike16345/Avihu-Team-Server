@@ -18,11 +18,11 @@ const agreementAdminController = new AgreementAdminController();
 const agreementApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}/current`]: {
     handler: agreementController.getCurrentAgreement,
-    access: "public",
+    access: "authenticated",
   },
   [`POST ${BASE_PATH}/sign`]: {
     handler: agreementController.signAgreement,
-    access: "public",
+    access: "authenticated",
     middlewares: [validateAgreementSign],
   },
   [`GET ${BASE_ADMIN_PATH}/signed`]: {

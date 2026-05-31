@@ -6,7 +6,7 @@ import { extractBearerToken } from "../utils/utils";
 import type { AppEvent, RouteAccess } from "../types/lambdaTypes";
 
 type UserRole = IUser["role"];
-type VerifiedAccessClaims = AccessClaims & { sub?: string; _id?: string; type?: string };
+type VerifiedAccessClaims = AccessClaims & { userId?: string };
 
 const jwtAuthService = new JwtAuthService();
 const accessRank = {
@@ -72,7 +72,7 @@ export const requireAdmin = requireRoles("admin");
 export const requireTrainer = requireRoles("trainer", "admin");
 
 const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
-  const userId = claims.sub || claims.userId || claims._id;
+  const userId = claims.userId;
 
   if (!userId) {
     throw AUTH_ERRORS.unauthorized;
@@ -97,7 +97,7 @@ export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAcc
   const claims = jwtAuthService.verifyAccessToken(token) as VerifiedAccessClaims;
   const userId = getVerifiedUserId(claims);
 
-  const user = await UserModel.findById(userId);
+  const user = await UserModel.findById(userId).lean();
 
   if (!user || user.isDeleted) {
     throw AUTH_ERRORS.userNotFound;
@@ -110,8 +110,6 @@ export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAcc
   if (access !== "authenticated" && !isRoleAllowed(user.role, access)) {
     throw AUTH_ERRORS.forbidden;
   }
-
-  event.authUser = user;
 
   return user;
 };

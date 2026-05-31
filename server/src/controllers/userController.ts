@@ -154,8 +154,7 @@ export class UserController extends BaseController<IUser, UserService> {
       });
       const user = (session.data as any)?.user;
 
-      const isAdminOrTrainer =
-        user.role === "admin" || user.role === "trainer" || user.role == "subTrainer";
+      const isAdmin = user.role === "admin";
 
       const { refreshToken } = await this.jwtAuthService.createRefreshSession(user, { ip, device });
 
@@ -163,7 +162,7 @@ export class UserController extends BaseController<IUser, UserService> {
         userId: user._id.toString(),
         role: user.role,
         sessionId: String(session._id),
-        trainerId: isAdminOrTrainer ? user.trainerId || user._id.toString() : user.trainerId,
+        trainerId: isAdmin ? user.trainerId || user._id.toString() : user.trainerId,
       });
 
       return this.successResponse({
@@ -186,6 +185,7 @@ export class UserController extends BaseController<IUser, UserService> {
         await this.jwtAuthService.rotateRefreshToken(refreshToken);
       const accessToken = this.jwtAuthService.signAccessToken({
         userId: user._id.toString(),
+        trainerId: user.trainerId?.toString(),
         role: user.role,
         sessionId: String(session._id),
       });

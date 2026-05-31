@@ -13,6 +13,8 @@ import { ApiRouteHandlers, AppEvent, OldApiHandlers } from "../types/lambdaTypes
 import { enforceRequestUserAccess } from "../guards/AdminAccessGuard";
 import JwtAuthService, { AccessClaims } from "../services/JwtAuthService";
 import { runWithAuthContext, updateAuthContext } from "../utils/authContext";
+import { User } from "../models/userModel";
+import { IUser } from "../interfaces/IUser";
 
 type VerifiedAccessClaims = AccessClaims & {
   trainerId?: string;
@@ -22,30 +24,31 @@ type VerifiedAccessClaims = AccessClaims & {
 const jwtAuthService = new JwtAuthService();
 
 const buildAuthContextFromClaims = (claims?: VerifiedAccessClaims) => {
+  console.log("Building auth context from claims:", claims);
   if (!claims) {
     return {};
   }
-  const isAdminOrTrainer = claims.role === "admin" || claims.role === "trainer";
-  console.log("Building auth context from claims:", claims);
+  const isAdmin = claims.role === "admin";
+  const trainerId = claims.trainerId;
 
   return {
-    userId: claims.sub || claims.userId || claims._id,
-    trainerId: isAdminOrTrainer ? claims.trainerId || claims.userId : claims.trainerId,
+    userId: claims.userId,
+    trainerId: trainerId ? trainerId : isAdmin ? claims.userId : undefined,
     role: claims.role,
   };
 };
 
-const buildAuthContextFromUser = (event: AppEvent) => {
-  const authUser = event.authUser;
-
-  if (!authUser) {
+const buildAuthContextFromUser = (user: IUser | null) => {
+  if (!user) {
+    console.log("No user provided to buildAuthContextFromUser, returning empty auth context.");
     return {};
   }
 
+  console.log("Building auth context from user:", user);
   return {
-    userId: authUser._id?.toString(),
-    trainerId: authUser.trainerId?.toString(),
-    role: authUser.role,
+    userId: user._id?.toString(),
+    trainerId: user.trainerId?.toString(),
+    role: user.role,
   };
 };
 
@@ -68,7 +71,9 @@ export const handleApiCall = async (
         ) as VerifiedAccessClaims)
       : undefined;
 
-    return await runWithAuthContext(buildAuthContextFromClaims(tokenClaims), async () => {
+    const authContext = buildAuthContextFromClaims(tokenClaims);
+
+    return await runWithAuthContext(authContext, async () => {
       const apiHandler = extractRouteHandler(apiHandlers, routeKey);
 
       console.log("Handling API request", {
@@ -93,9 +98,9 @@ export const handleApiCall = async (
       const isProtectedRoute = apiHandler.access !== "public";
       const hasMiddleWares = apiHandler.middlewares && apiHandler.middlewares.length > 0;
 
-      if (isProtectedRoute) {
-        await enforceRequestUserAccess(event, apiHandler.access);
-        updateAuthContext(buildAuthContextFromUser(event));
+      if (isProtectedRoute || hasAuthorizationHeader) {
+        const user = await enforceRequestUserAccess(event, apiHandler.access);
+        updateAuthContext(buildAuthContextFromUser(user));
       }
 
       if (hasMiddleWares) {

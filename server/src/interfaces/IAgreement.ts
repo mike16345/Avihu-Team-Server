@@ -10,6 +10,7 @@ export interface IAgreementAnswer {
 
 export interface IAgreementTemplate {
   _id: mongoose.Types.ObjectId;
+  title?: string;
   groupId?: string;
   agreementId: string;
   version: number;

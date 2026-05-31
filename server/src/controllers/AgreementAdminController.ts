@@ -113,6 +113,7 @@ export class AgreementAdminController extends BaseController<
       const body = extractBodyFromEvent(event);
 
       const result = await this.agreementService.createTemplateUploadUrl({
+        title: body.title,
         agreementId: body.agreementId,
         groupId: body.groupId,
         contentType: body.contentType,
@@ -143,6 +144,7 @@ export class AgreementAdminController extends BaseController<
         version: body.version,
         groupId: body.groupId,
         questions: body.questions || [],
+        title: body.title,
       });
 
       const response = this.successResponse({
