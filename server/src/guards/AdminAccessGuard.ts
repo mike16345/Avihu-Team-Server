@@ -89,10 +89,6 @@ const isRoleAllowed = (
 };
 
 export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAccess) => {
-  if (access === "public") {
-    return null;
-  }
-
   const token = extractBearerToken(event.headers || {});
   const claims = jwtAuthService.verifyAccessToken(token) as VerifiedAccessClaims;
   const userId = getVerifiedUserId(claims);
