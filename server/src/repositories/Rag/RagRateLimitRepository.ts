@@ -3,6 +3,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class RagRateLimitRepository extends BaseRepository<IRagRateLimit> {
   constructor() {
-    super(RagRateLimitModel);
+    super(RagRateLimitModel, { type: "global" });
   }
 }

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { IModel } from "./IModel";
 
-export interface IBlog {
+export interface IBlog extends IModel {
   title: string;
   subtitle: string;
   content: string;

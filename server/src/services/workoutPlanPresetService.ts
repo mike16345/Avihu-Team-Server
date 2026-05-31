@@ -2,7 +2,7 @@ import { IWorkoutPlanPreset } from "../models/workoutPlanPresetModel";
 import { WorkoutPlanPresetRepository } from "../repositories/Presets/WorkoutPlanPresetRepository";
 import { removeNestedIds } from "../utils/utils";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "workout-plan-preset";
 

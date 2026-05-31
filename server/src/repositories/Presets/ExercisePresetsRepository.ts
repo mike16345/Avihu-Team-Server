@@ -4,6 +4,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class ExercisePresetsRepository extends BaseRepository<IExercisePreset> {
   constructor() {
-    super(exercisePresets);
+    super(exercisePresets, { type: "trainer", field: "trainerId" });
   }
 }

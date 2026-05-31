@@ -6,7 +6,7 @@ import { fullMenuItemPresets } from "../../models/menuItemModel";
 
 export class DietPlanRepository extends BaseRepository<IDietPlan> {
   constructor() {
-    super(DietPlan);
+    super(DietPlan, { type: "global" });
   }
 
   getPopulatedDietPlan = async (query: FilterQuery<IDietPlan>) => {

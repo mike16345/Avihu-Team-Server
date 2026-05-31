@@ -7,6 +7,7 @@ const { setupAliases } = require("./scripts/setupAliases");
 const sleep = require("./scripts/utils");
 
 const { lambdaConfig } = require("./config/lambdaConfig");
+const lambdaFunctionsMap = require("./config/lambdas.json");
 
 dotenv.config({ path: "./.env.local" });
 
@@ -39,9 +40,15 @@ const APP_PASSWORD = `APP_PASSWORD=${process.env.APP_PASSWORD}`;
 const OPEN_AI_KEY = `OPENAI_API_KEY=${process.env.OPENAI_API_KEY}`;
 const PINECONE_API_KEY = `PINECONE_API_KEY=${process.env.PINECONE_API_KEY}`;
 const PINECONE_INDEX = `PINECONE_INDEX=${process.env.PINECONE_INDEX}`;
+const JWT_ACCESS_SECRET = `JWT_ACCESS_SECRET=${process.env.JWT_ACCESS_SECRET}`;
+const JWT_ACCESS_EXPIRES_IN = `JWT_ACCESS_EXPIRES_IN=${process.env.JWT_ACCESS_EXPIRES_IN}`;
+const JWT_REFRESH_EXPIRES_IN_MS = `JWT_REFRESH_EXPIRES_IN_MS=${process.env.JWT_REFRESH_EXPIRES_IN_MS}`;
 
+const AVIHU_TRAINER_ID = `AVIHU_TRAINER_ID=${process.env.AVIHU_TRAINER_ID}`;
+
+const JWT_ENV = `${JWT_ACCESS_SECRET},${JWT_ACCESS_EXPIRES_IN},${JWT_REFRESH_EXPIRES_IN_MS}`;
 const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
-const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI}`;
+const apiEnv = `${DB_NAME_DEV},${DB_NAME_PROD},${MONGO_URI},${JWT_ENV},${AVIHU_TRAINER_ID}`;
 const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
   signedUrl: `${signedUrlEnv},${apiEnv}`,
@@ -70,23 +77,49 @@ function getLambdaHandlers(folder) {
 }
 
 function getLambdaFunctions() {
-  try {
-    const result = execSync(
-      `aws lambda list-functions --region ${REGION} --query "Functions[*].FunctionName" --output json`,
-      { encoding: "utf8" }
-    );
+  return Object.values(lambdaFunctionsMap)
+    .map(({ functionName, envToUse }) => ({
+      name: `${functionName} (${envToUse})`,
+      value: functionName,
+    }))
+    .sort((a, b) => a.value.localeCompare(b.value));
+}
 
-    const parsed = JSON.parse(result);
+function getLambdaConfigByFunctionName(functionName, lambdaDefinitions = lambdaFunctionsMap) {
+  return (
+    Object.values(lambdaDefinitions).find(
+      (lambdaDefinition) => lambdaDefinition.functionName === functionName
+    ) || null
+  );
+}
 
-    return parsed.sort((a, b) => a.localeCompare(b));
-  } catch (error) {
-    console.error("Failed to list Lambda functions:", error.message);
-    process.exit(1);
+function resolveEnvToUse(functionName, envKey = null, lambdaDefinitions = lambdaFunctionsMap) {
+  const explicitEnvKey = envKey || envArg?.split("=")[1];
+
+  if (explicitEnvKey) {
+    return explicitEnvKey;
   }
+
+  const lambdaDefinition = getLambdaConfigByFunctionName(functionName, lambdaDefinitions);
+
+  if (!lambdaDefinition?.envToUse) {
+    throw new Error(
+      `No envToUse mapping found for Lambda function "${functionName}" in config/lambdas.json`
+    );
+  }
+
+  return lambdaDefinition.envToUse;
 }
 
 async function deploy({ functionName, handlerPath }, envKey = null) {
-  const envToUse = envKey || envArg.split("=")[1];
+  const envToUse = resolveEnvToUse(functionName, envKey);
+
+  if (!envMap[envToUse]) {
+    throw new Error(
+      `Unsupported env "${envToUse}" for Lambda function "${functionName}". Check config/lambdas.json and deploy.js envMap.`
+    );
+  }
+
   const updateEnvCommand = `aws lambda update-function-configuration --function-name ${functionName} --timeout ${lambdaConfig.timeout} --environment Variables="{${envMap[envToUse]}}" --region ${REGION}`;
   const uploadCommand = `lambda-build upload ${functionName} -e ${handlerPath} -r ${REGION}`;
 
@@ -140,13 +173,12 @@ async function promptAndDeployLambda() {
 }
 
 if (require.main === module) {
-  if (!envArg) {
-    console.error(
-      "Please provide an environment using the 'env=' argument\nUsage: npm run deploy -- env='your-env' [--promote]\nOptions:\n1. signedUrl\n2. api\n3. otp"
-    );
-    process.exit(1);
-  }
   promptAndDeployLambda();
 }
 
-module.exports = { deploy };
+module.exports = {
+  deploy,
+  getLambdaConfigByFunctionName,
+  getLambdaFunctions,
+  resolveEnvToUse,
+};

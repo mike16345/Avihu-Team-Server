@@ -1,24 +1,29 @@
 import { APIGatewayEvent, APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
-import { extractBodyFromEvent, extractQueryFromEvent, getHeaderValue } from "../utils/utils";
+import {
+  extractBearerToken,
+  extractBodyFromEvent,
+  extractQueryFromEvent,
+  getHeaderValue,
+} from "../utils/utils";
 import SessionService from "../services/sessionService";
 import { ISession } from "../models/sessionModel";
-import PasswordsService from "../services/PasswordsService";
-import { EmailService } from "../services/EmailService";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
-import { welcomeEmailTemplate } from "../utils/emailTemplates";
 import AuthService from "../services/AuthService";
+import JwtAuthService from "../services/JwtAuthService";
 
 export class UserController extends BaseController<IUser, UserService> {
   private authService: AuthService;
   private sessionService: SessionService;
+  private jwtAuthService: JwtAuthService;
 
   constructor() {
     super(new UserService());
     this.sessionService = new SessionService();
     this.authService = new AuthService();
+    this.jwtAuthService = new JwtAuthService();
   }
 
   private validateUserAccess(user: IUser | null): APIGatewayProxyResult | null {
@@ -34,19 +39,7 @@ export class UserController extends BaseController<IUser, UserService> {
   addUser = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       const userToCreate = extractBodyFromEvent(event);
-      const user = await this.service.create(userToCreate);
-
-      if (user) {
-        const phoneNumber = user.phone.replace(/\D/g, "");
-        await new PasswordsService().hashPassword(user._id.toString(), phoneNumber);
-
-        const mailOptions = {
-          to: user.email,
-          ...welcomeEmailTemplate(phoneNumber),
-        };
-
-        await new EmailService().sendEmail(mailOptions);
-      }
+      const user = await this.service.createUserWithWelcome(userToCreate);
 
       return this.successResponse({
         status: StatusCode.CREATED,
@@ -105,7 +98,7 @@ export class UserController extends BaseController<IUser, UserService> {
     const { email } = extractQueryFromEvent(event);
 
     try {
-      const user = await this.service.findOne({ email: email?.toLowerCase() });
+      const user = await this.service.findOneUnscoped({ email: email?.toLowerCase() });
       const error = this.validateUserAccess(user);
       if (error) return error;
 
@@ -159,16 +152,94 @@ export class UserController extends BaseController<IUser, UserService> {
         ip,
         device,
       });
+      const user = (session.data as any)?.user;
+
+      const isAdmin = user.role === "admin";
+
+      const { refreshToken } = await this.jwtAuthService.createRefreshSession(user, { ip, device });
+
+      const accessToken = this.jwtAuthService.signAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        sessionId: String(session._id),
+        trainerId: isAdmin ? user.trainerId || user._id.toString() : user.trainerId,
+      });
 
       return this.successResponse({
         status: StatusCode.OK,
-        data: session,
+        data: { accessToken, refreshToken, sessionId: session._id, user: this.toSafeUser(user) },
         message: "התחברות בוצעה בהצלחה!",
       });
     } catch (err: any) {
       return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
+
+  refreshAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
+    if (error) return error;
+
+    try {
+      const { user } = await this.jwtAuthService.validateRefreshToken(refreshToken);
+      const { refreshToken: nextRefreshToken, session } =
+        await this.jwtAuthService.rotateRefreshToken(refreshToken);
+      const accessToken = this.jwtAuthService.signAccessToken({
+        userId: user._id.toString(),
+        trainerId: user.trainerId?.toString(),
+        role: user.role,
+        sessionId: String(session._id),
+      });
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: { accessToken, refreshToken: nextRefreshToken, user: this.toSafeUser(user) },
+      });
+    } catch (err: any) {
+      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  logoutAuth = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { refreshToken, error } = this.getParamsOrError(event, ["refreshToken"], "body");
+
+    if (error) return error;
+
+    try {
+      await this.jwtAuthService.revokeRefreshToken(refreshToken);
+
+      return this.successResponse({ status: StatusCode.OK, message: "Logged out" });
+    } catch (err: any) {
+      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  me = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const token = extractBearerToken(event.headers || {});
+      const claims = this.jwtAuthService.verifyAccessToken(token);
+      const userId = claims.sub || claims.userId || claims._id;
+
+      if (!userId) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+
+      const user = await this.service.findById(userId);
+
+      if (!user) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+      if (!user.hasAccess) return this.errorResponse("Unauthorized", StatusCode.FORBIDDEN);
+
+      return this.successResponse({ status: StatusCode.OK, data: this.toSafeUser(user) });
+    } catch (err) {
+      return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+    }
+  };
+
+  private toSafeUser(user: IUser) {
+    return {
+      ...user,
+      status: user.hasAccess ? "active" : "inactive",
+      isSuperAdmin: user.role === "admin",
+      isTrainer: user.role === "trainer",
+    };
+  }
 
   checkUserSessionToken = async (event: APIGatewayEvent) => {
     try {

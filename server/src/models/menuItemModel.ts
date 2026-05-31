@@ -1,6 +1,7 @@
 import Joi from "joi";
 import { model, Schema } from "mongoose";
 import { ICustomItemInstructions } from "../interfaces/IDietPlan";
+import { IModel } from "../interfaces/IModel";
 
 export const oneServingShcema = new Schema({
   grams: {
@@ -33,9 +34,14 @@ export const oneServingShcema = new Schema({
   },
 });
 
-export const menuItemSchema = new Schema<ICustomItemInstructions>({
+export const menuItemSchema = new Schema<ICustomItemInstructions & IModel>({
   dietaryType: {
     type: [String],
+  },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "trainers",
   },
   foodGroup: {
     type: String,

@@ -1,8 +1,9 @@
 import { Schema, model } from "mongoose";
 import Joi from "joi";
 import { ILead } from "../interfaces/ILead";
+import { IModel } from "../interfaces/IModel";
 
-const leadsSchema = new Schema<ILead>(
+const leadsSchema = new Schema<ILead & IModel>(
   {
     fullName: {
       type: String,
@@ -32,6 +33,11 @@ const leadsSchema = new Schema<ILead>(
       trim: true,
       maxlength: 64,
     },
+    trainerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "trainers",
+    },
     isContacted: {
       type: Boolean,
       default: false,
@@ -48,7 +54,7 @@ const leadsSchema = new Schema<ILead>(
 
 leadsSchema.index({ email: 1, createdAt: -1 });
 
-export const LeadsModel = model<ILead>("leads", leadsSchema);
+export const LeadsModel = model<ILead & IModel>("leads", leadsSchema);
 
 const leadBaseSchema = Joi.object({
   fullName: Joi.string().trim().max(120),

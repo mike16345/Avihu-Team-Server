@@ -7,7 +7,7 @@ import { BaseRepository } from "../BaseRepository";
 
 export default class WeighInsRepository extends BaseRepository<IWeighIns> {
   constructor() {
-    super(WeighIns);
+    super(WeighIns, { type: "global" });
   }
 
   addWeighIn = async (weighIn: IWeighIn, userId: string): Promise<IWeighIns> => {
@@ -39,6 +39,21 @@ export default class WeighInsRepository extends BaseRepository<IWeighIns> {
       { new: true }
     );
     if (!result) throw { status: StatusCode.NOT_FOUND, message: DELETE_FAILURE };
+
+    return result;
+  };
+
+  updateWeighInById = async (id: string, weight: number): Promise<IWeighIns> => {
+    const objectId = new Types.ObjectId(id);
+    const result = await this.model.findOneAndUpdate(
+      { "weighIns._id": objectId },
+      { $set: { "weighIns.$.weight": weight } },
+      { new: true }
+    );
+
+    if (!result) {
+      throw { message: "Subdocument not found", statusCode: StatusCode.NOT_FOUND };
+    }
 
     return result;
   };

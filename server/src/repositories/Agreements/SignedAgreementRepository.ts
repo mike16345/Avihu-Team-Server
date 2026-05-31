@@ -8,7 +8,7 @@ import { PaginationParams } from "../../utils/pagination";
 
 export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> {
   constructor() {
-    super(SignedAgreementModel);
+    super(SignedAgreementModel, { type: "trainer", field: "trainerId" });
   }
 
   private populateUserId(docs: any[]) {
@@ -50,7 +50,8 @@ export class SignedAgreementRepository extends BaseRepository<ISignedAgreement> 
   }
 
   create = async (doc: ISignedAgreement): Promise<ISignedAgreement> => {
-    const newDoc = await this.model.create(doc);
+    const docWithScope = this.applyScopeToCreate(doc);
+    const newDoc = await this.model.create(docWithScope);
 
     await User.findByIdAndUpdate(doc.userId, { onboardingStep: "completed" });
 

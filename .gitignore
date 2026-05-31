@@ -405,3 +405,4 @@ FodyWeavers.xsd
 **/**/basicLambda/*
 **/**/*.zip 
 **/**/release.js 
+insertTrainerId.ts

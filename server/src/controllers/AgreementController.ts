@@ -34,6 +34,7 @@ export class AgreementController extends BaseController<
       const response = this.successResponse({
         status: StatusCode.OK,
         data: {
+          title: agreement.title,
           agreementId: agreement.agreementId,
           version: agreement.version,
           pdfUrl: agreement.pdfUrl,

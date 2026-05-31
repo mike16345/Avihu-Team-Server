@@ -2,7 +2,7 @@ import { FilterQuery } from "mongoose";
 import { IDietPlan } from "../interfaces/IDietPlan";
 import { DietPlanRepository } from "../repositories/DietPlan/DietPlanRepository";
 import { stableStringify } from "../utils/utils";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const baseKey = "diet-plan";
 

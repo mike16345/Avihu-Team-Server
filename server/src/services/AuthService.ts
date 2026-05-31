@@ -4,7 +4,7 @@ import SessionService from "./sessionService";
 import { ISession } from "../models/sessionModel";
 import { IUser } from "../interfaces/IUser";
 import { StatusCode } from "../enums/StatusCode";
-import { requireAdmin } from "../guards/AdminAccessGuard";
+import { allowedAdminAppRoles, requireAdmin, requireRoles } from "../guards/AdminAccessGuard";
 
 class AuthService {
   private userService = new UserService();
@@ -17,27 +17,35 @@ class AuthService {
     isAdminApp = false,
     metadata: { ip?: string; device?: string } = {}
   ): Promise<ISession> {
-    const user = await this.userService.findOne({ email: email.toLowerCase() });
+    console.warn(
+      `Login attempt for email: ${email} from IP: ${metadata.ip} using device: ${metadata.device}`
+    );
+    const user = await this.userService.findOneUnscoped({ email: email.toLowerCase() });
+    console.warn(
+      `passing user service, found user: ${user ? user._id : "no user found"} with email: ${email}`
+    );
 
-    if (!user) throw { message: "משתמש לא נמצא!", statusCode: StatusCode.NOT_FOUND };
+    if (!user) throw { message: "משתמש לא קיים במערכת", statusCode: StatusCode.UNAUTHORIZED };
     if (isAdminApp) {
-      requireAdmin(user);
+      requireRoles(...allowedAdminAppRoles, user.role);
     }
-    if (!user.hasAccess)
-      throw { message: "אין גישה לכתובת המייל", statusCode: StatusCode.UNAUTHORIZED };
+    if (!user.hasAccess) throw { message: "אין למשתמש גישה", statusCode: StatusCode.FORBIDDEN };
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);
-    if (!isMatch) throw { message: "מייל או סיסמא שגויים!", statusCode: StatusCode.NOT_FOUND };
+    if (!isMatch) throw { message: "פרטי גישה שגויים", statusCode: StatusCode.UNAUTHORIZED };
+    const now = new Date();
 
     return this.sessionService.create({
       userId: user._id.toString(),
       data: { user, ip: metadata.ip, device: metadata.device },
       type: "login",
+      createdAt: now,
+      updatedAt: now,
     } as ISession);
   }
 
   async register(email: string, password: string): Promise<IUser> {
-    const user = await this.userService.findOne({ email: email.toLowerCase() });
+    const user = await this.userService.findOneUnscoped({ email: email.toLowerCase() });
 
     if (!user) {
       throw { message: "משתמש לא נמצא!", statusCode: StatusCode.NOT_FOUND };

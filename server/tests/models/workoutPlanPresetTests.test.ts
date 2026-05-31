@@ -10,7 +10,10 @@ import {
 
 describe("WorkoutPlanPreset Model", () => {
   it("should create a valid workout plan preset", async () => {
-    const preset = new WorkoutPlanPreset(validWorkoutPlanPreset);
+    const preset = new WorkoutPlanPreset({
+      ...validWorkoutPlanPreset,
+      trainerId: "507f1f77bcf86cd799439012",
+    });
     const savedPreset = await preset.save();
     expect(savedPreset._id).toBeDefined();
     expect(savedPreset.name).toBe(validWorkoutPlanPreset.name);
@@ -18,12 +21,18 @@ describe("WorkoutPlanPreset Model", () => {
   });
 
   it("should throw validation error for empty workout plans array", async () => {
-    const preset = new WorkoutPlanPreset(invalidWorkoutPlanPresetEmptyPlans);
+    const preset = new WorkoutPlanPreset({
+      ...invalidWorkoutPlanPresetEmptyPlans,
+      trainerId: "507f1f77bcf86cd799439012",
+    });
     await expect(preset.save()).rejects.toThrow(/Workout plans array cannot be empty/);
   });
 
   it("should throw validation error for missing name", async () => {
-    const preset = new WorkoutPlanPreset(invalidWorkoutPlanPresetNoName);
+    const preset = new WorkoutPlanPreset({
+      ...invalidWorkoutPlanPresetNoName,
+      trainerId: "507f1f77bcf86cd799439012",
+    });
     await expect(preset.save()).rejects.toThrow(/`name` is required/);
   });
 });

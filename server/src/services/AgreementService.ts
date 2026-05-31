@@ -16,7 +16,7 @@ import {
 import { sha256 } from "../utils/crypto";
 import { stripBase64DataUrl } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { IFormQuestion } from "../interfaces/IForm";
 
 const DOWNLOAD_URL_TTL_SECONDS = 60 * 10;
@@ -47,11 +47,14 @@ export class AgreementService {
   }
 
   async createTemplateUploadUrl(params: {
+    title?: string;
     agreementId?: string;
     groupId?: string;
     contentType: string;
+    questions: IFormQuestion[];
   }) {
-    const agreementId = params.agreementId ?? new mongoose.Types.ObjectId().toString();
+    const isObjectId = isValidObjectId(params.agreementId);
+    const agreementId = isObjectId ? params.agreementId : new mongoose.Types.ObjectId().toString();
 
     const latest = await this.templateService.getLatestTemplate({
       agreementId,
@@ -62,12 +65,13 @@ export class AgreementService {
     const templatePdfS3Key = `agreements/templates/${agreementId}/${nextVersion}.pdf`;
 
     const template: Omit<IAgreementTemplate, "_id"> = {
+      title: params.title,
       agreementId,
       groupId: params.groupId,
       version: nextVersion,
-      active: false,
+      active: true,
       templatePdfS3Key,
-      questions: [],
+      questions: params.questions,
       createdAt: new Date(),
     };
 
@@ -91,6 +95,7 @@ export class AgreementService {
     agreementId: string;
     version: number;
     groupId?: string;
+    title?: string;
     questions: IFormQuestion[];
   }) {
     const templateQuery = {
@@ -100,7 +105,7 @@ export class AgreementService {
 
     const updated = await this.templateService.updateOne(
       { ...templateQuery, version: params.version },
-      { active: true, questions: params.questions }
+      { active: true, questions: params.questions, title: params.title }
     );
 
     if (!updated) {

@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import { RagController } from "../../controllers/ragController";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 type LambdaWarmerEvent = {
   type: "keep warm";
@@ -20,9 +21,15 @@ function isEventBridgeWarm(e: any): e is LambdaWarmerEvent {
 const BASE_PATH = "/rag";
 const controller = new RagController();
 
-const handlers = {
-  [`POST ${BASE_PATH}/query`]: controller.ask,
-  [`POST ${BASE_PATH}/ingest`]: controller.ingest,
+const ragApiRoutes: ApiRouteHandlers = {
+  [`POST ${BASE_PATH}/query`]: {
+    handler: controller.ask,
+    access: "authenticated",
+  },
+  [`POST ${BASE_PATH}/ingest`]: {
+    handler: controller.ingest,
+    access: "subtrainer",
+  },
 };
 
 export const handler = async (
@@ -35,5 +42,5 @@ export const handler = async (
     return Promise.resolve({ statusCode: 200, body: JSON.stringify({ ok: true, warm: true }) });
   }
 
-  return await handleApiCall(event as APIGatewayProxyEvent, context, handlers);
+  return await handleApiCall(event as APIGatewayProxyEvent, context, ragApiRoutes);
 };

@@ -3,6 +3,6 @@ import { BaseRepository } from "../BaseRepository";
 
 export class LessonGroupRepository extends BaseRepository<ILessonGroup> {
   constructor() {
-    super(LessonGroup);
+    super(LessonGroup, { type: "trainer", field: "trainerId" });
   }
 }

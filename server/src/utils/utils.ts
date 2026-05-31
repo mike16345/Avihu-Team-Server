@@ -183,7 +183,8 @@ export const isSessionExpired = (
   field: keyof ISession = "createdAt"
 ) => {
   const now = new Date().getTime();
-  const workoutExpiration = new Date(session[field]).getTime() + expiresAfter;
+  const sessionTimestamp = session[field] as string | number | Date;
+  const workoutExpiration = new Date(sessionTimestamp).getTime() + expiresAfter;
 
   return now > workoutExpiration;
 };
@@ -256,6 +257,19 @@ export const getHeaderValue = (
   return Object.entries(headers).find(([k]) => k.toLowerCase() === lower)?.[1];
 };
 
+export const extractBearerToken = (headers: Record<string, any> = {}): string => {
+  const authHeader = getHeaderValue(headers, "authorization");
+  if (!authHeader || typeof authHeader !== "string") {
+    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+  }
+
+  const parts = authHeader.trim().split(/\s+/);
+  if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
+    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+  }
+
+  return parts[1];
+};
 export const getRequestIp = (event: APIGatewayEvent): string | undefined => {
   const forwardedFor = getHeaderValue(event.headers || {}, "x-forwarded-for");
 

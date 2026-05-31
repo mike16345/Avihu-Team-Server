@@ -1,13 +1,17 @@
-import { Types } from "mongoose";
+import { Model, Types } from "mongoose";
 import { IFullWorkoutPlan } from "../../interfaces/IWorkoutPlan";
 import { exercisePresets } from "../../models/exercisePresetModel";
 import { WorkoutPlan } from "../../models/workoutPlanModel";
 import { FindOptions } from "../../types/mongooseTypes";
-import { BaseRepository } from "../BaseRepository";
+import { BaseRepository, ModelScope } from "../BaseRepository";
 import { FIND_ONE_FAILURE } from "../../constants/repository";
 import { StatusCode } from "../../enums/StatusCode";
 
 export class WorkoutPlanRepository<T> extends BaseRepository<T> {
+  constructor(model: Model<any>, scope: ModelScope) {
+    super(model, scope);
+  }
+
   private populateWorkoutPlan(
     query: ReturnType<
       typeof this.model.find | typeof this.model.findOne | typeof this.model.findById
@@ -45,10 +49,15 @@ export class WorkoutPlanRepository<T> extends BaseRepository<T> {
 
   async find(options: FindOptions<IFullWorkoutPlan>): Promise<any> {
     const { query, queryOptions, projection } = options;
-    const plans = await this.populateWorkoutPlan(this.model.find(query, projection, queryOptions));
+    const withScopeQuery = this.withScopedSoftDeleteFilter(query);
+    const plans = await this.populateWorkoutPlan(
+      this.model.find(withScopeQuery, projection, queryOptions)
+    );
 
     return plans;
   }
 }
 
-export const workoutPlanRepository = new WorkoutPlanRepository<IFullWorkoutPlan>(WorkoutPlan);
+export const workoutPlanRepository = new WorkoutPlanRepository<IFullWorkoutPlan>(WorkoutPlan, {
+  type: "global",
+});

@@ -5,7 +5,7 @@ import { LeadsModel } from "../models/LeadsModel";
 
 export default class LeadsRepository extends BaseRepository<ILead> {
   constructor() {
-    super(LeadsModel);
+    super(LeadsModel, { type: "global" });
   }
 
   async create(doc: Partial<ILead>): Promise<ILead> {
@@ -25,7 +25,7 @@ export default class LeadsRepository extends BaseRepository<ILead> {
 
     const [items, total] = await Promise.all([
       this.model.find().sort({ isContacted: 1, createdAt: -1 }).skip(skip).limit(limit).lean(),
-      this.model.countDocuments(),
+      this.model.countDocuments(this.applyScopeToQuery()),
     ]);
 
     return { items: (items as unknown as ILead[]) ?? [], total };

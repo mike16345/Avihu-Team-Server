@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { IPassword } from "../models/passwordModel";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import PasswordRepository from "../repositories/Password/PasswordRepository";
 
 const SALT_ROUNDS = 10;
@@ -27,7 +27,9 @@ class PasswordsService extends BaseService<IPassword, PasswordRepository> {
   }
 
   async comparePasswords(userId: string, providedPassword: string) {
-    const passwordDoc = await this.repository.findOne({ query: { userId } });
+    const passwordDoc = (await this.repository.findOne({
+      query: { userId },
+    })) as unknown as IPassword | null;
     if (!passwordDoc) return false;
 
     return bcrypt.compare(providedPassword, passwordDoc.hash);

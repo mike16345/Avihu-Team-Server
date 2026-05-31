@@ -30,6 +30,13 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return newDoc;
   }
 
+  async createWithoutScope(doc: T) {
+    const newDoc = await this.repository.createWithoutScope(doc);
+    this.cache.invalidateAll();
+
+    return newDoc;
+  }
+
   async isExists(fields: Partial<T>): Promise<boolean> {
     const conditions = Object.entries(fields).map(([key, value]) => ({
       [key as any]: value as any,
@@ -38,6 +45,10 @@ export class BaseService<T, R extends BaseRepository<T>> {
     if (conditions.length === 0) return false;
 
     return await this.repository.isExists({ $or: conditions });
+  }
+
+  async countDocuments(filter: Partial<Record<keyof T, any>> = {}): Promise<number> {
+    return await this.repository.countDocuments(filter);
   }
 
   async find(filter: Partial<Record<keyof T, any>> = {}): Promise<T[]> {
@@ -70,12 +81,30 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return data;
   }
 
+  async findPaginatedWithoutScope(
+    params: PaginationParams,
+    resource: string = ""
+  ): Promise<PaginationResult<T>> {
+    const cacheKey = this.generateCacheKey(
+      "paginated-unscoped",
+      generatePaginationCacheKey(resource || this.baseCacheKey, params)
+    );
+
+    const cached = this.cache.get(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.repository.getPaginatedWithoutScope(params);
+
+    this.cache.set(cacheKey, data);
+    return data;
+  }
+
   async findById(id: string): Promise<T | null> {
     const key = this.generateCacheKey("id", id);
     const cached = this.cache.get(key);
 
     if (cached) return cached;
-    const item = await this.repository.findById(id);
+    const item = (await this.repository.findById(id)) as T;
 
     this.cache.set(key, item);
 
@@ -87,7 +116,7 @@ export class BaseService<T, R extends BaseRepository<T>> {
     const cached = this.cache.get(key);
 
     if (cached) return cached;
-    const item = await this.repository.findOne({ query: filter });
+    const item = (await this.repository.findOne({ query: filter })) as T;
 
     this.cache.set(key, item);
 
@@ -136,8 +165,24 @@ export class BaseService<T, R extends BaseRepository<T>> {
     return deleted;
   }
 
+  async hardDeleteById(id: string) {
+    const deleted = await this.repository.hardDeleteById(id);
+
+    this.cache.invalidateAll();
+
+    return deleted;
+  }
+
   async delete(filter: Partial<Record<keyof T, any>>) {
     const deleted = await this.repository.delete(filter);
+
+    this.cache.invalidateAll();
+
+    return deleted;
+  }
+
+  async hardDelete(filter: Partial<Record<keyof T, any>>) {
+    const deleted = await this.repository.hardDelete(filter);
 
     this.cache.invalidateAll();
 

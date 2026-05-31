@@ -8,13 +8,13 @@ import {
   generateOTP,
   generateUUID,
 } from "../utils/utils";
-import { Cache } from "../utils/cache";
 import { ONE_MINUTE_IN_MILLISECONDS } from "../constants/Constants";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
 import SessionService from "../services/sessionService";
+import { OTPCache } from "../utils/otpCache";
 
-const cache = new Cache();
+const cache = new OTPCache();
 
 export class OTPController {
   static async confirmOtp(event: APIGatewayProxyEvent) {
@@ -59,7 +59,7 @@ export class OTPController {
           body: JSON.stringify({ message: "Email is required" }),
         };
       }
-      const user = await new UserService().findOne({ email: email.toLowerCase() });
+      const user = await new UserService().findOneUnscoped({ email: email.toLowerCase() });
 
       if (!user) {
         return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");

@@ -8,33 +8,32 @@ export class Cache<T> {
 
   // Set data in the cache with an optional expiration time
   set(key: string, data?: T | null, options?: CacheOptions<T>): void {
-    if (!data) return;
-    const expiresAt = options?.expireAfter ? Date.now() + options.expireAfter : null;
-
-    this.cache[key] = {
-      data,
-      expiresAt,
-    };
+    // const expiresAt = options?.expireAfter ? Date.now() + options.expireAfter : null;
+    // this.cache[key] = {
+    //   data,
+    //   expiresAt,
+    // };
   }
 
   // Get data from the cache, returns null if not found or expired
   get(key: string): T | null {
-    const cacheEntry = this.cache[key];
+    return null;
+    // const cacheEntry = this.cache[key];
 
-    if (!cacheEntry) {
-      console.log("Cache miss for KEY:", key);
-      return null;
-    }
+    // if (!cacheEntry) {
+    //   console.log("Cache miss for KEY:", key);
+    //   return null;
+    // }
 
-    // Check if the cache entry has expired
-    if (cacheEntry.expiresAt && Date.now() > cacheEntry.expiresAt) {
-      console.log("Cache expired returning null");
-      delete this.cache[key];
-      return null;
-    }
-    console.log("Returning cached data for KEY:", key);
+    // // Check if the cache entry has expired
+    // if (cacheEntry.expiresAt && Date.now() > cacheEntry.expiresAt) {
+    //   console.log("Cache expired returning null");
+    //   delete this.cache[key];
+    //   return null;
+    // }
+    // console.log("Returning cached data for KEY:", key);
 
-    return cacheEntry.data;
+    // return cacheEntry.data;
   }
 
   // Invalidate a specific cache entry

@@ -35,8 +35,6 @@ export class AgreementAdminController extends BaseController<
     await this.beforeAction(event);
 
     try {
-      await this.requireAdminFromEvent(event);
-
       const query = extractQueryFromEvent(event);
       const { page, limit } = extractPaginationParamsFromEvent(event);
       const filter: Record<string, any> = {};
@@ -82,8 +80,6 @@ export class AgreementAdminController extends BaseController<
     await this.beforeAction(event);
 
     try {
-      await this.requireAdminFromEvent(event);
-
       const { id, error } = this.getParamsOrError(event, ["id"]);
       if (error) return error;
 
@@ -114,13 +110,14 @@ export class AgreementAdminController extends BaseController<
     await this.beforeAction(event);
 
     try {
-      await this.requireAdminFromEvent(event);
       const body = extractBodyFromEvent(event);
 
       const result = await this.agreementService.createTemplateUploadUrl({
+        title: body.title,
         agreementId: body.agreementId,
         groupId: body.groupId,
         contentType: body.contentType,
+        questions: body.questions ?? [],
       });
 
       const response = this.successResponse({
@@ -140,7 +137,6 @@ export class AgreementAdminController extends BaseController<
     await this.beforeAction(event);
 
     try {
-      await this.requireAdminFromEvent(event);
       const body = extractBodyFromEvent(event);
 
       const updated = await this.agreementService.activateTemplate({
@@ -148,6 +144,7 @@ export class AgreementAdminController extends BaseController<
         version: body.version,
         groupId: body.groupId,
         questions: body.questions || [],
+        title: body.title,
       });
 
       const response = this.successResponse({
@@ -162,19 +159,6 @@ export class AgreementAdminController extends BaseController<
       return this.errorResponse(err, err?.status || err?.statusCode);
     }
   };
-
-  private async requireAdminFromEvent(event: APIGatewayProxyEvent) {
-    const query = extractQueryFromEvent(event);
-    const body = extractBodyFromEvent(event);
-    const adminId = query.adminId || body.adminId;
-
-    if (!adminId) {
-      throw { statusCode: StatusCode.BAD_REQUEST, message: "adminId is required." };
-    }
-
-    const adminUser = await this.userService.findById(adminId);
-    requireAdmin(adminUser);
-  }
 }
 
 function parseDateParam(value: string, field: string): Date {

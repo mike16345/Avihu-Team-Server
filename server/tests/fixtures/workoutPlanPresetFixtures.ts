@@ -1,16 +1,40 @@
-import { IWorkoutPlanPreset } from "../../src/interfaces/IWorkoutPlan";
 import { ValidDetailedWorkoutPlan } from "./workoutPlanFixtures";
 
-export const validWorkoutPlanPreset: IWorkoutPlanPreset = {
+export const validWorkoutPlanPreset = {
   name: "Valid Preset",
+  tips: ["Control the eccentric"],
   workoutPlans: [ValidDetailedWorkoutPlan],
+  cardio: {
+    type: "simple",
+    plan: {
+      minsPerWeek: 60,
+      timesPerWeek: 2,
+      minsPerWorkout: 30,
+    },
+  },
 };
 
-export const invalidWorkoutPlanPresetEmptyPlans: Partial<IWorkoutPlanPreset> = {
+export const invalidWorkoutPlanPresetEmptyPlans = {
   name: "Invalid Preset",
+  tips: [],
   workoutPlans: [],
+  cardio: {
+    type: "simple",
+    plan: {
+      minsPerWeek: 60,
+      timesPerWeek: 2,
+    },
+  },
 };
 
-export const invalidWorkoutPlanPresetNoName: Partial<IWorkoutPlanPreset> = {
+export const invalidWorkoutPlanPresetNoName = {
+  tips: [],
   workoutPlans: [ValidDetailedWorkoutPlan],
+  cardio: {
+    type: "simple",
+    plan: {
+      minsPerWeek: 60,
+      timesPerWeek: 2,
+    },
+  },
 };

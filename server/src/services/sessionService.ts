@@ -1,7 +1,7 @@
 import { ISession, ISessionCreate } from "../models/sessionModel";
 import { SessionRepository } from "../repositories/Sessions/SessionRepository";
 import { removeExpiredMeals } from "../utils/meals";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const isSessionExpired = (session: ISession): boolean => {
   const now = new Date().getTime();

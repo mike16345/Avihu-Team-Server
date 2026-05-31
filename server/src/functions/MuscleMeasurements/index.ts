@@ -1,20 +1,30 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { handleApiCall } from "../baseHandler";
 import MuscleMeasurementController from "../../controllers/MuscleMeasurementController";
+import { ApiRouteHandlers } from "../../types/lambdaTypes";
 
 const BASE_PATH = "/measurements";
 
 const muscleMeasurementController = new MuscleMeasurementController();
 
-const muscleMeasurementsApiHandlers = {
-  [`GET ${BASE_PATH}/one`]: muscleMeasurementController.getMeasurementsByUserId,
-  [`POST ${BASE_PATH}`]: muscleMeasurementController.saveMeasurement,
-  [`DELETE ${BASE_PATH}`]: muscleMeasurementController.removeMeasurement,
+const muscleMeasurementsApiRoutes: ApiRouteHandlers = {
+  [`GET ${BASE_PATH}/one`]: {
+    handler: muscleMeasurementController.getMeasurementsByUserId,
+    access: "authenticated",
+  },
+  [`POST ${BASE_PATH}`]: {
+    handler: muscleMeasurementController.saveMeasurement,
+    access: "authenticated",
+  },
+  [`DELETE ${BASE_PATH}`]: {
+    handler: muscleMeasurementController.removeMeasurement,
+    access: "authenticated",
+  },
 };
 
 export const handler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  return await handleApiCall(event, context, muscleMeasurementsApiHandlers);
+  return await handleApiCall(event, context, muscleMeasurementsApiRoutes);
 };

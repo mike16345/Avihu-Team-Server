@@ -20,5 +20,7 @@
   "Leads": { "functionName": "Leads", "envToUse": "otp" },
   "rag": { "functionName": "Chat", "envToUse": "rag" },
   "MuscleMeasurements": { "functionName": "MuscleMeasurements", "envToUse": "api" },
-  "agreements": { "functionName": "Agreements", "envToUse": "signedUrl" }
+  "agreements": { "functionName": "Agreements", "envToUse": "signedUrl" },
+  "subTrainers": { "functionName": "SubTrainers", "envToUse": "otp" },
+  "trainers": { "functionName": "Trainers", "envToUse": "otp" }
 }

@@ -1,6 +1,6 @@
 import { ICustomItemInstructions } from "../interfaces/IDietPlan";
 import { MenuItemRepository } from "../repositories/MenuItems/MenuItemRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = "menu-item";
 

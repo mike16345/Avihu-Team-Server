@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import Joi from "joi";
 import { IForm } from "../interfaces/IForm";
+import { IModel } from "../interfaces/IModel";
 
 const QUESTION_TYPES = [
   "text",
@@ -58,11 +59,16 @@ const FormSectionSchema = new Schema(
   { _id: true }
 );
 
-export const FormSchema = new Schema<IForm>(
+export const FormSchema = new Schema<IForm & IModel>(
   {
     name: {
       type: String,
       required: true,
+    },
+    trainerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "trainers",
     },
     type: {
       type: String,
@@ -87,7 +93,7 @@ export const FormSchema = new Schema<IForm>(
   }
 );
 
-export const FormModel = model<IForm>("forms", FormSchema);
+export const FormModel = model<IForm & IModel>("forms", FormSchema);
 
 export const formQuestionValidator = Joi.object({
   type: Joi.string()

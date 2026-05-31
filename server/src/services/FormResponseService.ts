@@ -1,7 +1,7 @@
 import { IFormResponse } from "../interfaces/IFormResponse";
 import { FormPresetRepository } from "../repositories/Presets/FormPresetRepository";
 import { FormResponseRepository } from "../repositories/FormResponses/FormResponseRepository";
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = "form-responses";
 

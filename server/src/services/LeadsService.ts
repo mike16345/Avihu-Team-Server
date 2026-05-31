@@ -1,4 +1,4 @@
-import { BaseService } from "./BaseService";
+import { BaseService } from "./baseService";
 import LeadsRepository from "../repositories/LeadsRepository";
 import { ILead } from "../interfaces/ILead";
 
