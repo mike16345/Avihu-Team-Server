@@ -37,7 +37,34 @@ export interface IDetailedWorkoutPlan {
   muscleGroups: IMuscleGroupWorkoutPlan[];
 }
 
-export interface IFullWorkoutPlan {
+/**
+ * Optional trainer-tagged meta-data for a workout plan or preset.
+ * Used by the admin panel to surface filters (frequency, level,
+ * goal, equipment, focus). All fields are optional — older records
+ * without tagging keep working unchanged.
+ */
+export type WorkoutLevel = "beginner" | "intermediate" | "advanced";
+export type WorkoutGoal =
+  | "fat-loss"
+  | "muscle-gain"
+  | "strength"
+  | "endurance"
+  | "toning"
+  | "rehab";
+export type WorkoutEquipment = "gym" | "studio" | "weights" | "bodyweight";
+
+export interface IWorkoutPlanMeta {
+  workoutsPerWeek?: number;
+  durationMinutes?: number;
+  level?: WorkoutLevel;
+  goal?: WorkoutGoal;
+  equipment?: WorkoutEquipment;
+  muscleFocus?: string[];
+  note?: string;
+  limitations?: string;
+}
+
+export interface IFullWorkoutPlan extends IWorkoutPlanMeta {
   userId: string;
   tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];

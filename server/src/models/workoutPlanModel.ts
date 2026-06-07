@@ -116,6 +116,26 @@ export const cardioPlanSchema = new Schema({
   plan: { type: Schema.Types.Mixed, required: true }, // Either Simple or Complex
 });
 
+/**
+ * Optional trainer-tagged meta fields used by the admin panel to
+ * filter/scan presets (frequency, level, goal, equipment, focus,
+ * notes, limitations). All optional — backwards-compatible with
+ * older docs that don't have any of these set.
+ */
+export const workoutMetaFields = {
+  workoutsPerWeek: { type: Number, min: 1, max: 7 },
+  durationMinutes: { type: Number, min: 10, max: 240 },
+  level: { type: String, enum: ["beginner", "intermediate", "advanced"] },
+  goal: {
+    type: String,
+    enum: ["fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab"],
+  },
+  equipment: { type: String, enum: ["gym", "studio", "weights", "bodyweight"] },
+  muscleFocus: { type: [String], default: undefined },
+  note: { type: String, maxlength: 500 },
+  limitations: { type: String, maxlength: 500 },
+};
+
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
@@ -138,6 +158,7 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
     type: cardioPlanSchema,
     required: true,
   },
+  ...workoutMetaFields,
 });
 
 export const setValidationSchema = Joi.object({
@@ -210,10 +231,25 @@ export const WorkoutPlanSchemaValidation = Joi.object({
   muscleGroups: Joi.array().items(muscleGroupWorkoutPlanValidationSchema).min(1).required(),
 });
 
+/** Optional meta fields — kept in sync with `workoutMetaFields` above. */
+export const workoutMetaValidationFields = {
+  workoutsPerWeek: Joi.number().min(1).max(7).optional(),
+  durationMinutes: Joi.number().min(10).max(240).optional(),
+  level: Joi.string().valid("beginner", "intermediate", "advanced").optional(),
+  goal: Joi.string()
+    .valid("fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab")
+    .optional(),
+  equipment: Joi.string().valid("gym", "studio", "weights", "bodyweight").optional(),
+  muscleFocus: Joi.array().items(Joi.string()).max(3).optional(),
+  note: Joi.string().max(500).allow("").optional(),
+  limitations: Joi.string().max(500).allow("").optional(),
+};
+
 export const FullWorkoutPlanSchemaValidation = Joi.object({
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
   cardio: cardioPlanValidationSchema.required(),
+  ...workoutMetaValidationFields,
 });
 
 export const WorkoutPlan = model<IFullWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);
