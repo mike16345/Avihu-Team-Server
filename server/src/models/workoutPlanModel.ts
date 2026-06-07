@@ -130,10 +130,14 @@ export const workoutMetaFields = {
     type: String,
     enum: ["fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab"],
   },
-  equipment: { type: String, enum: ["gym", "studio", "weights", "bodyweight"] },
+  equipment: {
+    type: String,
+    enum: ["gym", "studio", "weights", "bodyweight", "weights-bodyweight"],
+  },
   muscleFocus: { type: [String], default: undefined },
   note: { type: String, maxlength: 500 },
   limitations: { type: String, maxlength: 500 },
+  builtByTrainerId: { type: String },
 };
 
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
@@ -239,10 +243,13 @@ export const workoutMetaValidationFields = {
   goal: Joi.string()
     .valid("fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab")
     .optional(),
-  equipment: Joi.string().valid("gym", "studio", "weights", "bodyweight").optional(),
+  equipment: Joi.string()
+    .valid("gym", "studio", "weights", "bodyweight", "weights-bodyweight")
+    .optional(),
   muscleFocus: Joi.array().items(Joi.string()).max(3).optional(),
   note: Joi.string().max(500).allow("").optional(),
   limitations: Joi.string().max(500).allow("").optional(),
+  builtByTrainerId: Joi.string().optional(),
 };
 
 export const FullWorkoutPlanSchemaValidation = Joi.object({

@@ -51,7 +51,12 @@ export type WorkoutGoal =
   | "endurance"
   | "toning"
   | "rehab";
-export type WorkoutEquipment = "gym" | "studio" | "weights" | "bodyweight";
+export type WorkoutEquipment =
+  | "gym"
+  | "studio"
+  | "weights"
+  | "bodyweight"
+  | "weights-bodyweight";
 
 export interface IWorkoutPlanMeta {
   workoutsPerWeek?: number;
@@ -62,6 +67,8 @@ export interface IWorkoutPlanMeta {
   muscleFocus?: string[];
   note?: string;
   limitations?: string;
+  /** Sub-trainer (or main trainer) id of whoever built this plan. */
+  builtByTrainerId?: string;
 }
 
 export interface IFullWorkoutPlan extends IWorkoutPlanMeta {
