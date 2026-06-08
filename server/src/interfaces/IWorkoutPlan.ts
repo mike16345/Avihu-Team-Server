@@ -43,7 +43,7 @@ export interface IDetailedWorkoutPlan {
  * goal, equipment, focus). All fields are optional — older records
  * without tagging keep working unchanged.
  */
-export type WorkoutLevel = "beginner" | "intermediate" | "advanced";
+export type WorkoutLevel = "beginner" | "intermediate" | "advanced" | "pro";
 export type WorkoutGoal =
   | "fat-loss"
   | "muscle-gain"

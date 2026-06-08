@@ -125,7 +125,7 @@ export const cardioPlanSchema = new Schema({
 export const workoutMetaFields = {
   workoutsPerWeek: { type: Number, min: 1, max: 7 },
   durationMinutes: { type: Number, min: 10, max: 240 },
-  level: { type: String, enum: ["beginner", "intermediate", "advanced"] },
+  level: { type: String, enum: ["beginner", "intermediate", "advanced", "pro"] },
   goal: {
     type: String,
     enum: ["fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab"],
@@ -239,7 +239,7 @@ export const WorkoutPlanSchemaValidation = Joi.object({
 export const workoutMetaValidationFields = {
   workoutsPerWeek: Joi.number().min(1).max(7).optional(),
   durationMinutes: Joi.number().min(10).max(240).optional(),
-  level: Joi.string().valid("beginner", "intermediate", "advanced").optional(),
+  level: Joi.string().valid("beginner", "intermediate", "advanced", "pro").optional(),
   goal: Joi.string()
     .valid("fat-loss", "muscle-gain", "strength", "endurance", "toning", "rehab")
     .optional(),

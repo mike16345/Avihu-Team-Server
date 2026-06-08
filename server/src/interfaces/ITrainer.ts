@@ -30,6 +30,17 @@ export interface ITrainer {
   source: TrainerSource;
   videoLibraryAccess: boolean;
   userId?: mongoose.Types.ObjectId;
+  /**
+   * IDs of workout presets the trainer has starred as favourites.
+   * Float to top of grid + filterable via the "מועדפים" chip.
+   */
+  favoriteWorkoutPresetIds?: mongoose.Types.ObjectId[];
+  /**
+   * When true, sub-trainers under this head trainer see the same
+   * favourites (read-only "team favourites"). Off by default —
+   * favourites are a personal tool until opt-in to sharing.
+   */
+  sharesFavorites?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -5,6 +5,7 @@ import Joi from "joi";
 
 export const USER_ROLES = ["admin", "user", "trainer", "subTrainer"] as const;
 export const USER_ONBOARDING_STEPS = ["form", "agreement", "completed"] as const;
+export const USER_ACCOUNT_STATUSES = ["active", "user", "disabled"] as const;
 
 const userSchema = new Schema<IUser>({
   firstName: {
@@ -44,6 +45,17 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     required: false,
     default: true,
+  },
+  // accountStatus — 3-state status for trainee categorization.
+  // - "active": פעיל (paying client, has access)
+  // - "user": משתמש (registered user, has access — e.g. trial / free tier)
+  // - "disabled": כבוי (no access to the app)
+  // hasAccess is auto-derived: accountStatus !== "disabled".
+  accountStatus: {
+    type: String,
+    enum: USER_ACCOUNT_STATUSES,
+    required: false,
+    default: "active",
   },
   dateJoined: {
     type: Date,
@@ -118,6 +130,9 @@ export const UserSchemaValidation = Joi.object({
   checkInAt: Joi.number(),
   isChecked: Joi.boolean(),
   hasAccess: Joi.boolean(),
+  accountStatus: Joi.string()
+    .valid(...USER_ACCOUNT_STATUSES)
+    .optional(),
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean().optional(),

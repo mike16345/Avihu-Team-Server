@@ -70,6 +70,23 @@ export const trainerSchema = new Schema<ITrainer>(
       ref: "users",
       required: false,
     },
+    /**
+     * Workout-preset IDs starred as favourites by this trainer.
+     * Backwards-compatible — older docs default to an empty list.
+     */
+    favoriteWorkoutPresetIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "workoutPlanPresets",
+      default: [],
+    },
+    /**
+     * When true, sub-trainers see this trainer's favourites as a
+     * read-only "team favourites" list. Off until the trainer opts in.
+     */
+    sharesFavorites: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -102,4 +119,6 @@ export const TrainerSchemaValidation = Joi.object({
     .required(),
   videoLibraryAccess: Joi.boolean().required(),
   userId: Joi.string().optional(),
+  favoriteWorkoutPresetIds: Joi.array().items(Joi.string()).optional(),
+  sharesFavorites: Joi.boolean().optional(),
 }).prefs({ abortEarly: false, stripUnknown: true });
