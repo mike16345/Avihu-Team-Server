@@ -15,6 +15,7 @@ describe("JwtAuthService", () => {
     expect(claims.userId).toBe("u1");
     expect(claims.sessionId).toBe("s1");
     expect(typeof claims.exp).toBe("number");
+    expect(typeof claims.iat).toBe("number");
   });
 
   test("malformed token", () => {
@@ -33,7 +34,7 @@ describe("JwtAuthService", () => {
     const token = jwt.sign(
       { userId: "u1", role: "admin", sessionId: "s1" },
       "abcdefghijklmnopqrstuvwxyz654321",
-      { algorithm: "HS256", expiresIn: 60, noTimestamp: true }
+      { algorithm: "HS256", expiresIn: 60 }
     );
 
     expect(() => service.verifyAccessToken(token)).toThrow(
@@ -44,11 +45,22 @@ describe("JwtAuthService", () => {
     );
   });
 
-  test("expired token", async () => {
+  test("expired token within grace period is accepted", () => {
     const service = new JwtAuthService();
-    const token = service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" });
-    await new Promise((r) => setTimeout(r, 1200));
-    expect(() => service.verifyAccessToken(token)).toThrow();
+    const token = jwt.sign(
+      {
+        userId: "u1",
+        role: "admin",
+        sessionId: "s1",
+        exp: Math.floor(Date.now() / 1000) - 1,
+      },
+      process.env.JWT_ACCESS_SECRET!,
+      { algorithm: "HS256" }
+    );
+
+    const claims = service.verifyAccessToken(token);
+    expect(claims.userId).toBe("u1");
+    expect(claims.sessionId).toBe("s1");
   });
 
   test("numeric expiration strings still behave as seconds", () => {
@@ -62,12 +74,52 @@ describe("JwtAuthService", () => {
     expect((claims.exp ?? 0) - nowInSeconds).toBeLessThanOrEqual(900);
   });
 
+  test("string expiration values like 7d are supported", () => {
+    process.env.JWT_ACCESS_EXPIRES_IN = "7d";
+    const service = new JwtAuthService();
+    const token = service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" });
+    const claims = service.verifyAccessToken(token);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    expect((claims.exp ?? 0) - nowInSeconds).toBeGreaterThan(60 * 60 * 24 * 6);
+    expect((claims.exp ?? 0) - nowInSeconds).toBeLessThanOrEqual(60 * 60 * 24 * 7);
+  });
+
   test("invalid expiration config", () => {
     process.env.JWT_ACCESS_EXPIRES_IN = "abc";
     const service = new JwtAuthService();
     expect(() =>
       service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" })
     ).toThrow();
+  });
+
+  test("empty expiration config is rejected", () => {
+    process.env.JWT_ACCESS_EXPIRES_IN = "   ";
+    const service = new JwtAuthService();
+    expect(() =>
+      service.signAccessToken({ userId: "u1", role: "admin", sessionId: "s1" })
+    ).toThrow();
+  });
+
+  test("expired token beyond grace period is rejected", () => {
+    const service = new JwtAuthService();
+    const token = jwt.sign(
+      {
+        userId: "u1",
+        role: "admin",
+        sessionId: "s1",
+        exp: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 8,
+      },
+      process.env.JWT_ACCESS_SECRET!,
+      { algorithm: "HS256" }
+    );
+
+    expect(() => service.verifyAccessToken(token)).toThrow(
+      expect.objectContaining({
+        message: "Unauthorized",
+        statusCode: StatusCode.UNAUTHORIZED,
+      })
+    );
   });
 
   test("missing JWT secret", () => {
@@ -94,7 +146,6 @@ describe("JwtAuthService", () => {
     const token = jwt.sign({ userId: "u1", role: "admin" }, process.env.JWT_ACCESS_SECRET!, {
       algorithm: "HS256",
       expiresIn: 60,
-      noTimestamp: true,
     });
 
     expect(() => service.verifyAccessToken(token)).toThrow(
@@ -110,7 +161,6 @@ describe("JwtAuthService", () => {
     const token = jwt.sign({ role: "admin", sessionId: "s1" }, process.env.JWT_ACCESS_SECRET!, {
       algorithm: "HS256",
       expiresIn: 60,
-      noTimestamp: true,
     });
 
     expect(() => service.verifyAccessToken(token)).toThrow(
@@ -129,7 +179,6 @@ describe("JwtAuthService", () => {
       {
         algorithm: "HS256",
         expiresIn: 60,
-        noTimestamp: true,
       }
     );
 

@@ -1,7 +1,12 @@
 import { Context, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
-import { createResponse, extractBearerToken, getHeaderValue } from "../utils/utils";
+import {
+  createResponse,
+  extractBearerToken,
+  getHeaderValue,
+  removeSensitiveInfoFromLog,
+} from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
 import {
   extractRouteHandler,
@@ -77,6 +82,8 @@ export const handleApiCall = async (
       const apiHandler = extractRouteHandler(apiHandlers, routeKey);
 
       console.log("Handling API request", {
+        headers: removeSensitiveInfoFromLog(event.headers),
+        body: removeSensitiveInfoFromLog(event.body),
         method: httpMethod,
         path,
         routeKey,
@@ -132,7 +139,7 @@ export const handleApiCall = async (
           ...API_HEADERS,
         },
       };
-      console.log("api response", apiResponse);
+      console.log("API response", removeSensitiveInfoFromLog(apiResponse));
 
       return apiResponse;
     });
