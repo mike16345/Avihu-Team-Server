@@ -259,17 +259,21 @@ export const getHeaderValue = (
 
 export const extractBearerToken = (headers: Record<string, any> = {}): string => {
   const authHeader = getHeaderValue(headers, "authorization");
+
   if (!authHeader || typeof authHeader !== "string") {
+    console.log("Authorization header missing or not a string:", authHeader);
     throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
   }
 
   const parts = authHeader.trim().split(/\s+/);
   if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
+    console.log("Invalid authorization header format:", authHeader);
     throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
   }
 
   return parts[1];
 };
+
 export const getRequestIp = (event: APIGatewayEvent): string | undefined => {
   const forwardedFor = getHeaderValue(event.headers || {}, "x-forwarded-for");
 
@@ -278,4 +282,11 @@ export const getRequestIp = (event: APIGatewayEvent): string | undefined => {
   }
 
   return event.requestContext?.identity?.sourceIp || undefined;
+};
+
+export const removeSensitiveInfoFromLog = (obj: any) => {
+  if (!obj || typeof obj !== "object") return obj;
+  const { password, confirmPassword, ...rest } = obj;
+
+  return rest;
 };

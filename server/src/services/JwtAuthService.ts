@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions, TokenExpiredError } from "jsonwebtoken";
 import { StatusCode } from "../enums/StatusCode";
 import { IRefreshSessionData, ISession } from "../models/sessionModel";
 import { SessionRepository } from "../repositories/Sessions/SessionRepository";
@@ -9,6 +9,9 @@ import { IUser } from "../interfaces/IUser";
 const REFRESH_EXPIRES_IN_MS = Number(
   process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
 );
+const DEFAULT_ACCESS_EXPIRES_IN = "7d";
+// TODO: Remove this temporary expired-access-token grace period after the mobile app implements refresh-on-401.
+const ACCESS_TOKEN_EXPIRY_GRACE_PERIOD_SECONDS = 60 * 60 * 24 * 7;
 
 export interface AccessClaims {
   userId: string;
@@ -16,6 +19,7 @@ export interface AccessClaims {
   role: IUser["role"];
   sessionId: string;
   exp?: number;
+  iat?: number;
   sub?: string;
   _id?: string;
   type?: string;
@@ -41,7 +45,9 @@ class JwtAuthService {
   }
 
   private getAccessExpiresIn() {
-    return process.env.JWT_ACCESS_EXPIRES_IN || "15m";
+    return process.env.JWT_ACCESS_EXPIRES_IN === undefined
+      ? DEFAULT_ACCESS_EXPIRES_IN
+      : process.env.JWT_ACCESS_EXPIRES_IN;
   }
 
   private invalidAccessExpiresInError() {
@@ -102,21 +108,42 @@ class JwtAuthService {
     const { exp: _ignoredExp, ...payloadClaims } = claims;
     const secret = this.getAccessSecret();
     const expiresIn = this.getAccessTokenExpiresIn();
+    console.log("Signing access token with expiresIn:", expiresIn);
 
     try {
       return jwt.sign(payloadClaims, secret, {
         algorithm: "HS256",
         expiresIn,
-        noTimestamp: true,
       });
     } catch {
       throw this.invalidAccessExpiresInError();
     }
   }
 
+  private verifyExpiredAccessTokenWithinGrace(token: string, secret: string) {
+    const payload = jwt.verify(token, secret, {
+      algorithms: ["HS256"],
+      ignoreExpiration: true,
+    });
+
+    if (!this.isAccessPayload(payload)) {
+      throw new Error("Invalid payload");
+    }
+
+    const accessPayload = payload as AccessClaims;
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    if ((accessPayload.exp ?? 0) < nowInSeconds - ACCESS_TOKEN_EXPIRY_GRACE_PERIOD_SECONDS) {
+      throw new Error("Expired beyond grace period");
+    }
+
+    return accessPayload;
+  }
+
   verifyAccessToken(token: string) {
+    const secret = this.getAccessSecret();
+
     try {
-      const payload = jwt.verify(token, this.getAccessSecret(), {
+      const payload = jwt.verify(token, secret, {
         algorithms: ["HS256"],
       });
 
@@ -125,7 +152,17 @@ class JwtAuthService {
       }
 
       return payload as AccessClaims;
-    } catch {
+    } catch (e) {
+      if (e instanceof TokenExpiredError) {
+        try {
+          return this.verifyExpiredAccessTokenWithinGrace(token, secret);
+        } catch (graceError) {
+          console.log("Failed to verify expired access token within grace period:", graceError);
+          throw this.unauthorizedError();
+        }
+      }
+
+      console.log("Failed to verify access token (Error):", e);
       throw this.unauthorizedError();
     }
   }
@@ -166,6 +203,7 @@ class JwtAuthService {
     const refreshData = session.data as IRefreshSessionData | undefined;
     if (refreshData?.revokedAt) throw this.unauthorizedError();
     if (!refreshData?.expiresAt || new Date(refreshData.expiresAt).getTime() <= Date.now()) {
+      console.log("Refresh token expired:", refreshData?.expiresAt);
       throw this.unauthorizedError();
     }
     if (!session.userId || typeof session.userId !== "string") throw this.unauthorizedError();
