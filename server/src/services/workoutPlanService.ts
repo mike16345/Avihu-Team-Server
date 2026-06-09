@@ -99,18 +99,13 @@ export class WorkoutPlanService extends BaseService<
    * doc cloned from the archived one — never resurrect the archived
    * doc itself, so the timeline stays append-only.
    */
-  restoreWorkoutPlan = async (
-    userId: string,
-    archivedPlanId: string,
-    assignedBy?: string
-  ) => {
+  restoreWorkoutPlan = async (userId: string, archivedPlanId: string, assignedBy?: string) => {
     const archived: any = await this.repository.findById(archivedPlanId);
     if (!archived || archived.userId !== userId) {
       throw new Error("Archived plan not found for this user");
     }
 
-    const archivedObj =
-      typeof archived.toObject === "function" ? archived.toObject() : archived;
+    const archivedObj = typeof archived.toObject === "function" ? archived.toObject() : archived;
     const {
       _id,
       archivedAt,

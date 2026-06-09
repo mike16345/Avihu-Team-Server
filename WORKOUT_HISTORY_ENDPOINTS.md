@@ -26,7 +26,7 @@ excluded.
 
 ```ts
 // existing read, updated:
-WorkoutPlan.findOne({ userId, archivedAt: null })
+WorkoutPlan.findOne({ userId, archivedAt: null });
 ```
 
 ---

@@ -199,10 +199,7 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
 // (archivedAt: null). Mobile reads { userId, archivedAt: null } and
 // gets exactly one doc back. History queries: { userId } sorted by
 // assignedAt desc, filtered to archivedAt != null.
-fullWorkoutPlanSchema.index(
-  { userId: 1, archivedAt: 1 },
-  { name: "userId_archivedAt_idx" }
-);
+fullWorkoutPlanSchema.index({ userId: 1, archivedAt: 1 }, { name: "userId_archivedAt_idx" });
 
 export const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
