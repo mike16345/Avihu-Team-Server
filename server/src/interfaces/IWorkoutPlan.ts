@@ -66,7 +66,35 @@ export interface IWorkoutPlanMeta {
   builtByTrainerId?: string;
 }
 
-export interface IFullWorkoutPlan extends IWorkoutPlanMeta {
+/**
+ * History / temporary-swap fields. One trainee may have many docs in
+ * `workoutPlans`; at most ONE has `archivedAt = null` (the active
+ * plan the mobile app reads). All older docs are history with a
+ * non-null archivedAt. Restore = create a new active doc cloned from
+ * an archived one. See workoutPlanModel.ts for the schema.
+ */
+export interface IWorkoutPlanHistory {
+  /** Null when this plan is currently active for the trainee. */
+  archivedAt?: Date | null;
+  /** Pointer to the plan that replaced this one (set when archived). */
+  replacedByPlanId?: string;
+  /** Trainer id who created/assigned this plan (audit trail). */
+  assignedBy?: string;
+  /** When this assignment became active. */
+  assignedAt?: Date;
+  /**
+   * Optional end-date for a temporary swap. Surfaces an orange
+   * banner in the trainer UI; restore is MANUAL — no cron. Pure
+   * metadata, doesn't auto-mutate.
+   */
+  temporaryUntil?: Date;
+  /** When temporary, points to the archived plan to restore to. */
+  restoreToPlanId?: string;
+  /** Human label shown in history ("Full-Body חודש יוני"). */
+  assignmentLabel?: string;
+}
+
+export interface IFullWorkoutPlan extends IWorkoutPlanMeta, IWorkoutPlanHistory {
   userId: string;
   tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];

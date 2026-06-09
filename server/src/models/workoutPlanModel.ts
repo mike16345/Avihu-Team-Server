@@ -140,6 +140,35 @@ export const workoutMetaFields = {
   builtByTrainerId: { type: String },
 };
 
+/**
+ * History / temporary-swap fields. Council decision: keep one
+ * collection (`workoutPlans`), one trainee can have many docs over
+ * time but only ONE doc with `archivedAt = null` per userId — that's
+ * the doc the mobile app reads. Older docs become history.
+ *
+ * - archivedAt: when this plan stopped being active (null = active).
+ * - replacedByPlanId: pointer to the doc that replaced this one.
+ * - assignedBy: trainer id who created this assignment (audit trail).
+ * - assignedAt: when this assignment became active.
+ * - temporaryUntil: optional end-date for a temporary swap. Surfaces
+ *   the orange banner in the trainer UI; restore is MANUAL (no cron).
+ * - restoreToPlanId: when this is a temporary plan, points to the
+ *   archived doc the trainer wants to restore when finished.
+ * - assignmentLabel: optional human label ("Full-Body חודש יוני")
+ *   shown in the history list.
+ *
+ * All optional — older docs keep working unchanged.
+ */
+export const workoutHistoryFields = {
+  archivedAt: { type: Date, default: null },
+  replacedByPlanId: { type: Schema.Types.ObjectId, ref: "workoutPlans" },
+  assignedBy: { type: String },
+  assignedAt: { type: Date, default: Date.now },
+  temporaryUntil: { type: Date },
+  restoreToPlanId: { type: Schema.Types.ObjectId, ref: "workoutPlans" },
+  assignmentLabel: { type: String, maxlength: 120 },
+};
+
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
@@ -163,7 +192,17 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
     required: true,
   },
   ...workoutMetaFields,
+  ...workoutHistoryFields,
 });
+
+// Compound index: each trainee can have at most ONE active plan
+// (archivedAt: null). Mobile reads { userId, archivedAt: null } and
+// gets exactly one doc back. History queries: { userId } sorted by
+// assignedAt desc, filtered to archivedAt != null.
+fullWorkoutPlanSchema.index(
+  { userId: 1, archivedAt: 1 },
+  { name: "userId_archivedAt_idx" }
+);
 
 export const setValidationSchema = Joi.object({
   minReps: Joi.number().min(1).required(),
@@ -252,11 +291,23 @@ export const workoutMetaValidationFields = {
   builtByTrainerId: Joi.string().optional(),
 };
 
+/** History / temporary-swap fields — kept in sync with workoutHistoryFields. */
+export const workoutHistoryValidationFields = {
+  archivedAt: Joi.date().allow(null).optional(),
+  replacedByPlanId: Joi.string().optional(),
+  assignedBy: Joi.string().optional(),
+  assignedAt: Joi.date().optional(),
+  temporaryUntil: Joi.date().optional(),
+  restoreToPlanId: Joi.string().optional(),
+  assignmentLabel: Joi.string().max(120).allow("").optional(),
+};
+
 export const FullWorkoutPlanSchemaValidation = Joi.object({
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
   cardio: cardioPlanValidationSchema.required(),
   ...workoutMetaValidationFields,
+  ...workoutHistoryValidationFields,
 });
 
 export const WorkoutPlan = model<IFullWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);

@@ -40,6 +40,23 @@ const workoutPlanApiRoutes: ApiRouteHandlers = {
     handler: workoutPlanController.deleteById,
     access: "subtrainer",
   },
+  // Plan history / temporary-swap endpoints. All preserve the
+  // one-active-doc-per-user invariant — mobile read path unchanged.
+  [`GET ${BASE_PATH}/history`]: {
+    handler: workoutPlanController.getHistory,
+    access: "subtrainer",
+  },
+  [`POST ${BASE_PATH}/swap`]: {
+    handler: workoutPlanController.swapWorkoutPlan,
+    access: "subtrainer",
+    // No validateWorkoutPlan middleware: swap body intentionally
+    // includes optional history fields not present in the strict
+    // schema; sanitizeWorkoutPlanForInsert in the service handles it.
+  },
+  [`POST ${BASE_PATH}/restore`]: {
+    handler: workoutPlanController.restoreWorkoutPlan,
+    access: "subtrainer",
+  },
 };
 
 export const handler = async (
