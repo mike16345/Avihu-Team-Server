@@ -5,7 +5,7 @@ import Joi from "joi";
 
 export const USER_ROLES = ["admin", "user", "trainer", "subTrainer"] as const;
 export const USER_ONBOARDING_STEPS = ["form", "agreement", "completed"] as const;
-export const USER_ACCOUNT_STATUSES = ["active", "user", "disabled"] as const;
+export const USER_ACCOUNT_STATUSES = ["active", "user", "disabled", "frozen"] as const;
 
 const userSchema = new Schema<IUser>({
   firstName: {
@@ -46,16 +46,31 @@ const userSchema = new Schema<IUser>({
     required: false,
     default: true,
   },
-  // accountStatus — 3-state status for trainee categorization.
-  // - "active": פעיל (paying client, has access)
-  // - "user": משתמש (registered user, has access — e.g. trial / free tier)
-  // - "disabled": כבוי (no access to the app)
+  // accountStatus — 4-state status for trainee categorization.
+  // - "active":   פעיל   (paying client, has access)
+  // - "user":     משתמש  (registered user, has access — e.g. trial / free tier)
+  // - "disabled": כבוי   (no access to the app)
+  // - "frozen":   הקפאה  (temporary pause: keeps access, hidden
+  //                       from attention lists; freeze snapshot
+  //                       fields capture how much coaching time
+  //                       was left at pause).
   // hasAccess is auto-derived: accountStatus !== "disabled".
   accountStatus: {
     type: String,
     enum: USER_ACCOUNT_STATUSES,
     required: false,
     default: "active",
+  },
+  // Freeze snapshot — populated when accountStatus is set to "frozen".
+  // Cleared by the admin app when the trainee comes off freeze.
+  frozenAt: {
+    type: Date,
+    required: false,
+  },
+  frozenDaysRemaining: {
+    type: Number,
+    required: false,
+    min: 0,
   },
   dateJoined: {
     type: Date,
@@ -133,6 +148,10 @@ export const UserSchemaValidation = Joi.object({
   accountStatus: Joi.string()
     .valid(...USER_ACCOUNT_STATUSES)
     .optional(),
+  // Freeze snapshot — populated only when accountStatus = "frozen".
+  // Cleared back to undefined when the trainee comes off freeze.
+  frozenAt: Joi.date().allow(null).optional(),
+  frozenDaysRemaining: Joi.number().min(0).allow(null).optional(),
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean().optional(),
