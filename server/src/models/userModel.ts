@@ -72,6 +72,37 @@ const userSchema = new Schema<IUser>({
     required: false,
     min: 0,
   },
+  /**
+   * Append-only log of every account-status change. Each entry
+   * records who/when/from/to + extra freeze metadata. Surfaces in
+   * the admin panel's "Status history" section on the trainee
+   * profile. Optional + capped at no max length on the server
+   * (admin app will paginate if it ever grows large).
+   */
+  statusHistory: {
+    type: [
+      new Schema(
+        {
+          at: { type: Date, required: true, default: Date.now },
+          fromStatus: {
+            type: String,
+            enum: USER_ACCOUNT_STATUSES,
+            required: true,
+          },
+          toStatus: {
+            type: String,
+            enum: USER_ACCOUNT_STATUSES,
+            required: true,
+          },
+          changedBy: { type: String },
+          frozenDaysRemaining: { type: Number, min: 0 },
+          daysAdded: { type: Number, min: 0 },
+        },
+        { _id: false }
+      ),
+    ],
+    default: undefined,
+  },
   dateJoined: {
     type: Date,
     default: Date.now,
@@ -152,6 +183,24 @@ export const UserSchemaValidation = Joi.object({
   // Cleared back to undefined when the trainee comes off freeze.
   frozenAt: Joi.date().allow(null).optional(),
   frozenDaysRemaining: Joi.number().min(0).allow(null).optional(),
+  // Append-only audit log of every status change. The admin app
+  // appends a new entry on every confirm-status mutation.
+  statusHistory: Joi.array()
+    .items(
+      Joi.object({
+        at: Joi.date().required(),
+        fromStatus: Joi.string()
+          .valid(...USER_ACCOUNT_STATUSES)
+          .required(),
+        toStatus: Joi.string()
+          .valid(...USER_ACCOUNT_STATUSES)
+          .required(),
+        changedBy: Joi.string().allow("").optional(),
+        frozenDaysRemaining: Joi.number().min(0).optional(),
+        daysAdded: Joi.number().min(0).optional(),
+      })
+    )
+    .optional(),
   imagesUploaded: Joi.boolean(),
   profileImage: Joi.string().optional(),
   isAdmin: Joi.boolean().optional(),
