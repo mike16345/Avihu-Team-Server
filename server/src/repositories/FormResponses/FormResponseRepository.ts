@@ -31,6 +31,40 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
     });
   }
 
+  getUserResponse = async (options: FindOptions<IFormResponse>): Promise<any> => {
+    const { query, queryOptions, projection } = options;
+    const baseQuery = { ...(query as any) };
+    const latestOptions = {
+      ...queryOptions,
+      sort: { submittedAt: -1 },
+    };
+
+    const monthlyQueryResult = this.model.findOne(
+      this.applyScopeToQuery({ ...baseQuery, formType: "monthly" }),
+      projection,
+      latestOptions
+    );
+
+    const monthlyResponse = await this.populateForm(monthlyQueryResult);
+    const response =
+      monthlyResponse ||
+      (await this.populateForm(
+        this.model.findOne(
+          this.applyScopeToQuery({ ...baseQuery, formType: "onboarding" }),
+          projection,
+          latestOptions
+        )
+      ));
+
+    if (!response) {
+      return null;
+    }
+
+    const finalRes = await this.populateUserId([response]);
+
+    return Array.isArray(finalRes) ? finalRes[0] : null;
+  };
+
   findOne = async (options: FindOptions<IFormResponse>): Promise<any> => {
     const { query, queryOptions, projection } = options;
     const queryResult = this.model.findOne(query, projection, queryOptions);

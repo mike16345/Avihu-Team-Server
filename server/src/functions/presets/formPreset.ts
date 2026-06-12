@@ -50,6 +50,10 @@ export const formPresetApiRoutes: ApiRouteHandlers = {
     handler: formResponseController.getOne,
     access: "subtrainer",
   },
+  [`GET ${FORM_RESPONSE_BASE_PATH}/user/latest`]: {
+    handler: formResponseController.getUserResponse,
+    access: "subtrainer",
+  },
   [`POST ${FORM_RESPONSE_BASE_PATH}`]: {
     handler: formResponseController.create,
     access: "public",
