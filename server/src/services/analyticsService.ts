@@ -1,11 +1,14 @@
 import moment from "moment";
 import { Model, Types } from "mongoose";
+import { getSystemLibraryOwnerObjectId } from "../config/systemLibrary";
 import { TRAINER_SOURCES } from "../interfaces/ITrainer";
 import { DietPlan } from "../models/dietPlanModel";
 import { TrainerModel } from "../models/trainerModel";
 import { User } from "../models/userModel";
 import { WorkoutPlan } from "../models/workoutPlanModel";
 import { requireTrainerAuthContext } from "../utils/authContext";
+
+const SYSTEM_TRAINER_ID = getSystemLibraryOwnerObjectId();
 
 type DashboardMetric = {
   total: number;
@@ -152,15 +155,24 @@ export class AnalyticsService {
       trainersCurrentMonth,
       trainersPreviousMonth,
     ] = await Promise.all([
-      TrainerModel.countDocuments({ isDeleted: false, status: "active" }),
       TrainerModel.countDocuments({
         isDeleted: false,
         status: "active",
+        _id: { $ne: SYSTEM_TRAINER_ID },
+        userId: { $ne: SYSTEM_TRAINER_ID },
+      }),
+      TrainerModel.countDocuments({
+        isDeleted: false,
+        status: "active",
+        _id: { $ne: SYSTEM_TRAINER_ID },
+        userId: { $ne: SYSTEM_TRAINER_ID },
         createdAt: { $gte: currentMonthStart, $lt: nextMonthStart },
       }),
       TrainerModel.countDocuments({
         isDeleted: false,
         status: "active",
+        _id: { $ne: SYSTEM_TRAINER_ID },
+        userId: { $ne: SYSTEM_TRAINER_ID },
         createdAt: { $gte: previousMonthStart, $lt: currentMonthStart },
       }),
       User.countDocuments({ isDeleted: false, role: "user" }),
@@ -176,10 +188,14 @@ export class AnalyticsService {
       }),
       TrainerModel.countDocuments({
         isDeleted: false,
+        _id: { $ne: SYSTEM_TRAINER_ID },
+        userId: { $ne: SYSTEM_TRAINER_ID },
         createdAt: { $gte: currentMonthStart, $lt: nextMonthStart },
       }),
       TrainerModel.countDocuments({
         isDeleted: false,
+        _id: { $ne: SYSTEM_TRAINER_ID },
+        userId: { $ne: SYSTEM_TRAINER_ID },
         createdAt: { $gte: previousMonthStart, $lt: currentMonthStart },
       }),
     ]);
@@ -226,6 +242,8 @@ export class AnalyticsService {
       {
         $match: {
           isDeleted: false,
+          _id: { $ne: SYSTEM_TRAINER_ID },
+          userId: { $ne: SYSTEM_TRAINER_ID },
           createdAt: {
             $gte: fromDate,
             $lte: inclusiveToDate,
@@ -274,6 +292,8 @@ export class AnalyticsService {
         {
           $match: {
             isDeleted: false,
+            _id: { $ne: SYSTEM_TRAINER_ID },
+            userId: { $ne: SYSTEM_TRAINER_ID },
             createdAt: {
               $gte: yearStart,
               $lt: yearEnd,
@@ -337,6 +357,8 @@ export class AnalyticsService {
       {
         $match: {
           isDeleted: false,
+          _id: { $ne: SYSTEM_TRAINER_ID },
+          userId: { $ne: SYSTEM_TRAINER_ID },
         },
       },
       {

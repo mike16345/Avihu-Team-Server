@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 
 process.env.AVIHU_TRAINER_ID = new mongoose.Types.ObjectId().toString();
 
+import { getSystemLibraryOwnerObjectId } from "../src/config/systemLibrary";
 import { SubTrainerModel } from "../src/models/subTrainerModel";
 import { User } from "../src/models/userModel";
 import TrainerService from "../src/services/trainerService";
@@ -41,6 +42,10 @@ describe("TrainerService counts", () => {
 
     const result = await service.findWithCounts({});
 
+    expect(service.find).toHaveBeenCalledWith({
+      _id: { $ne: getSystemLibraryOwnerObjectId() },
+      userId: { $ne: getSystemLibraryOwnerObjectId() },
+    });
     expect(User.aggregate).toHaveBeenCalledTimes(1);
     expect(SubTrainerModel.aggregate).toHaveBeenCalledTimes(1);
     expect(result).toEqual([
@@ -83,6 +88,15 @@ describe("TrainerService counts", () => {
       sort: {},
     });
 
+    expect(service.findPaginated).toHaveBeenCalledWith({
+      page: 1,
+      limit: 10,
+      query: {
+        _id: { $ne: getSystemLibraryOwnerObjectId() },
+        userId: { $ne: getSystemLibraryOwnerObjectId() },
+      },
+      sort: {},
+    });
     expect(result).toEqual({
       results: [
         expect.objectContaining({

@@ -1,5 +1,6 @@
 import { ITrainer } from "../interfaces/ITrainer";
 import { IUser } from "../interfaces/IUser";
+import { getSystemLibraryOwnerObjectId } from "../config/systemLibrary";
 import { TrainerModel } from "../models/trainerModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
 import { User } from "../models/userModel";
@@ -31,6 +32,7 @@ const splitFullName = (fullName: string) => {
 };
 
 const statusToAccess = (status: ITrainer["status"]) => status === "active";
+const SYSTEM_TRAINER_ID = getSystemLibraryOwnerObjectId();
 
 export default class TrainerService extends BaseService<ITrainer, TrainerRepository> {
   private userService: UserService;
@@ -161,14 +163,25 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     });
   }
 
+  private withSystemTrainerExclusion<T extends Record<string, any>>(filter: T = {} as T): T {
+    return {
+      ...filter,
+      _id: { $ne: SYSTEM_TRAINER_ID },
+      userId: { $ne: SYSTEM_TRAINER_ID },
+    } as T;
+  }
+
   async findWithCounts(filter: Partial<Record<keyof ITrainer, any>> = {}): Promise<ITrainer[]> {
-    const trainers = await this.find(filter);
+    const trainers = await this.find(this.withSystemTrainerExclusion(filter));
 
     return this.attachCountsToTrainers(trainers as ITrainer[]);
   }
 
   async findPaginatedWithCounts(params: PaginationParams): Promise<PaginationResult<ITrainer>> {
-    const paginated = await this.findPaginated(params);
+    const paginated = await this.findPaginated({
+      ...params,
+      query: this.withSystemTrainerExclusion((params.query ?? {}) as Record<string, any>),
+    });
     const results = await this.attachCountsToTrainers(paginated.results as ITrainer[]);
 
     return {

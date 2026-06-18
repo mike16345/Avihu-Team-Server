@@ -23,14 +23,15 @@ export const getSystemLibraryOwnerId = (): string => SYSTEM_LIBRARY_OWNER_ID;
 export const getSystemLibraryOwnerObjectId = (): mongoose.Types.ObjectId =>
   new mongoose.Types.ObjectId(SYSTEM_LIBRARY_OWNER_ID);
 
-export const isSystemLibraryOwner = (
-  trainerId?: string | mongoose.Types.ObjectId | null
+export const isSystemLibraryOwnerId = (
+  id?: string | mongoose.Types.ObjectId | null
 ): boolean => {
-  if (!trainerId) return false;
+  if (!id) return false;
 
-  if (!mongoose.Types.ObjectId.isValid(trainerId)) return false;
+  if (!mongoose.Types.ObjectId.isValid(id)) return false;
 
-  return new mongoose.Types.ObjectId(trainerId).toString() === SYSTEM_LIBRARY_OWNER_ID;
+  return new mongoose.Types.ObjectId(id).toString() === SYSTEM_LIBRARY_OWNER_ID;
 };
 
+export const isSystemLibraryOwner = isSystemLibraryOwnerId;
 export const isAvihuTrainer = isSystemLibraryOwner;
