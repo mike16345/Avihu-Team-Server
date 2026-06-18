@@ -23,9 +23,7 @@ export const getSystemLibraryOwnerId = (): string => SYSTEM_LIBRARY_OWNER_ID;
 export const getSystemLibraryOwnerObjectId = (): mongoose.Types.ObjectId =>
   new mongoose.Types.ObjectId(SYSTEM_LIBRARY_OWNER_ID);
 
-export const isSystemLibraryOwnerId = (
-  id?: string | mongoose.Types.ObjectId | null
-): boolean => {
+export const isSystemLibraryOwnerId = (id?: string | mongoose.Types.ObjectId | null): boolean => {
   if (!id) return false;
 
   if (!mongoose.Types.ObjectId.isValid(id)) return false;
