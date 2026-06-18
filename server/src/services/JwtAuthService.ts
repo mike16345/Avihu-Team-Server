@@ -9,9 +9,9 @@ import { IUser } from "../interfaces/IUser";
 const REFRESH_EXPIRES_IN_MS = Number(
   process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
 );
-const DEFAULT_ACCESS_EXPIRES_IN = "7d";
+const DEFAULT_ACCESS_EXPIRES_IN = "24d";
 // TODO: Remove this temporary expired-access-token grace period after the mobile app implements refresh-on-401.
-const ACCESS_TOKEN_EXPIRY_GRACE_PERIOD_SECONDS = 60 * 60 * 24 * 7;
+const ACCESS_TOKEN_EXPIRY_GRACE_PERIOD_SECONDS = 60 * 60 * 24 * 30;
 
 export interface AccessClaims {
   userId: string;

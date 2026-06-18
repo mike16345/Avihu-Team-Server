@@ -36,4 +36,23 @@ export default class FormResponseController extends BaseController<
       return this.errorResponse(error);
     }
   };
+
+  getUserResponse = async (event: APIGatewayProxyEvent) => {
+    await this.beforeAction(event);
+
+    try {
+      const { userId, error } = this.getParamsOrError(event, ["userId"]);
+
+      if (error) return error;
+
+      const data = await this.service.getUserResponse(userId);
+      const response = this.successResponse({ data });
+
+      await this.afterAction(response);
+
+      return response;
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
 }

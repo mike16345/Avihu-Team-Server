@@ -43,6 +43,10 @@ export class FormResponseService extends BaseService<IFormResponse, FormResponse
     return super.updateById(id, hydrated);
   }
 
+  getUserResponse(userId: string): Promise<IFormResponse | null> {
+    return this.repository.getUserResponse({ query: { userId } });
+  }
+
   find(filter?: Partial<Record<keyof IFormResponse, any>>): Promise<IFormResponse[]> {
     return this.repository.find({
       query: filter || {},
