@@ -171,6 +171,10 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     } as T;
   }
 
+  private shouldSeedLibraryOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.videoLibraryAccess !== true && payload.videoLibraryAccess === true;
+  }
+
   async findWithCounts(filter: Partial<Record<keyof ITrainer, any>> = {}): Promise<ITrainer[]> {
     const trainers = await this.find(this.withSystemTrainerExclusion(filter));
 
@@ -196,7 +200,7 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
 
     try {
       if (trainer.videoLibraryAccess) {
-        await this.exerciseLibraryAccessService.copyAvihuLibraryToTrainer(trainer._id.toString());
+        await this.exerciseLibraryAccessService.ensureAvihuLibraryToTrainer(trainer._id.toString());
       }
 
       const user = await this.userService.createUserWithWelcome(
@@ -243,6 +247,10 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     const trainer = (await this.findById(id)) as ITrainer;
     const updatedTrainer = await this.updateById(id, payload);
     const userUpdate = this.buildTrainerUserUpdate(payload);
+
+    if (this.shouldSeedLibraryOnUpdate(trainer, payload)) {
+      await this.exerciseLibraryAccessService.ensureAvihuLibraryToTrainer(trainer._id.toString());
+    }
 
     if (Object.keys(userUpdate).length > 0) {
       const linkedUser = await this.findLinkedTrainerUser(trainer);
