@@ -179,6 +179,10 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     return trainer.status !== "blocked" && payload.status === "blocked";
   }
 
+  private shouldCascadeUnblockOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.status === "blocked" && payload.status === "active";
+  }
+
   private async blockTrainerNetwork(trainer: ITrainer): Promise<void> {
     await Promise.all([
       SubTrainerModel.updateMany(
@@ -198,6 +202,32 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
         },
         {
           hasAccess: false,
+          accountStatus: "blocked",
+        }
+      ),
+    ]);
+  }
+
+  private async grantAccessToTrainerNetwork(trainer: ITrainer): Promise<void> {
+    await Promise.all([
+      SubTrainerModel.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+        },
+        {
+          status: "active",
+        }
+      ),
+      User.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+          role: { $in: ["user", "subTrainer"] },
+        },
+        {
+          hasAccess: true,
+          accountStatus: "active",
         }
       ),
     ]);
@@ -282,6 +312,8 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
 
     if (this.shouldCascadeBlockOnUpdate(trainer, payload)) {
       await this.blockTrainerNetwork(trainer);
+    } else if (this.shouldCascadeUnblockOnUpdate(trainer, payload)) {
+      await this.grantAccessToTrainerNetwork(trainer);
     }
 
     if (Object.keys(userUpdate).length > 0) {
