@@ -6,7 +6,7 @@ import { MuscleMeasurements } from "../../models/muscleMeasurementModel";
 
 export class MuscleMeasurementsRepository extends BaseRepository<IUserMuscleMeasurements> {
   constructor() {
-    super(MuscleMeasurements, { type: "trainer", field: "trainerId" });
+    super(MuscleMeasurements, { type: "global" });
   }
 
   async saveMeasurment(userId: string, date: string, measurement: number, muscle: string) {
