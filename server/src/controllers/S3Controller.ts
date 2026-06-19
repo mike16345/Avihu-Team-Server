@@ -51,7 +51,10 @@ export class S3Controller {
       const storedImageUrl = this.resolveStoredImageUrl(photoId, imageUrl);
 
       if (userId && storedImageUrl) {
-        const updatedImageUrls = await this.userImageUrlService.removeImageUrl(userId, storedImageUrl);
+        const updatedImageUrls = await this.userImageUrlService.removeImageUrl(
+          userId,
+          storedImageUrl
+        );
 
         return createServerResponse(
           StatusCode.OK,
