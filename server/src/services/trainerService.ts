@@ -175,6 +175,34 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     return trainer.videoLibraryAccess !== true && payload.videoLibraryAccess === true;
   }
 
+  private shouldCascadeBlockOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.status !== "blocked" && payload.status === "blocked";
+  }
+
+  private async blockTrainerNetwork(trainer: ITrainer): Promise<void> {
+    await Promise.all([
+      SubTrainerModel.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+        },
+        {
+          status: "inactive",
+        }
+      ),
+      User.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+          role: { $in: ["user", "subTrainer"] },
+        },
+        {
+          hasAccess: false,
+        }
+      ),
+    ]);
+  }
+
   async findWithCounts(filter: Partial<Record<keyof ITrainer, any>> = {}): Promise<ITrainer[]> {
     const trainers = await this.find(this.withSystemTrainerExclusion(filter));
 
@@ -250,6 +278,10 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
 
     if (this.shouldSeedLibraryOnUpdate(trainer, payload)) {
       await this.exerciseLibraryAccessService.ensureAvihuLibraryToTrainer(trainer._id.toString());
+    }
+
+    if (this.shouldCascadeBlockOnUpdate(trainer, payload)) {
+      await this.blockTrainerNetwork(trainer);
     }
 
     if (Object.keys(userUpdate).length > 0) {
