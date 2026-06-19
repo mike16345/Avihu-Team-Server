@@ -25,4 +25,20 @@ export class UserImageUrlController extends BaseController<IUserImageUrls, UserI
       return this.errorResponse(err);
     }
   };
+
+  replaceImageUrl = async (event: APIGatewayEvent) => {
+    const { userId, oldImageUrl, newImageUrl } = extractBodyFromEvent(event);
+
+    try {
+      const res = await this.service.replaceImageUrl(userId, oldImageUrl, newImageUrl);
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: res,
+        message: "Image URL replaced successfully",
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
 }
