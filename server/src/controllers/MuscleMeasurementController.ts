@@ -31,11 +31,11 @@ export default class MuscleMeasurementController extends BaseController<
   };
 
   removeMeasurement = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, userId, date, muscle } = this.getParamsOrError(event, [
-      "userId",
-      "date",
-      "muscle",
-    ]);
+    const { error, userId, date, muscle } = this.getParamsOrError(
+      event,
+      ["userId", "date", "muscle"],
+      "body"
+    );
 
     if (error) return error;
 
@@ -49,6 +49,26 @@ export default class MuscleMeasurementController extends BaseController<
       });
     } catch (error) {
       return this.errorResponse(error);
+    }
+  };
+
+  removeMeasurementRowById = async (
+    event: APIGatewayProxyEvent
+  ): Promise<APIGatewayProxyResult> => {
+    const { error, id } = this.getParamsOrError(event, ["id"]);
+
+    if (error) return error;
+
+    try {
+      const response = await this.service.removeMeasurementRowById(id);
+
+      return this.successResponse({
+        data: response,
+        message: "מדידה נמחקה בהצלחה",
+        status: StatusCode.OK,
+      });
+    } catch (e: any) {
+      return this.errorResponse(e);
     }
   };
 

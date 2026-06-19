@@ -29,6 +29,18 @@ export class MuscleMeasurementService extends BaseService<
     }
   }
 
+  async removeMeasurementRowById(id: string) {
+    try {
+      const deletedMeasurementRow = await this.repository.removeMeasurementRowById(id);
+
+      this.cache.invalidateAllContaining(id);
+
+      return deletedMeasurementRow;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getUsersMuscleMeasurements(userId: string) {
     const cached = this.cache.get(userId);
 
