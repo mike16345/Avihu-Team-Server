@@ -76,18 +76,23 @@ export class WorkoutPlanService extends BaseService<
       archivedAt: null,
       assignedAt: new Date(),
     } as IFullWorkoutPlan);
+
     const cleanedPlan = removeNestedIds(sanitized);
+
+    cleanedPlan.userId = userId;
+    cleanedPlan.archivedAt = null;
+    cleanedPlan.assignedAt = new Date();
+
     delete (cleanedPlan as any)._id;
 
     const newDoc = await this.repository.create(cleanedPlan);
 
     if (currentPlan?._id) {
-      await this.repository.updateById({
-        id: currentPlan._id,
+      await this.repository.updateById(currentPlan._id, {
         update: {
           archivedAt: new Date(),
           replacedByPlanId: (newDoc as any)._id,
-        } as any,
+        },
       });
     }
 

@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { WorkoutPlanService } from "../services/workoutPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { extractBodyFromEvent } from "../utils/utils";
+import { extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
 
@@ -83,15 +83,15 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
    * the new plan (ICompleteWorkoutPlan + optional history fields).
    */
   swapWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, id: userId } = this.getParamsOrError(event, ["userId"]);
     const body = extractBodyFromEvent(event);
-
-    if (!body || error) {
-      return error || this.errorResponse("New plan body is required", StatusCode.BAD_REQUEST);
+    const query = extractQueryFromEvent(event);
+    console.log("query", query);
+    if (!body) {
+      return this.errorResponse("New plan body is required", StatusCode.BAD_REQUEST);
     }
 
     try {
-      const newPlan = await this.service.swapWorkoutPlan(userId, body);
+      const newPlan = await this.service.swapWorkoutPlan(body.userId, body);
       return this.successResponse({
         status: StatusCode.CREATED,
         data: newPlan,

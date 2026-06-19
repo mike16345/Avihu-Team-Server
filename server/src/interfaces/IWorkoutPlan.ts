@@ -99,6 +99,7 @@ export interface IFullWorkoutPlan extends IWorkoutPlanMeta, IWorkoutPlanHistory 
   tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];
   cardio: ICardioPlan;
+  archivedAt?: Date | null;
 }
 
 export interface ICardioPlan {

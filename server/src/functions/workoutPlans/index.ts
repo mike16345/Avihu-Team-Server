@@ -49,9 +49,6 @@ const workoutPlanApiRoutes: ApiRouteHandlers = {
   [`POST ${BASE_PATH}/swap`]: {
     handler: workoutPlanController.swapWorkoutPlan,
     access: "subtrainer",
-    // No validateWorkoutPlan middleware: swap body intentionally
-    // includes optional history fields not present in the strict
-    // schema; sanitizeWorkoutPlanForInsert in the service handles it.
   },
   [`POST ${BASE_PATH}/restore`]: {
     handler: workoutPlanController.restoreWorkoutPlan,
