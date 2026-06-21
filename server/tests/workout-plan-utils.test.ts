@@ -50,11 +50,11 @@ describe("sanitizeWorkoutPlanForInsert", () => {
       ],
     } as any) as any;
 
-    expect(
-      sanitized.workoutPlans[0].muscleGroups[0].exercises[0].exerciseId
-    ).toBe(populatedId.toHexString());
-    expect(
-      sanitized.workoutPlans[0].muscleGroups[0].exercises[1].exerciseId
-    ).toBe(serializedId.toHexString());
+    expect(sanitized.workoutPlans[0].muscleGroups[0].exercises[0].exerciseId).toBe(
+      populatedId.toHexString()
+    );
+    expect(sanitized.workoutPlans[0].muscleGroups[0].exercises[1].exerciseId).toBe(
+      serializedId.toHexString()
+    );
   });
 });

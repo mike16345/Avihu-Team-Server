@@ -116,7 +116,6 @@ function extractObjectIdBytes(bufferLike: unknown): number[] | null {
 
 function isObjectIdByteArray(value: number[]): value is number[] {
   return (
-    value.length === 12 &&
-    value.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255)
+    value.length === 12 && value.every((byte) => Number.isInteger(byte) && byte >= 0 && byte <= 255)
   );
 }
