@@ -29,7 +29,6 @@ export default class BaseController<
    */
   protected async beforeAction(event: APIGatewayProxyEvent) {
     // placeholder for subclass overrides
-    console.log("Performing action...");
   }
 
   /**
@@ -37,7 +36,6 @@ export default class BaseController<
    */
   protected async afterAction(result: APIGatewayProxyResult) {
     // placeholder for subclass overrides
-    console.log("Finished Action...");
   }
 
   protected getParamsOrError(

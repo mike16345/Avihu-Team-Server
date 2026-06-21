@@ -83,6 +83,8 @@ export const handleApiCall = async (
 
       console.log("Handling API request", {
         headers: removeSensitiveInfoFromLog(event.headers),
+        params: removeSensitiveInfoFromLog(event.pathParameters),
+        query: removeSensitiveInfoFromLog(event.queryStringParameters),
         body: removeSensitiveInfoFromLog(event.body),
         method: httpMethod,
         path,

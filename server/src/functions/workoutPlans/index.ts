@@ -18,7 +18,7 @@ const workoutPlanApiRoutes: ApiRouteHandlers = {
     access: "authenticated",
   },
   [`GET ${BASE_PATH}/user`]: {
-    handler: workoutPlanController.getOne,
+    handler: workoutPlanController.getOneByUserId,
     access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {

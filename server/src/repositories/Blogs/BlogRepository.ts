@@ -74,12 +74,10 @@ export class BlogRepository extends BaseRepository<IBlog> {
     if (query.planType) {
       const planType = query.planType;
       query.planType = { $in: [planType, "כללי"] };
-      console.log("NEW PLAN TYPE QUERY!", query.planType);
     }
 
     if (query.group && isValidObjectId(query.group)) {
       query.group = mongoose.Types.ObjectId.createFromHexString(query.group);
-      console.log("TURNED GROUP INTO OBJECTID", query.group);
     }
 
     const paginated = await this.getPaginated({

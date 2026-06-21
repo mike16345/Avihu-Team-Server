@@ -45,6 +45,7 @@ export class WorkoutPlanService extends BaseService<
 
   /** Returns all archived plan docs for the user, newest first. */
   getHistoryForUser = async (userId: string) => {
+    console.log(`Fetching workout plan history for userId: ${userId}`);
     return this.repository.find({
       query: { userId, archivedAt: { $ne: null } },
       queryOptions: { sort: { assignedAt: -1 } },
@@ -97,6 +98,12 @@ export class WorkoutPlanService extends BaseService<
     }
 
     return newDoc;
+  };
+
+  findOneByUserId = async (userId: string) => {
+    return this.repository.findOne({
+      query: { userId, archivedAt: null },
+    });
   };
 
   /**

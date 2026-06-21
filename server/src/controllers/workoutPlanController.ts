@@ -33,6 +33,23 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
     }
   };
 
+  getOneByUserId = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { error, userId } = this.getParamsOrError(event, ["userId"]);
+    if (error) return error;
+
+    try {
+      const workoutPlan = await this.service.findOneByUserId(userId);
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: workoutPlan,
+        message: "Successfully retrieved workout plan for user!",
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
+
   updateWorkoutPlan = async (event: APIGatewayProxyEvent) => {
     const { error, id: userId } = this.getParamsOrError(event, ["userId"]);
     const body = extractBodyFromEvent(event);
@@ -63,7 +80,7 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
 
   /** GET /workoutPlans/history?userId=... — archived plans, newest first. */
   getHistory = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, id: userId } = this.getParamsOrError(event, ["userId"]);
+    const { error, userId: userId } = this.getParamsOrError(event, ["userId"]);
     if (error) return error;
 
     try {
@@ -84,8 +101,7 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
    */
   swapWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const body = extractBodyFromEvent(event);
-    const query = extractQueryFromEvent(event);
-    console.log("query", query);
+
     if (!body) {
       return this.errorResponse("New plan body is required", StatusCode.BAD_REQUEST);
     }
@@ -108,14 +124,11 @@ class WorkoutPlanController extends BaseController<IFullWorkoutPlan, WorkoutPlan
    * archived in the same operation.
    */
   restoreWorkoutPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const { error, id: userId } = this.getParamsOrError(event, ["userId"]);
+    const { error, userId, archivedPlanId } = this.getParamsOrError(event, [
+      "userId",
+      "archivedPlanId",
+    ]);
     if (error) return error;
-
-    const query = (event.queryStringParameters || {}) as Record<string, string>;
-    const archivedPlanId = query.archivedPlanId;
-    if (!archivedPlanId) {
-      return this.errorResponse("archivedPlanId is required", StatusCode.BAD_REQUEST);
-    }
 
     const body = extractBodyFromEvent(event) || {};
     const assignedBy = body.assignedBy;
