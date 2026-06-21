@@ -26,6 +26,11 @@ const userImageApiRoutes: ApiRouteHandlers = {
     access: "authenticated",
     middlewares: [validateUserImageUrlReplace],
   },
+  [`POST ${BASE_PATH}/swap`]: {
+    handler: userImageUrlController.swapImageUrls,
+    access: "authenticated",
+    middlewares: [validateUserImageUrlReplace],
+  },
 };
 
 export const handler = async (

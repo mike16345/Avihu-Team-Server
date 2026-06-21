@@ -46,6 +46,18 @@ export class UserImageUrlService extends BaseService<IUserImageUrls, UserImageUr
     return urls.imageUrls || [];
   }
 
+  async swapImageUrls(userId: string, oldImageUrl: string, newImageUrl: string) {
+    const urls = (await this.repository.swapImageUrls(
+      userId,
+      oldImageUrl,
+      newImageUrl
+    )) as IUserImageUrls;
+
+    this.cache.invalidateAll();
+
+    return urls.imageUrls || [];
+  }
+
   async findOne(filter: Partial<Record<keyof IUserImageUrls, any>>): Promise<any> {
     const doc = await super.findOne(filter);
 
