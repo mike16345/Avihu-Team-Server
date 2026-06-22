@@ -183,7 +183,8 @@ class JwtAuthService {
     }
 
     const user =
-      userOverride ?? ((await this.userRepository.findById(session.userId)) as unknown as IUser | null);
+      userOverride ??
+      ((await this.userRepository.findById(session.userId)) as unknown as IUser | null);
 
     if (!user || user.accountStatus === "disabled" || !user.hasAccess) {
       return null;
