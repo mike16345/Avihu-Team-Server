@@ -1,4 +1,18 @@
 import mongoose from "mongoose";
+import { USER_ACCOUNT_STATUSES } from "../models/userModel";
+
+export type UserAccountStatus = (typeof USER_ACCOUNT_STATUSES)[keyof typeof USER_ACCOUNT_STATUSES];
+
+export interface StatusHistory {
+  at: Date;
+  kind: "system" | "manual";
+  fromStatus: UserAccountStatus;
+  toStatus: UserAccountStatus;
+  changedBy: string;
+  frozenDaysRemaining: number;
+  daysAdded: number;
+  note: string;
+}
 
 export interface IUser {
   _id: mongoose.Types.ObjectId;
@@ -22,4 +36,8 @@ export interface IUser {
   profileImage?: string;
   trainerId?: mongoose.Types.ObjectId;
   subTrainerId?: mongoose.Types.ObjectId;
+  accountStatus: UserAccountStatus;
+  frozenAt?: Date;
+  frozenDaysRemaining?: number;
+  statusHistory: StatusHistory;
 }

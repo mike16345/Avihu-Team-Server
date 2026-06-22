@@ -81,10 +81,13 @@ const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
   return userId;
 };
 
-const isRoleAllowed = (
-  role: UserRole,
-  access: Exclude<RouteAccess, "public" | "authenticated">
-): boolean => {
+const isRoleAllowed = (role: UserRole, access: RouteAccess): boolean => {
+  const userRank = roleRank[role];
+  const rank = accessRank[access];
+
+  console.log("User Rank:", userRank);
+  console.log("Access Rank:", rank);
+
   return roleRank[role] >= accessRank[access];
 };
 
@@ -96,14 +99,17 @@ export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAcc
   const user = await UserModel.findById(userId).lean();
 
   if (!user || user.isDeleted) {
+    console.log("User was not found.");
     throw AUTH_ERRORS.userNotFound;
   }
 
-  if (!user.hasAccess) {
-    throw AUTH_ERRORS.forbidden;
+  if (!user.hasAccess || user.accountStatus == "disabled") {
+    console.log("User has no access to app.");
+    throw AUTH_ERRORS.unauthorized;
   }
 
   if (access !== "authenticated" && !isRoleAllowed(user.role, access)) {
+    console.log("User does not meet the requirements to access this route.");
     throw AUTH_ERRORS.forbidden;
   }
 
