@@ -7,11 +7,12 @@ describe("FormResponseService.getMonthlyFormStatus", () => {
       hasSubmittedFormTypeBetween: jest.fn().mockResolvedValue(true),
     };
 
-    await expect(service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))).resolves
-      .toEqual({
-        shouldShowMonthlyForm: false,
-        reason: "MONTHLY_FORM_ALREADY_SUBMITTED",
-      });
+    await expect(
+      service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))
+    ).resolves.toEqual({
+      shouldShowMonthlyForm: false,
+      reason: "MONTHLY_FORM_ALREADY_SUBMITTED",
+    });
   });
 
   test("returns latest preset and occurrence key when the monthly form was not submitted", async () => {
@@ -26,13 +27,14 @@ describe("FormResponseService.getMonthlyFormStatus", () => {
       }),
     };
 
-    await expect(service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))).resolves
-      .toEqual({
-        shouldShowMonthlyForm: true,
-        presetId: "preset-1",
-        occurrenceKey: "2026-06",
-        reason: "MONTHLY_FORM_NOT_SUBMITTED",
-      });
+    await expect(
+      service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))
+    ).resolves.toEqual({
+      shouldShowMonthlyForm: true,
+      presetId: "preset-1",
+      occurrenceKey: "2026-06",
+      reason: "MONTHLY_FORM_NOT_SUBMITTED",
+    });
   });
 
   test("returns no preset when the user did not submit and no monthly preset exists", async () => {
@@ -44,10 +46,11 @@ describe("FormResponseService.getMonthlyFormStatus", () => {
       findLatestByType: jest.fn().mockResolvedValue(null),
     };
 
-    await expect(service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))).resolves
-      .toEqual({
-        shouldShowMonthlyForm: false,
-        reason: "NO_MONTHLY_FORM_PRESET",
-      });
+    await expect(
+      service.getMonthlyFormStatus("user-1", new Date("2026-06-22T12:00:00.000Z"))
+    ).resolves.toEqual({
+      shouldShowMonthlyForm: false,
+      reason: "NO_MONTHLY_FORM_PRESET",
+    });
   });
 });
