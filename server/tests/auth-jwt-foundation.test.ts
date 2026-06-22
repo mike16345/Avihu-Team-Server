@@ -88,6 +88,17 @@ describe("JwtAuthService", () => {
     expect((claims.exp ?? 0) - nowInSeconds).toBeLessThanOrEqual(60 * 60 * 24 * 7);
   });
 
+  test("shouldRenewAccessToken returns true only within the configured threshold", () => {
+    process.env.REFRESH_RENEWAL_THRESHOLD_DAYS = "2";
+    const service = new JwtAuthService();
+
+    expect(service.shouldRenewAccessToken(new Date(Date.now() + 1000 * 60 * 60 * 24))).toBe(true);
+    expect(service.shouldRenewAccessToken(new Date(Date.now() + 1000 * 60 * 60 * 24 * 3))).toBe(
+      false
+    );
+    expect(service.shouldRenewAccessToken(new Date(Date.now() - 1000))).toBe(false);
+  });
+
   test("invalid expiration config", () => {
     process.env.JWT_ACCESS_EXPIRES_IN = "abc";
     const service = new JwtAuthService();
@@ -270,5 +281,9 @@ describe("JwtAuthService", () => {
     service.sessionRepository = { findRefreshSessionByHash: jest.fn().mockResolvedValue(session) };
     service.userRepository = { findById: jest.fn().mockResolvedValue(user) };
     await expect(service.validateRefreshToken("x")).resolves.toMatchObject({ session, user });
+  });
+
+  afterEach(() => {
+    delete process.env.REFRESH_RENEWAL_THRESHOLD_DAYS;
   });
 });

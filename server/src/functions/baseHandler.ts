@@ -27,6 +27,7 @@ type VerifiedAccessClaims = AccessClaims & {
 };
 
 const jwtAuthService = new JwtAuthService();
+const NEW_ACCESS_TOKEN_HEADER = "x-new-access-token";
 
 const buildAuthContextFromClaims = (claims?: VerifiedAccessClaims) => {
   console.log("Building auth context from claims:", claims);
@@ -134,11 +135,19 @@ export const handleApiCall = async (
       }
 
       const response = await apiHandler.handler(event, context);
+      const renewedAccessToken =
+        tokenClaims && response.statusCode >= 200 && response.statusCode < 300
+          ? await jwtAuthService.getRenewedAccessToken(
+              tokenClaims,
+              (event.authUser as IUser | undefined) ?? null
+            )
+          : null;
       const apiResponse = {
         ...response,
         headers: {
           ...response?.headers,
           ...API_HEADERS,
+          ...(renewedAccessToken ? { [NEW_ACCESS_TOKEN_HEADER]: renewedAccessToken } : {}),
         },
       };
       console.log("API response", removeSensitiveInfoFromLog(apiResponse));

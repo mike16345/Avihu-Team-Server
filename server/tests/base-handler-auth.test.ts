@@ -10,6 +10,10 @@ import JwtAuthService from "../src/services/JwtAuthService";
 import { getAuthContext } from "../src/utils/authContext";
 
 describe("handleApiCall auth flow", () => {
+  beforeEach(() => {
+    jest.spyOn(JwtAuthService.prototype, "getRenewedAccessToken").mockResolvedValue(null);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     jest.restoreAllMocks();
@@ -114,6 +118,10 @@ describe("handleApiCall auth flow", () => {
       role: "trainer",
       exp: 9999999999,
     } as any);
+    (enforceRequestUserAccess as jest.Mock).mockImplementation(async (event: any) => {
+      event.authUser = { _id: "u2", trainerId: "t2", role: "trainer" };
+      return event.authUser;
+    });
 
     const response = await handleApiCall(
       {
@@ -168,5 +176,60 @@ describe("handleApiCall auth flow", () => {
     );
     expect(logOutput).not.toContain("secret-token");
     expect(requestLogCall?.[1]).toMatchObject({ hasAuthorizationHeader: true });
+  });
+
+  test("adds x-new-access-token to successful authenticated responses when renewal is needed", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ userId: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
+    jest
+      .spyOn(JwtAuthService.prototype, "getRenewedAccessToken")
+      .mockResolvedValue("renewed-access-token");
+
+    const response = await handleApiCall(
+      {
+        httpMethod: "GET",
+        path: "/protected",
+        headers: { Authorization: "Bearer renew-me" },
+        requestContext: { requestId: "req-renew" },
+      } as any,
+      {} as any,
+      {
+        "GET /protected": {
+          access: "authenticated",
+          handler: async () => ({ statusCode: 200, body: "{}" }),
+        },
+      }
+    );
+
+    expect(response.headers?.["x-new-access-token"]).toBe("renewed-access-token");
+  });
+
+  test("does not add x-new-access-token to failed responses", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ userId: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
+    const renewSpy = jest
+      .spyOn(JwtAuthService.prototype, "getRenewedAccessToken")
+      .mockResolvedValue("renewed-access-token");
+
+    const response = await handleApiCall(
+      {
+        httpMethod: "GET",
+        path: "/protected",
+        headers: { Authorization: "Bearer renew-me" },
+        requestContext: { requestId: "req-no-renew" },
+      } as any,
+      {} as any,
+      {
+        "GET /protected": {
+          access: "authenticated",
+          handler: async () => ({ statusCode: 400, body: "{}" }),
+        },
+      }
+    );
+
+    expect(response.headers?.["x-new-access-token"]).toBeUndefined();
+    expect(renewSpy).not.toHaveBeenCalled();
   });
 });

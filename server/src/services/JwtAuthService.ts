@@ -12,6 +12,8 @@ const REFRESH_EXPIRES_IN_MS = Number(
   process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
 );
 const DEFAULT_ACCESS_EXPIRES_IN = "24d";
+const DEFAULT_REFRESH_RENEWAL_THRESHOLD_DAYS = 2;
+const MILLISECONDS_IN_A_DAY = 1000 * 60 * 60 * 24;
 // TODO: Remove this temporary expired-access-token grace period after the mobile app implements refresh-on-401.
 const ACCESS_TOKEN_EXPIRY_GRACE_PERIOD_SECONDS = 60 * 60 * 24 * 30;
 
@@ -57,6 +59,23 @@ class JwtAuthService {
       message: "Invalid JWT_ACCESS_EXPIRES_IN value",
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
     };
+  }
+
+  private getRefreshRenewalThresholdMs() {
+    const rawThresholdDays = process.env.REFRESH_RENEWAL_THRESHOLD_DAYS;
+
+    if (rawThresholdDays === undefined) {
+      return DEFAULT_REFRESH_RENEWAL_THRESHOLD_DAYS * MILLISECONDS_IN_A_DAY;
+    }
+
+    const thresholdDays = Number(rawThresholdDays);
+
+    if (!Number.isFinite(thresholdDays) || thresholdDays < 0) {
+      console.log("Invalid REFRESH_RENEWAL_THRESHOLD_DAYS value, falling back to default");
+      return DEFAULT_REFRESH_RENEWAL_THRESHOLD_DAYS * MILLISECONDS_IN_A_DAY;
+    }
+
+    return thresholdDays * MILLISECONDS_IN_A_DAY;
   }
 
   private getAccessTokenExpiresIn(): NonNullable<SignOptions["expiresIn"]> {
@@ -120,6 +139,62 @@ class JwtAuthService {
     } catch {
       throw this.invalidAccessExpiresInError();
     }
+  }
+
+  shouldRenewAccessToken(expiresAt: Date) {
+    const expiresAtTime = new Date(expiresAt).getTime();
+
+    if (!Number.isFinite(expiresAtTime) || expiresAtTime <= Date.now()) {
+      return false;
+    }
+
+    return expiresAtTime - Date.now() <= this.getRefreshRenewalThresholdMs();
+  }
+
+  private resolveTrainerId(user: IUser) {
+    const rawTrainerId = user.trainerId;
+
+    if (user.role === "admin") {
+      return rawTrainerId?.toString() || user._id?.toString();
+    }
+
+    return rawTrainerId?.toString();
+  }
+
+  async getRenewedAccessToken(
+    claims: AccessClaims,
+    userOverride?: IUser | null
+  ): Promise<string | null> {
+    if (!claims.sessionId) {
+      return null;
+    }
+
+    const session = await this.sessionRepository.getSessionById(claims.sessionId);
+
+    if (!session || session.type !== "auth_refresh" || typeof session.userId !== "string") {
+      return null;
+    }
+
+    const refreshData = session.data as IRefreshSessionData | undefined;
+    const expiresAt = refreshData?.expiresAt ? new Date(refreshData.expiresAt) : null;
+
+    if (!expiresAt || refreshData?.revokedAt || !this.shouldRenewAccessToken(expiresAt)) {
+      return null;
+    }
+
+    const user =
+      userOverride ?? ((await this.userRepository.findById(session.userId)) as unknown as IUser | null);
+
+    if (!user || user.accountStatus === "disabled" || !user.hasAccess) {
+      return null;
+    }
+
+    return this.signAccessToken({
+      userId: user._id?.toString() || claims.userId,
+      trainerId: this.resolveTrainerId(user),
+      role: user.role,
+      sessionId: String(session._id || claims.sessionId),
+    });
   }
 
   private verifyExpiredAccessTokenWithinGrace(token: string, secret: string) {
