@@ -6,13 +6,13 @@ import {
   createServerErrorResponse,
   extractBodyFromEvent,
   generateOTP,
-  generateUUID,
 } from "../utils/utils";
 import { ONE_MINUTE_IN_MILLISECONDS } from "../constants/Constants";
 import { StatusCode } from "../enums/StatusCode";
 import UserService from "../services/userService";
 import SessionService from "../services/sessionService";
 import { OTPCache } from "../utils/otpCache";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
 
 const cache = new OTPCache();
 
@@ -27,14 +27,23 @@ export class OTPController {
       console.log("Cached OTP:", cachedOtp);
 
       if (!cachedOtp) {
-        return createResponse(StatusCode.NOT_FOUND, "OTP not found or expired");
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          "OTP not found or expired",
+          AUTH_ERROR_CODES.OTP_EXPIRED
+        );
       }
 
       const isValidOtp = String(cachedOtp) === String(otp);
 
       if (!isValidOtp) {
-        return createResponse(StatusCode.NOT_ACCEPTABLE, "Invalid OTP");
+        return createResponse(
+          StatusCode.NOT_ACCEPTABLE,
+          "Invalid OTP",
+          AUTH_ERROR_CODES.OTP_INVALID
+        );
       }
+
       const session = await new SessionService().create({ userId: email, type: "otp" } as any);
 
       cache.invalidate(cacheKey);
@@ -59,10 +68,15 @@ export class OTPController {
           body: JSON.stringify({ message: "Email is required" }),
         };
       }
+
       const user = await new UserService().findOneUnscoped({ email: email.toLowerCase() });
 
       if (!user) {
-        return createResponse(StatusCode.NOT_FOUND, "מייל הזו לא קיים במערכת");
+        return createResponse(
+          StatusCode.NOT_FOUND,
+          "מייל הזו לא קיים במערכת",
+          AUTH_ERROR_CODES.LOGIN_FAILED
+        );
       }
 
       const otpService = new EmailService();

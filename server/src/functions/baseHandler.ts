@@ -160,7 +160,10 @@ export const handleApiCall = async (
     if (isHttpError(error)) {
       return {
         statusCode: error.statusCode,
-        body: JSON.stringify({ message: error.message }),
+        body: JSON.stringify({
+          message: error.message,
+          ...(error.code ? { code: error.code } : {}),
+        }),
         headers: API_HEADERS,
       };
     }

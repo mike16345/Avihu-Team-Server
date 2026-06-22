@@ -1,6 +1,7 @@
 import JwtAuthService from "../src/services/JwtAuthService";
 import jwt from "jsonwebtoken";
 import { StatusCode } from "../src/enums/StatusCode";
+import { AUTH_ERROR_CODES } from "../src/constants/authErrorCodes";
 
 describe("JwtAuthService", () => {
   beforeEach(() => {
@@ -24,6 +25,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -41,6 +43,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -108,7 +111,7 @@ describe("JwtAuthService", () => {
         userId: "u1",
         role: "admin",
         sessionId: "s1",
-        exp: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 8,
+        exp: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 31,
       },
       process.env.JWT_ACCESS_SECRET!,
       { algorithm: "HS256" }
@@ -118,6 +121,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.TOKEN_EXPIRED,
       })
     );
   });
@@ -152,6 +156,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -167,6 +172,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -186,6 +192,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -205,6 +212,7 @@ describe("JwtAuthService", () => {
     service.sessionRepository = { findRefreshSessionByHash: jest.fn().mockResolvedValue(null) };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_EXPIRED,
     });
   });
 
@@ -218,6 +226,7 @@ describe("JwtAuthService", () => {
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_REVOKED,
     });
   });
 
@@ -231,6 +240,7 @@ describe("JwtAuthService", () => {
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_EXPIRED,
     });
   });
 
@@ -245,6 +255,7 @@ describe("JwtAuthService", () => {
     service.userRepository = { findById: jest.fn().mockResolvedValue({ hasAccess: false }) };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.ACCESS_REVOKED,
     });
   });
 

@@ -272,11 +272,13 @@ export default class BaseController<
     );
   }
 
-  errorResponse(error: any, errorCode?: StatusCode): APIGatewayProxyResult {
+  errorResponse(error: any, errorCode?: StatusCode, responseCode?: string): APIGatewayProxyResult {
     const errorMessage = error?.message || error || "There was an unknown error!";
-    const code = errorCode || error?.status || StatusCode.INTERNAL_SERVER_ERROR;
+    const statusCode =
+      errorCode || error?.statusCode || error?.status || StatusCode.INTERNAL_SERVER_ERROR;
+    const errorResponseCode = responseCode || error?.code;
     console.error("[BaseController] Error:", errorMessage);
 
-    return createServerResponse(code, errorMessage);
+    return createServerResponse(statusCode, errorMessage, undefined, errorResponseCode);
   }
 }

@@ -1,9 +1,10 @@
 import { IUser } from "../interfaces/IUser";
-import { StatusCode } from "../enums/StatusCode";
 import { User as UserModel } from "../models/userModel";
 import JwtAuthService, { AccessClaims } from "../services/JwtAuthService";
 import { extractBearerToken } from "../utils/utils";
 import type { AppEvent, RouteAccess } from "../types/lambdaTypes";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
+import { createForbiddenError, createUnauthorizedError } from "../utils/httpErrors";
 
 type UserRole = IUser["role"];
 type VerifiedAccessClaims = AccessClaims & { userId?: string };
@@ -31,18 +32,11 @@ const roleRank: Record<
 };
 
 const AUTH_ERRORS = {
-  unauthorized: {
-    message: "Unauthorized",
-    statusCode: StatusCode.UNAUTHORIZED,
-  },
-  userNotFound: {
-    message: "User not found",
-    statusCode: StatusCode.UNAUTHORIZED,
-  },
-  forbidden: {
-    message: "Forbidden",
-    statusCode: StatusCode.FORBIDDEN,
-  },
+  unauthorized: createUnauthorizedError(AUTH_ERROR_CODES.INVALID_TOKEN),
+  userNotFound: createUnauthorizedError(AUTH_ERROR_CODES.USER_NOT_FOUND, "User not found"),
+  accessRevoked: createForbiddenError(AUTH_ERROR_CODES.ACCESS_REVOKED, "Unauthorized"),
+  userBlocked: createForbiddenError(AUTH_ERROR_CODES.USER_BLOCKED, "Unauthorized"),
+  forbidden: createForbiddenError(),
 };
 
 export const requireUser = (user: IUser | null): IUser => {
@@ -72,7 +66,7 @@ export const requireAdmin = requireRoles("admin");
 export const requireTrainer = requireRoles("trainer", "admin");
 
 const getVerifiedUserId = (claims: VerifiedAccessClaims): string => {
-  const userId = claims.userId;
+  const userId = claims.userId || claims.sub || claims._id;
 
   if (!userId) {
     throw AUTH_ERRORS.unauthorized;
@@ -103,15 +97,22 @@ export const enforceRequestUserAccess = async (event: AppEvent, access: RouteAcc
     throw AUTH_ERRORS.userNotFound;
   }
 
-  if (!user.hasAccess || user.accountStatus == "disabled") {
+  if (user.accountStatus === "disabled") {
+    console.log("User is blocked from the app.");
+    throw AUTH_ERRORS.userBlocked;
+  }
+
+  if (!user.hasAccess) {
     console.log("User has no access to app.");
-    throw AUTH_ERRORS.unauthorized;
+    throw AUTH_ERRORS.accessRevoked;
   }
 
   if (access !== "authenticated" && !isRoleAllowed(user.role, access)) {
     console.log("User does not meet the requirements to access this route.");
     throw AUTH_ERRORS.forbidden;
   }
+
+  event.authUser = user as any;
 
   return user;
 };

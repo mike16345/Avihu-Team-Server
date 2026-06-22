@@ -77,31 +77,44 @@ function isObjectId(val: any): val is ObjectId {
   );
 }
 
-export const createResponse = (statusCode: StatusCode, message?: string) => {
+export const createResponse = (statusCode: StatusCode, message?: string, code?: string) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
+      ...(code ? { code } : {}),
     }),
   };
 };
 
-export const createServerResponse = (statusCode: StatusCode, message?: string, data?: any) => {
+export const createServerResponse = (
+  statusCode: StatusCode,
+  message?: string,
+  data?: any,
+  code?: string
+) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
       data,
+      ...(code ? { code } : {}),
     }),
   };
 };
 
-export const createResponseWithData = (statusCode: StatusCode, data: any, message?: string) => {
+export const createResponseWithData = (
+  statusCode: StatusCode,
+  data: any,
+  message?: string,
+  code?: string
+) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
       data,
+      ...(code ? { code } : {}),
     }),
   };
 };
@@ -262,13 +275,21 @@ export const extractBearerToken = (headers: Record<string, any> = {}): string =>
 
   if (!authHeader || typeof authHeader !== "string") {
     console.log("Authorization header missing or not a string:", authHeader);
-    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+    throw {
+      message: "Unauthorized",
+      statusCode: StatusCode.UNAUTHORIZED,
+      code: "INVALID_TOKEN",
+    };
   }
 
   const parts = authHeader.trim().split(/\s+/);
   if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
     console.log("Invalid authorization header format:", authHeader);
-    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+    throw {
+      message: "Unauthorized",
+      statusCode: StatusCode.UNAUTHORIZED,
+      code: "INVALID_TOKEN",
+    };
   }
 
   return parts[1];

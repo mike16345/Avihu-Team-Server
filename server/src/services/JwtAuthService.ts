@@ -5,6 +5,8 @@ import { IRefreshSessionData, ISession } from "../models/sessionModel";
 import { SessionRepository } from "../repositories/Sessions/SessionRepository";
 import UserRepository from "../repositories/User/UserRepository";
 import { IUser } from "../interfaces/IUser";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
+import { UnauthorizedError } from "../utils/httpErrors";
 
 const REFRESH_EXPIRES_IN_MS = Number(
   process.env.JWT_REFRESH_EXPIRES_IN_MS || 1000 * 60 * 60 * 24 * 30
@@ -31,8 +33,8 @@ class JwtAuthService {
   private sessionRepository = new SessionRepository();
   private userRepository = new UserRepository();
 
-  private unauthorizedError() {
-    return { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+  private unauthorizedError(code: string = AUTH_ERROR_CODES.INVALID_TOKEN) {
+    return new UnauthorizedError("Unauthorized", code);
   }
 
   private getAccessSecret() {
@@ -158,12 +160,12 @@ class JwtAuthService {
           return this.verifyExpiredAccessTokenWithinGrace(token, secret);
         } catch (graceError) {
           console.log("Failed to verify expired access token within grace period:", graceError);
-          throw this.unauthorizedError();
+          throw this.unauthorizedError(AUTH_ERROR_CODES.TOKEN_EXPIRED);
         }
       }
 
       console.log("Failed to verify access token (Error):", e);
-      throw this.unauthorizedError();
+      throw this.unauthorizedError(AUTH_ERROR_CODES.INVALID_TOKEN);
     }
   }
 
@@ -198,18 +200,28 @@ class JwtAuthService {
   async validateRefreshToken(refreshToken: string): Promise<{ session: ISession; user: IUser }> {
     const tokenHash = this.hashToken(refreshToken);
     const session = await this.sessionRepository.findRefreshSessionByHash(tokenHash);
-    if (!session) throw this.unauthorizedError();
+    if (!session) throw this.unauthorizedError(AUTH_ERROR_CODES.SESSION_EXPIRED);
 
     const refreshData = session.data as IRefreshSessionData | undefined;
-    if (refreshData?.revokedAt) throw this.unauthorizedError();
+    if (refreshData?.revokedAt) {
+      throw this.unauthorizedError(AUTH_ERROR_CODES.SESSION_REVOKED);
+    }
     if (!refreshData?.expiresAt || new Date(refreshData.expiresAt).getTime() <= Date.now()) {
       console.log("Refresh token expired:", refreshData?.expiresAt);
-      throw this.unauthorizedError();
+      throw this.unauthorizedError(AUTH_ERROR_CODES.SESSION_EXPIRED);
     }
-    if (!session.userId || typeof session.userId !== "string") throw this.unauthorizedError();
+    if (!session.userId || typeof session.userId !== "string") {
+      throw this.unauthorizedError(AUTH_ERROR_CODES.SESSION_EXPIRED);
+    }
 
     const user = (await this.userRepository.findById(session.userId)) as unknown as IUser | null;
-    if (!user || !user.hasAccess) throw this.unauthorizedError();
+    if (!user) throw this.unauthorizedError(AUTH_ERROR_CODES.USER_NOT_FOUND);
+    if (user.accountStatus === "disabled") {
+      throw this.unauthorizedError(AUTH_ERROR_CODES.USER_BLOCKED);
+    }
+    if (!user.hasAccess) {
+      throw this.unauthorizedError(AUTH_ERROR_CODES.ACCESS_REVOKED);
+    }
 
     return { session, user };
   }
