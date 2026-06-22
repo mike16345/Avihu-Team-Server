@@ -23,6 +23,10 @@ export const formPresetApiRoutes: ApiRouteHandlers = {
     handler: formPresetController.getOne,
     access: "authenticated",
   },
+  [`GET ${FORM_PRESET_BASE_PATH}/monthly-status`]: {
+    handler: formResponseController.getMonthlyStatus,
+    access: "authenticated",
+  },
   [`POST ${FORM_PRESET_BASE_PATH}`]: {
     handler: formPresetController.create,
     access: "subtrainer",

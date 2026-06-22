@@ -7,12 +7,6 @@ import {
   PAGINATION_LIMIT_FALLBACK,
   PAGINATION_PAGE_FALLBACK,
 } from "../constants/Constants";
-import { DietPlanService } from "../services/dietPlanService";
-import { RecordedSetsService } from "../services/recordedSetsService";
-import { UserImageUrlService } from "../services/UserImageUrlService";
-import PasswordsService from "../services/PasswordsService";
-import { WorkoutPlanService } from "../services/workoutPlanService";
-import WeighInService from "../services/weighInService";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -218,12 +212,19 @@ export const returnStringVal = (arr: any[]) => {
 };
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
-  await new DietPlanService().delete({ userId }).catch((err) => console.log(err));
-  await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
-  await new WeighInService().delete({ userId }).catch((err) => console.log(err));
-  await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
-  await new PasswordsService().deletePasswordByUserId(userId).catch((err) => console.log(err));
-  await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
+  const { DietPlanService } = require("../services/dietPlanService");
+  const { RecordedSetsService } = require("../services/recordedSetsService");
+  const { UserImageUrlService } = require("../services/UserImageUrlService");
+  const PasswordsService = require("../services/PasswordsService").default;
+  const { WorkoutPlanService } = require("../services/workoutPlanService");
+  const WeighInService = require("../services/weighInService").default;
+
+  await new DietPlanService().delete({ userId }).catch((err: any) => console.log(err));
+  await new RecordedSetsService().deleteMany({ userId }).catch((err: any) => console.log(err));
+  await new WeighInService().delete({ userId }).catch((err: any) => console.log(err));
+  await new UserImageUrlService().delete({ userId }).catch((err: any) => console.log(err));
+  await new PasswordsService().deletePasswordByUserId(userId).catch((err: any) => console.log(err));
+  await new WorkoutPlanService().deleteMany({ userId }).catch((err: any) => console.log(err));
 };
 
 export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {
