@@ -34,7 +34,33 @@ export interface IMeal {
   totalVeggies: IDietItem;
 }
 
-export interface IDietPlanPreset extends Omit<IDietPlan, "userId"> {
+/**
+ * Optional trainer-tagged meta on a diet-plan preset. Surfaced in the
+ * admin panel for filtering (goal, calorie bucket, dietary
+ * restrictions, builder). All fields are optional — older docs without
+ * any tagging keep working unchanged.
+ */
+export type DietGoal = "cutting" | "mass";
+export type DietaryRestriction =
+  | "lactose-free"
+  | "vegetarian"
+  | "vegan"
+  | "no-fish"
+  | "no-meat"
+  | "gluten-free";
+
+export interface IDietPlanMeta {
+  goal?: DietGoal;
+  calories?: number;
+  proteinServings?: number;
+  carbServings?: number;
+  fatServings?: number;
+  dietaryRestrictions?: DietaryRestriction[];
+  /** Sub-trainer (or main-trainer) id of whoever built this menu. */
+  builtByTrainerId?: string;
+}
+
+export interface IDietPlanPreset extends Omit<IDietPlan, "userId">, IDietPlanMeta {
   name: string;
 }
 

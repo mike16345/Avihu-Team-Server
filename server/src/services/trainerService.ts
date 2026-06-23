@@ -1,5 +1,6 @@
 import { ITrainer } from "../interfaces/ITrainer";
 import { IUser } from "../interfaces/IUser";
+import { getSystemLibraryOwnerObjectId } from "../config/systemLibrary";
 import { TrainerModel } from "../models/trainerModel";
 import { SubTrainerModel } from "../models/subTrainerModel";
 import { User } from "../models/userModel";
@@ -31,6 +32,7 @@ const splitFullName = (fullName: string) => {
 };
 
 const statusToAccess = (status: ITrainer["status"]) => status === "active";
+const SYSTEM_TRAINER_ID = getSystemLibraryOwnerObjectId();
 
 export default class TrainerService extends BaseService<ITrainer, TrainerRepository> {
   private userService: UserService;
@@ -161,14 +163,87 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     });
   }
 
+  private withSystemTrainerExclusion<T extends Record<string, any>>(filter: T = {} as T): T {
+    return {
+      ...filter,
+      _id: { $ne: SYSTEM_TRAINER_ID },
+      userId: { $ne: SYSTEM_TRAINER_ID },
+    } as T;
+  }
+
+  private shouldSeedLibraryOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.videoLibraryAccess !== true && payload.videoLibraryAccess === true;
+  }
+
+  private shouldCascadeBlockOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.status !== "blocked" && payload.status === "blocked";
+  }
+
+  private shouldCascadeUnblockOnUpdate(trainer: ITrainer, payload: Partial<ITrainer>): boolean {
+    return trainer.status === "blocked" && payload.status === "active";
+  }
+
+  private async blockTrainerNetwork(trainer: ITrainer): Promise<void> {
+    await Promise.all([
+      SubTrainerModel.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+        },
+        {
+          status: "inactive",
+        }
+      ),
+      User.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+          role: { $in: ["user", "subTrainer"] },
+        },
+        {
+          hasAccess: false,
+          accountStatus: "blocked",
+        }
+      ),
+    ]);
+  }
+
+  private async grantAccessToTrainerNetwork(trainer: ITrainer): Promise<void> {
+    await Promise.all([
+      SubTrainerModel.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+        },
+        {
+          status: "active",
+        }
+      ),
+      User.updateMany(
+        {
+          isDeleted: false,
+          trainerId: trainer._id,
+          role: { $in: ["user", "subTrainer"] },
+        },
+        {
+          hasAccess: true,
+          accountStatus: "active",
+        }
+      ),
+    ]);
+  }
+
   async findWithCounts(filter: Partial<Record<keyof ITrainer, any>> = {}): Promise<ITrainer[]> {
-    const trainers = await this.find(filter);
+    const trainers = await this.find(this.withSystemTrainerExclusion(filter));
 
     return this.attachCountsToTrainers(trainers as ITrainer[]);
   }
 
   async findPaginatedWithCounts(params: PaginationParams): Promise<PaginationResult<ITrainer>> {
-    const paginated = await this.findPaginated(params);
+    const paginated = await this.findPaginated({
+      ...params,
+      query: this.withSystemTrainerExclusion((params.query ?? {}) as Record<string, any>),
+    });
     const results = await this.attachCountsToTrainers(paginated.results as ITrainer[]);
 
     return {
@@ -183,7 +258,7 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
 
     try {
       if (trainer.videoLibraryAccess) {
-        await this.exerciseLibraryAccessService.copyAvihuLibraryToTrainer(trainer._id.toString());
+        await this.exerciseLibraryAccessService.ensureAvihuLibraryToTrainer(trainer._id.toString());
       }
 
       const user = await this.userService.createUserWithWelcome(
@@ -230,6 +305,16 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     const trainer = (await this.findById(id)) as ITrainer;
     const updatedTrainer = await this.updateById(id, payload);
     const userUpdate = this.buildTrainerUserUpdate(payload);
+
+    if (this.shouldSeedLibraryOnUpdate(trainer, payload)) {
+      await this.exerciseLibraryAccessService.ensureAvihuLibraryToTrainer(trainer._id.toString());
+    }
+
+    if (this.shouldCascadeBlockOnUpdate(trainer, payload)) {
+      await this.blockTrainerNetwork(trainer);
+    } else if (this.shouldCascadeUnblockOnUpdate(trainer, payload)) {
+      await this.grantAccessToTrainerNetwork(trainer);
+    }
 
     if (Object.keys(userUpdate).length > 0) {
       const linkedUser = await this.findLinkedTrainerUser(trainer);

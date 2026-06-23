@@ -80,7 +80,6 @@ export class BaseRepository<T> {
 
   protected withScopedSoftDeleteFilter<Q extends Record<string, any>>(query?: Q): Q {
     const scopedQuery = this.applyScopeToQuery(query);
-    console.log("Applying soft delete filter to query. Before:", scopedQuery);
     const finalQuery = this.withSoftDeleteFilter(scopedQuery);
     console.log("Final query after applying soft delete filter:", finalQuery);
 
@@ -131,10 +130,9 @@ export class BaseRepository<T> {
 
   async create(doc: T): Promise<T> {
     const scopedDoc = this.applyScopeToCreate(doc);
-    console.log("Creating document with scope applied:", scopedDoc);
     const newDoc = await this.model.create(scopedDoc);
 
-    console.log("Created document:", newDoc);
+    console.log("Created document with scope:", newDoc);
     return newDoc;
   }
 

@@ -1,4 +1,5 @@
 import { IUser } from "../interfaces/IUser";
+import { isSystemLibraryOwnerId } from "../config/systemLibrary";
 import { StatusCode } from "../enums/StatusCode";
 import { ITrainer } from "../interfaces/ITrainer";
 import TrainerRepository from "../repositories/Trainer/TrainerRepository";
@@ -91,6 +92,17 @@ export default class UserService extends BaseService<IUser, UserRepository> {
   findOneUnscoped = async (filter: Partial<Record<keyof IUser, any>>): Promise<IUser | null> => {
     return (await this.globalUserRepository.findOne({ query: filter })) as any as IUser | null;
   };
+
+  async deleteById(id: string) {
+    if (isSystemLibraryOwnerId(id)) {
+      throw {
+        status: StatusCode.FORBIDDEN,
+        message: "Cannot delete system admin user.",
+      };
+    }
+
+    return await super.deleteById(id);
+  }
 
   deleteUser = async (id: string) => {
     try {

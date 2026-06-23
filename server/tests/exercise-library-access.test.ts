@@ -13,13 +13,15 @@ import {
   TRAINER_STATUSES,
   TRAINER_SUBSCRIPTION_PLANS,
 } from "../src/interfaces/ITrainer";
+
+const AVIHU_TRAINER_ID = new mongoose.Types.ObjectId().toString();
+process.env.AVIHU_TRAINER_ID = AVIHU_TRAINER_ID;
+
 import { exercisePresets } from "../src/models/exercisePresetModel";
 import { TrainerModel } from "../src/models/trainerModel";
 import ExerciseLibraryAccessService from "../src/services/ExerciseLibraryAccessService";
 import { ExercisePresetService } from "../src/services/exercisePresetService";
 import { runWithAuthContext } from "../src/utils/authContext";
-
-const AVIHU_TRAINER_ID = "12345";
 
 const createTrainer = async ({
   _id = new mongoose.Types.ObjectId(),
@@ -88,6 +90,32 @@ describe("Exercise library access", () => {
     expect(String(copies[0].sourceExerciseId)).toBe(String(avihuSystemExercise._id));
     expect(String(copies[0].sourceOwnerId)).toBe(AVIHU_TRAINER_ID);
     expect(copies[0].name).toBe("Avihu Bench Press");
+  });
+
+  test("ensureAvihuLibraryToTrainer skips reseeding when the trainer already has the full library", async () => {
+    const targetTrainer = await createTrainer({ videoLibraryAccess: true });
+    const service = new ExerciseLibraryAccessService();
+
+    await exercisePresets.create({
+      trainerId: AVIHU_TRAINER_ID,
+      name: "Avihu Deadlift",
+      linkToVideo: "https://youtube.com/watch?v=deadliftdemo11",
+      muscleGroup: "Back",
+      libraryScope: "system",
+    });
+
+    await service.ensureAvihuLibraryToTrainer(targetTrainer._id);
+
+    const firstCopies = await exercisePresets.find({ trainerId: targetTrainer._id }).lean();
+    expect(firstCopies).toHaveLength(1);
+
+    const bulkWriteSpy = jest.spyOn(exercisePresets, "bulkWrite");
+
+    await service.ensureAvihuLibraryToTrainer(targetTrainer._id);
+
+    const secondCopies = await exercisePresets.find({ trainerId: targetTrainer._id }).lean();
+    expect(secondCopies).toHaveLength(1);
+    expect(bulkWriteSpy).not.toHaveBeenCalled();
   });
 
   test("trainer-created exercise does not distribute and cannot self-mark as system", async () => {

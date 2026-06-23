@@ -18,4 +18,5 @@ export const API_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "*",
   "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  "Access-Control-Expose-Headers": "x-new-access-token",
 };

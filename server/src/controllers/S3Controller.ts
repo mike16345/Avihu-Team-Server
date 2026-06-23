@@ -1,7 +1,13 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { S3 } from "aws-sdk";
 import { StatusCode } from "../enums/StatusCode";
-import { extractBodyFromEvent, createResponse, createServerErrorResponse } from "../utils/utils";
+import { UserImageUrlService } from "../services/UserImageUrlService";
+import {
+  createResponse,
+  createServerErrorResponse,
+  createServerResponse,
+  extractBodyFromEvent,
+} from "../utils/utils";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
@@ -12,10 +18,24 @@ const s3 = new S3({
 });
 
 export class S3Controller {
+  private static userImageUrlService = new UserImageUrlService();
+
+  private static resolveStoredImageUrl(photoId?: string, imageUrl?: string) {
+    if (imageUrl) {
+      return imageUrl;
+    }
+
+    if (!photoId) {
+      return undefined;
+    }
+
+    return photoId.startsWith("images/") ? photoId.slice("images/".length) : photoId;
+  }
+
   static handleDeletePhoto = async (
     event: APIGatewayProxyEvent
   ): Promise<APIGatewayProxyResult> => {
-    const { photoId } = extractBodyFromEvent(event);
+    const { photoId, userId, imageUrl } = extractBodyFromEvent(event);
 
     if (!photoId) {
       return createResponse(StatusCode.BAD_REQUEST, "Missing required query parameter: photoId");
@@ -27,7 +47,21 @@ export class S3Controller {
     };
 
     try {
-      const res = await s3.deleteObject(paramsDelete).promise();
+      await s3.deleteObject(paramsDelete).promise();
+      const storedImageUrl = this.resolveStoredImageUrl(photoId, imageUrl);
+
+      if (userId && storedImageUrl) {
+        const updatedImageUrls = await this.userImageUrlService.removeImageUrl(
+          userId,
+          storedImageUrl
+        );
+
+        return createServerResponse(
+          StatusCode.OK,
+          `Photo with ID '${photoId}' deleted successfully.`,
+          updatedImageUrls
+        );
+      }
 
       return createResponse(StatusCode.OK, `Photo with ID '${photoId}' deleted successfully.`);
     } catch (error: any) {

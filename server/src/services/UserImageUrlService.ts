@@ -12,11 +12,50 @@ export class UserImageUrlService extends BaseService<IUserImageUrls, UserImageUr
   async addImageUrl(userId: string, imageUrl: string) {
     try {
       const urls = await this.repository.upsertImageUrl({ userId }, imageUrl);
+      this.cache.invalidateAll();
 
       return urls?.imageUrls || [];
     } catch (e: any) {
       throw e;
     }
+  }
+
+  async removeImageUrl(userId: string, imageUrl: string) {
+    const urls = (await this.repository.removeImageUrl(userId, imageUrl)) as IUserImageUrls | null;
+    this.cache.invalidateAll();
+
+    return urls?.imageUrls || [];
+  }
+
+  async replaceImageUrl(userId: string, oldImageUrl: string, newImageUrl: string) {
+    const urls = (await this.repository.replaceImageUrl(
+      userId,
+      oldImageUrl,
+      newImageUrl
+    )) as IUserImageUrls | null;
+
+    if (!urls) {
+      throw {
+        status: 404,
+        message: "Image URL not found for replacement.",
+      };
+    }
+
+    this.cache.invalidateAll();
+
+    return urls.imageUrls || [];
+  }
+
+  async swapImageUrls(userId: string, oldImageUrl: string, newImageUrl: string) {
+    const urls = (await this.repository.swapImageUrls(
+      userId,
+      oldImageUrl,
+      newImageUrl
+    )) as IUserImageUrls;
+
+    this.cache.invalidateAll();
+
+    return urls.imageUrls || [];
   }
 
   async findOne(filter: Partial<Record<keyof IUserImageUrls, any>>): Promise<any> {

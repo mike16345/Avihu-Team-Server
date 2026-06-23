@@ -4,7 +4,8 @@ import SessionService from "./sessionService";
 import { ISession } from "../models/sessionModel";
 import { IUser } from "../interfaces/IUser";
 import { StatusCode } from "../enums/StatusCode";
-import { allowedAdminAppRoles, requireAdmin, requireRoles } from "../guards/AdminAccessGuard";
+import { allowedAdminAppRoles, requireRoles } from "../guards/AdminAccessGuard";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
 
 class AuthService {
   private userService = new UserService();
@@ -25,14 +26,43 @@ class AuthService {
       `passing user service, found user: ${user ? user._id : "no user found"} with email: ${email}`
     );
 
-    if (!user) throw { message: "משתמש לא קיים במערכת", statusCode: StatusCode.UNAUTHORIZED };
+    if (!user) {
+      throw {
+        message: "משתמש לא קיים במערכת",
+        statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_CREDENTIALS,
+      };
+    }
+
     if (isAdminApp) {
       requireRoles(...allowedAdminAppRoles, user.role);
     }
-    if (!user.hasAccess) throw { message: "אין למשתמש גישה", statusCode: StatusCode.FORBIDDEN };
+
+    if (user.accountStatus === "disabled") {
+      throw {
+        message: "אין למשתמש גישה",
+        statusCode: StatusCode.FORBIDDEN,
+        code: AUTH_ERROR_CODES.USER_BLOCKED,
+      };
+    }
+
+    if (!user.hasAccess) {
+      throw {
+        message: "אין למשתמש גישה",
+        statusCode: StatusCode.FORBIDDEN,
+        code: AUTH_ERROR_CODES.ACCESS_REVOKED,
+      };
+    }
 
     const isMatch = await this.passwordsService.comparePasswords(user._id.toString(), password);
-    if (!isMatch) throw { message: "פרטי גישה שגויים", statusCode: StatusCode.UNAUTHORIZED };
+    if (!isMatch) {
+      throw {
+        message: "פרטי גישה שגויים",
+        statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_CREDENTIALS,
+      };
+    }
+
     const now = new Date();
 
     return this.sessionService.create({
@@ -52,7 +82,11 @@ class AuthService {
     }
 
     if (!user.hasAccess) {
-      throw { message: "אין גישה לכתובת המייל", statusCode: StatusCode.UNAUTHORIZED };
+      throw {
+        message: "אין גישה לכתובת המייל",
+        statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.ACCESS_REVOKED,
+      };
     }
 
     await this.passwordsService.updatePassword(user._id.toString(), password);

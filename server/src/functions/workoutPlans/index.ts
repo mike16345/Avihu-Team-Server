@@ -18,7 +18,7 @@ const workoutPlanApiRoutes: ApiRouteHandlers = {
     access: "authenticated",
   },
   [`GET ${BASE_PATH}/user`]: {
-    handler: workoutPlanController.getOne,
+    handler: workoutPlanController.getOneByUserId,
     access: "authenticated",
   },
   [`PUT ${BASE_PATH}/one`]: {
@@ -38,6 +38,20 @@ const workoutPlanApiRoutes: ApiRouteHandlers = {
   },
   [`DELETE ${BASE_PATH}/one`]: {
     handler: workoutPlanController.deleteById,
+    access: "subtrainer",
+  },
+  // Plan history / temporary-swap endpoints. All preserve the
+  // one-active-doc-per-user invariant — mobile read path unchanged.
+  [`GET ${BASE_PATH}/history`]: {
+    handler: workoutPlanController.getHistory,
+    access: "subtrainer",
+  },
+  [`POST ${BASE_PATH}/swap`]: {
+    handler: workoutPlanController.swapWorkoutPlan,
+    access: "subtrainer",
+  },
+  [`POST ${BASE_PATH}/restore`]: {
+    handler: workoutPlanController.restoreWorkoutPlan,
     access: "subtrainer",
   },
 };

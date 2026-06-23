@@ -27,6 +27,41 @@ export const buildExerciseCopyForTrainer = (
 });
 
 export default class ExerciseLibraryAccessService {
+  async ensureAvihuLibraryToTrainer(trainerId: string | mongoose.Types.ObjectId) {
+    if (isSystemLibraryOwner(trainerId)) {
+      return null;
+    }
+
+    const targetTrainerId = toObjectId(trainerId);
+    const sourceExercises = await exercisePresets
+      .find({
+        trainerId: getSystemLibraryOwnerObjectId(),
+        libraryScope: "system",
+      })
+      .lean<ExerciseSourceDocument[]>();
+
+    if (sourceExercises.length === 0) {
+      return null;
+    }
+
+    const sourceExerciseIds = sourceExercises.map(({ _id }) => _id);
+    const existingCopiedSourceExerciseIds = await exercisePresets.distinct("sourceExerciseId", {
+      trainerId: targetTrainerId,
+      sourceOwnerId: getSystemLibraryOwnerObjectId(),
+      sourceExerciseId: { $in: sourceExerciseIds },
+    });
+
+    if (existingCopiedSourceExerciseIds.length >= sourceExerciseIds.length) {
+      return null;
+    }
+
+    const operations = sourceExercises.map((sourceExercise) =>
+      this.buildCopyUpsertOperation(sourceExercise, targetTrainerId)
+    );
+
+    return exercisePresets.bulkWrite(operations, { ordered: false });
+  }
+
   async copyAvihuLibraryToTrainer(trainerId: string | mongoose.Types.ObjectId) {
     if (isSystemLibraryOwner(trainerId)) {
       return null;

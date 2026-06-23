@@ -3,6 +3,8 @@ import { IDetailedWorkoutPlan, IFullWorkoutPlan } from "../interfaces/IWorkoutPl
 import {
   cardioPlanSchema,
   cardioPlanValidationSchema,
+  workoutMetaFields,
+  workoutMetaValidationFields,
   workoutPlanSchema,
   WorkoutPlanSchemaValidation,
 } from "./workoutPlanModel";
@@ -42,6 +44,8 @@ export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset & IModel>({
     type: cardioPlanSchema,
     required: true,
   },
+  // Trainer-tagged meta (frequency / level / goal / equipment / focus / notes)
+  ...workoutMetaFields,
 });
 
 export const WorkoutPlanPreset = model("workoutPlanPresets", workoutPlanPresetSchema);
@@ -51,4 +55,5 @@ export const WorkoutPlanPresetSchemaValidation = Joi.object({
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
   cardio: cardioPlanValidationSchema.required(),
+  ...workoutMetaValidationFields,
 });

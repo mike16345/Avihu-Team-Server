@@ -7,12 +7,6 @@ import {
   PAGINATION_LIMIT_FALLBACK,
   PAGINATION_PAGE_FALLBACK,
 } from "../constants/Constants";
-import { DietPlanService } from "../services/dietPlanService";
-import { RecordedSetsService } from "../services/recordedSetsService";
-import { UserImageUrlService } from "../services/UserImageUrlService";
-import PasswordsService from "../services/PasswordsService";
-import { WorkoutPlanService } from "../services/workoutPlanService";
-import WeighInService from "../services/weighInService";
 
 export const removeNestedIds: any = (doc: any) => {
   if (Array.isArray(doc)) {
@@ -77,31 +71,44 @@ function isObjectId(val: any): val is ObjectId {
   );
 }
 
-export const createResponse = (statusCode: StatusCode, message?: string) => {
+export const createResponse = (statusCode: StatusCode, message?: string, code?: string) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
+      ...(code ? { code } : {}),
     }),
   };
 };
 
-export const createServerResponse = (statusCode: StatusCode, message?: string, data?: any) => {
+export const createServerResponse = (
+  statusCode: StatusCode,
+  message?: string,
+  data?: any,
+  code?: string
+) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
       data,
+      ...(code ? { code } : {}),
     }),
   };
 };
 
-export const createResponseWithData = (statusCode: StatusCode, data: any, message?: string) => {
+export const createResponseWithData = (
+  statusCode: StatusCode,
+  data: any,
+  message?: string,
+  code?: string
+) => {
   return {
     statusCode: statusCode,
     body: JSON.stringify({
       message,
       data,
+      ...(code ? { code } : {}),
     }),
   };
 };
@@ -205,12 +212,19 @@ export const returnStringVal = (arr: any[]) => {
 };
 
 export const deleteUserDataFromAllCollections = async (userId: string) => {
-  await new DietPlanService().delete({ userId }).catch((err) => console.log(err));
-  await new RecordedSetsService().deleteMany({ userId }).catch((err) => console.log(err));
-  await new WeighInService().delete({ userId }).catch((err) => console.log(err));
-  await new UserImageUrlService().delete({ userId }).catch((err) => console.log(err));
-  await new PasswordsService().deletePasswordByUserId(userId).catch((err) => console.log(err));
-  await new WorkoutPlanService().deleteMany({ userId }).catch((err) => console.log(err));
+  const { DietPlanService } = require("../services/dietPlanService");
+  const { RecordedSetsService } = require("../services/recordedSetsService");
+  const { UserImageUrlService } = require("../services/UserImageUrlService");
+  const PasswordsService = require("../services/PasswordsService").default;
+  const { WorkoutPlanService } = require("../services/workoutPlanService");
+  const WeighInService = require("../services/weighInService").default;
+
+  await new DietPlanService().delete({ userId }).catch((err: any) => console.log(err));
+  await new RecordedSetsService().deleteMany({ userId }).catch((err: any) => console.log(err));
+  await new WeighInService().delete({ userId }).catch((err: any) => console.log(err));
+  await new UserImageUrlService().delete({ userId }).catch((err: any) => console.log(err));
+  await new PasswordsService().deletePasswordByUserId(userId).catch((err: any) => console.log(err));
+  await new WorkoutPlanService().deleteMany({ userId }).catch((err: any) => console.log(err));
 };
 
 export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {
@@ -262,13 +276,21 @@ export const extractBearerToken = (headers: Record<string, any> = {}): string =>
 
   if (!authHeader || typeof authHeader !== "string") {
     console.log("Authorization header missing or not a string:", authHeader);
-    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+    throw {
+      message: "Unauthorized",
+      statusCode: StatusCode.UNAUTHORIZED,
+      code: "INVALID_TOKEN",
+    };
   }
 
   const parts = authHeader.trim().split(/\s+/);
   if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
     console.log("Invalid authorization header format:", authHeader);
-    throw { message: "Unauthorized", statusCode: StatusCode.UNAUTHORIZED };
+    throw {
+      message: "Unauthorized",
+      statusCode: StatusCode.UNAUTHORIZED,
+      code: "INVALID_TOKEN",
+    };
   }
 
   return parts[1];

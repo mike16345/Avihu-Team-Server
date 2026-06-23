@@ -76,6 +76,8 @@ export const runMiddlewares = async (
   return { isValid: true };
 };
 
-export const isHttpError = (error: unknown): error is { message: string; statusCode: number } => {
+export const isHttpError = (
+  error: unknown
+): error is { message: string; statusCode: number; code?: string } => {
   return typeof error === "object" && error !== null && "message" in error && "statusCode" in error;
 };

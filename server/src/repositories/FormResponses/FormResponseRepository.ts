@@ -108,4 +108,27 @@ export class FormResponseRepository extends BaseRepository<IFormResponse> {
 
     return newDoc;
   };
+
+  hasSubmittedFormTypeBetween = async ({
+    userId,
+    formType,
+    submittedAt,
+  }: {
+    userId: string;
+    formType: string;
+    submittedAt: {
+      $gte: Date;
+      $lt: Date;
+    };
+  }): Promise<boolean> => {
+    const query = this.applyScopeToQuery({
+      userId,
+      formType,
+      submittedAt,
+    });
+
+    const response = await this.model.exists(query);
+
+    return response !== null;
+  };
 }
