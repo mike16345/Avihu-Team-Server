@@ -13,6 +13,40 @@ export class BlogRepository extends BaseRepository<IBlog> {
     super(BlogModel, { type: "trainer", field: "trainerId" });
   }
 
+  private escapeRegex(input: string) {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  private normalizeGroupQuery(query: Record<string, any>) {
+    const group = query.group;
+
+    if (typeof group === "string" && isValidObjectId(group)) {
+      query.group = mongoose.Types.ObjectId.createFromHexString(group);
+      return;
+    }
+
+    if (group && typeof group === "object" && Array.isArray(group.$in)) {
+      query.group = {
+        $in: group.$in.map((value: unknown) =>
+          typeof value === "string" && isValidObjectId(value)
+            ? mongoose.Types.ObjectId.createFromHexString(value)
+            : value
+        ),
+      };
+    }
+  }
+
+  private applySearchQuery(query: Record<string, any>, search: unknown) {
+    if (typeof search !== "string" || !search.trim()) return;
+
+    const regex = { $regex: this.escapeRegex(search.trim()), $options: "i" };
+    const searchQuery = {
+      $or: [{ title: regex }, { subtitle: regex }, { content: regex }],
+    };
+
+    query.$and = [...(Array.isArray(query.$and) ? query.$and : []), searchQuery];
+  }
+
   private async populateBlogs(queryOrDocs: any) {
     const options = { path: "group", model: LessonGroup };
 
@@ -69,18 +103,16 @@ export class BlogRepository extends BaseRepository<IBlog> {
   getPaginatedBlogs = async (
     paginationParams: PaginationParams
   ): Promise<PaginationResult<IBlog>> => {
-    const query = this.withScopedSoftDeleteFilter(paginationParams.query ?? {});
+    const { search, ...rawQuery } = paginationParams.query ?? {};
+    const query = this.withScopedSoftDeleteFilter(rawQuery);
 
     if (query.planType) {
       const planType = query.planType;
       query.planType = { $in: [planType, "כללי"] };
-      console.log("NEW PLAN TYPE QUERY!", query.planType);
     }
 
-    if (query.group && isValidObjectId(query.group)) {
-      query.group = mongoose.Types.ObjectId.createFromHexString(query.group);
-      console.log("TURNED GROUP INTO OBJECTID", query.group);
-    }
+    this.normalizeGroupQuery(query);
+    this.applySearchQuery(query, search);
 
     const paginated = await this.getPaginated({
       ...paginationParams,
