@@ -1,6 +1,8 @@
 import { IFormResponse } from "../interfaces/IFormResponse";
+import { MonthlyFormStatusResponse } from "../interfaces/IMonthlyFormStatus";
 import { FormPresetRepository } from "../repositories/Presets/FormPresetRepository";
 import { FormResponseRepository } from "../repositories/FormResponses/FormResponseRepository";
+import { getOccurrenceKeyForForm } from "../utils/formOccurrences";
 import { BaseService } from "./baseService";
 
 const RESOURCE_NAME = "form-responses";
@@ -21,7 +23,7 @@ export class FormResponseService extends BaseService<IFormResponse, FormResponse
       return payload;
     }
 
-    const form = await this.formPresetRepository.findById(String(payload.formId));
+    const form = (await this.formPresetRepository.findById(String(payload.formId))) as any;
 
     return {
       ...payload,
@@ -34,7 +36,7 @@ export class FormResponseService extends BaseService<IFormResponse, FormResponse
     const hydrated = await this.hydrateFormMetadata(doc);
     const submittedAt = hydrated.submittedAt || new Date();
 
-    return super.create({ ...hydrated, submittedAt });
+    return super.create({ ...hydrated, submittedAt } as IFormResponse);
   }
 
   async updateById(id: string, update: Partial<IFormResponse>) {
@@ -52,5 +54,61 @@ export class FormResponseService extends BaseService<IFormResponse, FormResponse
       query: filter || {},
       queryOptions: { sort: { isChecked: 1, submittedAt: -1 } },
     });
+  }
+
+  async getMonthlyFormStatus(
+    userId?: string,
+    now: Date = new Date()
+  ): Promise<MonthlyFormStatusResponse> {
+    if (!userId) {
+      return {
+        shouldShowMonthlyForm: false,
+        reason: "MISSING_USER",
+      };
+    }
+
+    const startOfMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const startOfNextMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+    const hasSubmittedThisMonth = await this.repository.hasSubmittedFormTypeBetween({
+      userId,
+      formType: "monthly",
+      submittedAt: {
+        $gte: startOfMonthUtc,
+        $lt: startOfNextMonthUtc,
+      },
+    });
+
+    if (hasSubmittedThisMonth) {
+      return {
+        shouldShowMonthlyForm: false,
+        reason: "MONTHLY_FORM_ALREADY_SUBMITTED",
+      };
+    }
+
+    const latestMonthlyPreset = await this.formPresetRepository.findLatestByType("monthly");
+
+    if (!latestMonthlyPreset) {
+      return {
+        shouldShowMonthlyForm: false,
+        reason: "NO_MONTHLY_FORM_PRESET",
+      };
+    }
+
+    const occurrenceKey = getOccurrenceKeyForForm(latestMonthlyPreset, now);
+
+    if (!occurrenceKey) {
+      return {
+        shouldShowMonthlyForm: false,
+        reason: "NO_MONTHLY_FORM_PRESET",
+      };
+    }
+
+    return {
+      shouldShowMonthlyForm: true,
+      presetId: String((latestMonthlyPreset as any)._id),
+      occurrenceKey,
+      reason: "MONTHLY_FORM_NOT_SUBMITTED",
+    };
   }
 }

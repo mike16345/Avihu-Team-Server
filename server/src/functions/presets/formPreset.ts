@@ -17,11 +17,15 @@ export const formPresetApiRoutes: ApiRouteHandlers = {
   },
   [`GET ${FORM_PRESET_BASE_PATH}/one`]: {
     handler: formPresetController.getById,
-    access: "public",
+    access: "authenticated",
   },
   [`GET ${FORM_PRESET_BASE_PATH}/form/one`]: {
     handler: formPresetController.getOne,
-    access: "public",
+    access: "authenticated",
+  },
+  [`GET ${FORM_PRESET_BASE_PATH}/monthly-status`]: {
+    handler: formResponseController.getMonthlyStatus,
+    access: "authenticated",
   },
   [`POST ${FORM_PRESET_BASE_PATH}`]: {
     handler: formPresetController.create,

@@ -4,6 +4,7 @@ import { FormResponseService } from "../services/FormResponseService";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { extractBodyFromEvent } from "../utils/utils";
 import { StatusCode } from "../enums/StatusCode";
+import { getAuthContext } from "../utils/authContext";
 
 export default class FormResponseController extends BaseController<
   IFormResponse,
@@ -47,6 +48,22 @@ export default class FormResponseController extends BaseController<
 
       const data = await this.service.getUserResponse(userId);
       const response = this.successResponse({ data });
+
+      await this.afterAction(response);
+
+      return response;
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
+
+  getMonthlyStatus = async (event: APIGatewayProxyEvent) => {
+    await this.beforeAction(event);
+
+    try {
+      const authContext = getAuthContext();
+      const data = await this.service.getMonthlyFormStatus(authContext?.userId);
+      const response = this.successResponse({ status: StatusCode.OK, data });
 
       await this.afterAction(response);
 

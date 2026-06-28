@@ -1,6 +1,7 @@
 import JwtAuthService from "../src/services/JwtAuthService";
 import jwt from "jsonwebtoken";
 import { StatusCode } from "../src/enums/StatusCode";
+import { AUTH_ERROR_CODES } from "../src/constants/authErrorCodes";
 
 describe("JwtAuthService", () => {
   beforeEach(() => {
@@ -24,6 +25,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -41,6 +43,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -85,6 +88,17 @@ describe("JwtAuthService", () => {
     expect((claims.exp ?? 0) - nowInSeconds).toBeLessThanOrEqual(60 * 60 * 24 * 7);
   });
 
+  test("shouldRenewAccessToken returns true only within the configured threshold", () => {
+    process.env.REFRESH_RENEWAL_THRESHOLD_DAYS = "2";
+    const service = new JwtAuthService();
+
+    expect(service.shouldRenewAccessToken(new Date(Date.now() + 1000 * 60 * 60 * 24))).toBe(true);
+    expect(service.shouldRenewAccessToken(new Date(Date.now() + 1000 * 60 * 60 * 24 * 3))).toBe(
+      false
+    );
+    expect(service.shouldRenewAccessToken(new Date(Date.now() - 1000))).toBe(false);
+  });
+
   test("invalid expiration config", () => {
     process.env.JWT_ACCESS_EXPIRES_IN = "abc";
     const service = new JwtAuthService();
@@ -108,7 +122,7 @@ describe("JwtAuthService", () => {
         userId: "u1",
         role: "admin",
         sessionId: "s1",
-        exp: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 8,
+        exp: Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 31,
       },
       process.env.JWT_ACCESS_SECRET!,
       { algorithm: "HS256" }
@@ -118,6 +132,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.TOKEN_EXPIRED,
       })
     );
   });
@@ -152,6 +167,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -167,6 +183,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -186,6 +203,7 @@ describe("JwtAuthService", () => {
       expect.objectContaining({
         message: "Unauthorized",
         statusCode: StatusCode.UNAUTHORIZED,
+        code: AUTH_ERROR_CODES.INVALID_TOKEN,
       })
     );
   });
@@ -205,6 +223,7 @@ describe("JwtAuthService", () => {
     service.sessionRepository = { findRefreshSessionByHash: jest.fn().mockResolvedValue(null) };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_EXPIRED,
     });
   });
 
@@ -218,6 +237,7 @@ describe("JwtAuthService", () => {
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_REVOKED,
     });
   });
 
@@ -231,6 +251,7 @@ describe("JwtAuthService", () => {
     };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.SESSION_EXPIRED,
     });
   });
 
@@ -245,6 +266,7 @@ describe("JwtAuthService", () => {
     service.userRepository = { findById: jest.fn().mockResolvedValue({ hasAccess: false }) };
     await expect(service.validateRefreshToken("x")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.ACCESS_REVOKED,
     });
   });
 
@@ -259,5 +281,9 @@ describe("JwtAuthService", () => {
     service.sessionRepository = { findRefreshSessionByHash: jest.fn().mockResolvedValue(session) };
     service.userRepository = { findById: jest.fn().mockResolvedValue(user) };
     await expect(service.validateRefreshToken("x")).resolves.toMatchObject({ session, user });
+  });
+
+  afterEach(() => {
+    delete process.env.REFRESH_RENEWAL_THRESHOLD_DAYS;
   });
 });

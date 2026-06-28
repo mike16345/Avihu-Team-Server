@@ -2,6 +2,7 @@ import JwtAuthService from "../src/services/JwtAuthService";
 import { enforceRequestUserAccess } from "../src/guards/AdminAccessGuard";
 import { User as UserModel } from "../src/models/userModel";
 import { StatusCode } from "../src/enums/StatusCode";
+import { AUTH_ERROR_CODES } from "../src/constants/authErrorCodes";
 
 describe("enforceRequestUserAccess", () => {
   afterEach(() => {
@@ -37,6 +38,7 @@ describe("enforceRequestUserAccess", () => {
 
     await expect(enforceRequestUserAccess(event, "authenticated")).rejects.toMatchObject({
       statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.INVALID_TOKEN,
     });
   });
 
@@ -58,6 +60,7 @@ describe("enforceRequestUserAccess", () => {
       )
     ).rejects.toMatchObject({
       statusCode: StatusCode.FORBIDDEN,
+      code: AUTH_ERROR_CODES.ACCESS_REVOKED,
     });
   });
 

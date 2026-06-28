@@ -7,6 +7,7 @@ import { StatusCode } from "../enums/StatusCode";
 import { ONE_MINUTE_IN_MILLISECONDS } from "../constants/Constants";
 import { IPassword } from "../models/passwordModel";
 import BaseController from "./BaseController";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
 
 class PasswordsController extends BaseController<IPassword, PasswordsService> {
   private userService: UserService;
@@ -57,11 +58,19 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
     const session = await this.sessionService.getSessionById(sessionId);
 
     if (!session) {
-      return this.errorResponse("נא לבקש קוד חדש", StatusCode.UNAUTHORIZED);
+      return this.errorResponse(
+        "נא לבקש קוד חדש",
+        StatusCode.UNAUTHORIZED,
+        AUTH_ERROR_CODES.MISSING_OTP
+      );
     }
 
     if (isSessionExpired(session, ONE_MINUTE_IN_MILLISECONDS * 10)) {
-      return this.errorResponse("קוד לא פעיל!", StatusCode.UNAUTHORIZED);
+      return this.errorResponse(
+        "קוד לא פעיל!",
+        StatusCode.UNAUTHORIZED,
+        AUTH_ERROR_CODES.OTP_EXPIRED
+      );
     }
 
     try {
@@ -88,10 +97,17 @@ class PasswordsController extends BaseController<IPassword, PasswordsService> {
     try {
       const match = await this.service.comparePasswords(email, password);
 
+      if (!match) {
+        return this.errorResponse(
+          { message: "סיסמאות אינן תואמות!", code: AUTH_ERROR_CODES.INVALID_CREDENTIALS },
+          StatusCode.UNAUTHORIZED
+        );
+      }
+
       return this.successResponse({
-        status: match ? StatusCode.OK : StatusCode.UNAUTHORIZED,
+        status: StatusCode.OK,
         data: match,
-        message: match ? "סיסמאות תואמות!" : "סיסמאות אינן תואמות!",
+        message: "סיסמאות תואמות!",
       });
     } catch (error: any) {
       return this.errorResponse(error);

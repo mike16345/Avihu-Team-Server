@@ -25,3 +25,9 @@ export const userImageSchemaValidator = Joi.object({
   userId: Joi.string().required(),
   imageUrl: Joi.string().min(1).required(),
 });
+
+export const userImageReplaceSchemaValidator = Joi.object({
+  userId: Joi.string().required(),
+  oldImageUrl: Joi.string().min(1).required(),
+  newImageUrl: Joi.string().min(1).required(),
+});

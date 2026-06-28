@@ -40,6 +40,18 @@ export class MuscleMeasurementsRepository extends BaseRepository<IUserMuscleMeas
     return measurmentDoc;
   }
 
+  removeMeasurementRowById = async (id: string) => {
+    const result = await this.model.findOneAndUpdate(
+      { "measurements._id": id },
+      {
+        $pull: { measurements: { _id: id } },
+      },
+      { new: true }
+    );
+
+    return result;
+  };
+
   removeMeasurement = async (userId: string, date: string, muscle: string) => {
     const result = await this.model.findOneAndUpdate(
       { userId, "measurements.date": date },

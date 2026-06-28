@@ -20,6 +20,11 @@ const muscleMeasurementsApiRoutes: ApiRouteHandlers = {
     handler: muscleMeasurementController.removeMeasurement,
     access: "authenticated",
   },
+
+  [`DELETE ${BASE_PATH}/one`]: {
+    handler: muscleMeasurementController.removeMeasurementRowById,
+    access: "authenticated",
+  },
 };
 
 export const handler = async (

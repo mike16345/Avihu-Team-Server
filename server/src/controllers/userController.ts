@@ -8,11 +8,11 @@ import {
   getHeaderValue,
 } from "../utils/utils";
 import SessionService from "../services/sessionService";
-import { ISession } from "../models/sessionModel";
 import { IUser } from "../interfaces/IUser";
 import BaseController from "./BaseController";
 import AuthService from "../services/AuthService";
 import JwtAuthService from "../services/JwtAuthService";
+import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
 
 export class UserController extends BaseController<IUser, UserService> {
   private authService: AuthService;
@@ -28,11 +28,17 @@ export class UserController extends BaseController<IUser, UserService> {
 
   private validateUserAccess(user: IUser | null): APIGatewayProxyResult | null {
     if (!user) {
-      return this.errorResponse(`משתמש לא נמצא!`, StatusCode.NOT_FOUND);
+      return this.errorResponse("משתמש לא נמצא!", StatusCode.NOT_FOUND);
     }
+
     if (!user.hasAccess) {
-      return this.errorResponse(`אין גישה לכתובת המייל`, StatusCode.UNAUTHORIZED);
+      return this.errorResponse(
+        "אין גישה לכתובת המייל",
+        StatusCode.UNAUTHORIZED,
+        AUTH_ERROR_CODES.ACCESS_REVOKED
+      );
     }
+
     return null;
   }
 
@@ -105,7 +111,7 @@ export class UserController extends BaseController<IUser, UserService> {
       return this.successResponse({
         status: StatusCode.OK,
         data: user,
-        message: "פעולה בוצעה בהצלחה!",
+        message: "הפעולה בוצעה בהצלחה!",
       });
     } catch (err: any) {
       return this.errorResponse(err);
@@ -130,7 +136,7 @@ export class UserController extends BaseController<IUser, UserService> {
         message: "סיסמה נשמרה במערכת!",
       });
     } catch (err: any) {
-      return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
+      return this.errorResponse(err, err?.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
 
@@ -171,7 +177,7 @@ export class UserController extends BaseController<IUser, UserService> {
         message: "התחברות בוצעה בהצלחה!",
       });
     } catch (err: any) {
-      return this.errorResponse(err.message, err.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
+      return this.errorResponse(err, err?.statusCode || StatusCode.INTERNAL_SERVER_ERROR);
     }
   };
 
@@ -195,7 +201,7 @@ export class UserController extends BaseController<IUser, UserService> {
         data: { accessToken, refreshToken: nextRefreshToken, user: this.toSafeUser(user) },
       });
     } catch (err: any) {
-      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+      return this.errorResponse(err, err?.statusCode || StatusCode.UNAUTHORIZED);
     }
   };
 
@@ -209,7 +215,7 @@ export class UserController extends BaseController<IUser, UserService> {
 
       return this.successResponse({ status: StatusCode.OK, message: "Logged out" });
     } catch (err: any) {
-      return this.errorResponse(err.message, err.statusCode || StatusCode.UNAUTHORIZED);
+      return this.errorResponse(err, err?.statusCode || StatusCode.UNAUTHORIZED);
     }
   };
 
@@ -219,16 +225,43 @@ export class UserController extends BaseController<IUser, UserService> {
       const claims = this.jwtAuthService.verifyAccessToken(token);
       const userId = claims.sub || claims.userId || claims._id;
 
-      if (!userId) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+      if (!userId) {
+        return this.errorResponse(
+          "Unauthorized",
+          StatusCode.UNAUTHORIZED,
+          AUTH_ERROR_CODES.INVALID_TOKEN
+        );
+      }
 
       const user = await this.service.findById(userId);
 
-      if (!user) return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
-      if (!user.hasAccess) return this.errorResponse("Unauthorized", StatusCode.FORBIDDEN);
+      if (!user) {
+        return this.errorResponse(
+          "Unauthorized",
+          StatusCode.UNAUTHORIZED,
+          AUTH_ERROR_CODES.USER_NOT_FOUND
+        );
+      }
+
+      if (user.accountStatus === "disabled") {
+        return this.errorResponse(
+          "Unauthorized",
+          StatusCode.FORBIDDEN,
+          AUTH_ERROR_CODES.USER_BLOCKED
+        );
+      }
+
+      if (!user.hasAccess) {
+        return this.errorResponse(
+          "Unauthorized",
+          StatusCode.FORBIDDEN,
+          AUTH_ERROR_CODES.ACCESS_REVOKED
+        );
+      }
 
       return this.successResponse({ status: StatusCode.OK, data: this.toSafeUser(user) });
-    } catch (err) {
-      return this.errorResponse("Unauthorized", StatusCode.UNAUTHORIZED);
+    } catch (err: any) {
+      return this.errorResponse(err, err?.statusCode || StatusCode.UNAUTHORIZED);
     }
   };
 

@@ -61,7 +61,6 @@ export default class SessionService extends BaseService<ISession, SessionReposit
         session = await this.repository.updateById(session._id.toString(), updateOptions);
       }
       this.cache.set(sessionId, session);
-      console.log("returning session", session);
 
       return session;
     } catch (err) {
