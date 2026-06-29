@@ -218,6 +218,7 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   const PasswordsService = require("../services/PasswordsService").default;
   const { WorkoutPlanService } = require("../services/workoutPlanService");
   const WeighInService = require("../services/weighInService").default;
+  const { StepsProgressService } = require("../services/stepsProgressService");
 
   await new DietPlanService().delete({ userId }).catch((err: any) => console.log(err));
   await new RecordedSetsService().deleteMany({ userId }).catch((err: any) => console.log(err));
@@ -225,6 +226,7 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   await new UserImageUrlService().delete({ userId }).catch((err: any) => console.log(err));
   await new PasswordsService().deletePasswordByUserId(userId).catch((err: any) => console.log(err));
   await new WorkoutPlanService().deleteMany({ userId }).catch((err: any) => console.log(err));
+  await new StepsProgressService().deleteMany({ userId }).catch((err: any) => console.log(err));
 };
 
 export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {

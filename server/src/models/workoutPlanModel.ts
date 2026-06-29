@@ -110,10 +110,26 @@ export const complexCardioSchema = new Schema({
   tips: { type: String },
 });
 
-// Cardio Plan Schema (Supports Simple or Complex)
+// Steps Cardio Schema
+export const stepsCardioSchema = new Schema({
+  mode: { type: String, enum: ["uniform", "custom"], required: true },
+  daily: { type: Number, required: true, min: 1 },
+  perDay: {
+    type: [Number],
+    validate: {
+      validator: function (value?: number[]) {
+        return value === undefined || value.length === 7;
+      },
+      message: "Steps per-day targets must include exactly 7 values",
+    },
+  },
+  tips: { type: String },
+});
+
+// Cardio Plan Schema (Supports Simple, Complex, or Steps)
 export const cardioPlanSchema = new Schema({
-  type: { type: String, enum: ["simple", "complex"], required: true },
-  plan: { type: Schema.Types.Mixed, required: true }, // Either Simple or Complex
+  type: { type: String, enum: ["simple", "complex", "steps"], required: true },
+  plan: { type: Schema.Types.Mixed, required: true },
 });
 
 /**
@@ -255,12 +271,24 @@ export const complexCardioValidationSchema = Joi.object({
   tips: Joi.string().allow(""),
 });
 
+export const stepsCardioValidationSchema = Joi.object({
+  mode: Joi.string().valid("uniform", "custom").required(),
+  daily: Joi.number().integer().min(1).required(),
+  perDay: Joi.when("mode", {
+    is: "custom",
+    then: Joi.array().items(Joi.number().integer().min(1)).length(7).required(),
+    otherwise: Joi.array().items(Joi.number().integer().min(1)).length(7).optional(),
+  }),
+  tips: Joi.string().allow(""),
+});
+
 export const cardioPlanValidationSchema = Joi.object({
-  type: Joi.string().valid("simple", "complex").required(),
+  type: Joi.string().valid("simple", "complex", "steps").required(),
   plan: Joi.alternatives().conditional("type", {
     switch: [
       { is: "simple", then: simpleCardioValidationSchema },
       { is: "complex", then: complexCardioValidationSchema },
+      { is: "steps", then: stepsCardioValidationSchema },
     ],
     otherwise: Joi.forbidden(),
   }),
