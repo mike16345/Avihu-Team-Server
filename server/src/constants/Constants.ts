@@ -6,8 +6,8 @@ export const ONE_WEEK_IN_SECONDS = 7 * 24 * 60 * 60; // 7 days in seconds
 
 export const AVG_PROTEIN_CALORIES = 150;
 export const AVG_FAT_CALORIES = 100;
-export const AVG_CARB_CALORIES = 115;
-export const AVG_VEGGIE_CALORIES = 30;
+export const AVG_CARB_CALORIES = 120;
+export const AVG_VEGGIE_CALORIES = 20;
 
 export const PAGINATION_LIMIT_FALLBACK = 10;
 export const PAGINATION_PAGE_FALLBACK = 1;
