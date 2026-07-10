@@ -45,12 +45,7 @@ export interface IDetailedWorkoutPlan {
  */
 export type WorkoutLevel = "beginner" | "intermediate" | "advanced" | "pro";
 export type WorkoutGoal =
-  | "fat-loss"
-  | "muscle-gain"
-  | "strength"
-  | "endurance"
-  | "toning"
-  | "rehab";
+  "fat-loss" | "muscle-gain" | "strength" | "endurance" | "toning" | "rehab";
 export type WorkoutEquipment = "gym" | "studio" | "weights" | "bodyweight" | "weights-bodyweight";
 
 export interface IWorkoutPlanMeta {
@@ -103,14 +98,21 @@ export interface IFullWorkoutPlan extends IWorkoutPlanMeta, IWorkoutPlanHistory 
 }
 
 export interface ICardioPlan {
-  type: `simple` | `complex`;
-  plan: IComplexCardioType | ISimpleCardioType;
+  type: `simple` | `complex` | `steps`;
+  plan: IComplexCardioType | ISimpleCardioType | IStepsCardioType;
 }
 
 export interface ISimpleCardioType {
   minsPerWeek: number;
   timesPerWeek: number;
   minsPerWorkout?: number;
+  tips?: string;
+}
+
+export interface IStepsCardioType {
+  mode: "uniform" | "custom";
+  daily: number;
+  perDay?: number[];
   tips?: string;
 }
 
