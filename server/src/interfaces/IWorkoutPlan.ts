@@ -45,12 +45,7 @@ export interface IDetailedWorkoutPlan {
  */
 export type WorkoutLevel = "beginner" | "intermediate" | "advanced" | "pro";
 export type WorkoutGoal =
-  | "fat-loss"
-  | "muscle-gain"
-  | "strength"
-  | "endurance"
-  | "toning"
-  | "rehab";
+  "fat-loss" | "muscle-gain" | "strength" | "endurance" | "toning" | "rehab";
 export type WorkoutEquipment = "gym" | "studio" | "weights" | "bodyweight" | "weights-bodyweight";
 
 export interface IWorkoutPlanMeta {
