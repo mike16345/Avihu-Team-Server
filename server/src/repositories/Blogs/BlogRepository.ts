@@ -36,12 +36,28 @@ export class BlogRepository extends BaseRepository<IBlog> {
     }
   }
 
-  private applySearchQuery(query: Record<string, any>, search: unknown) {
+  private async applySearchQuery(query: Record<string, any>, search: unknown) {
     if (typeof search !== "string" || !search.trim()) return;
 
     const regex = { $regex: this.escapeRegex(search.trim()), $options: "i" };
+    const matchingGroups = await LessonGroup.find(this.applyScopeToQuery({ name: regex })).select(
+      "_id"
+    );
+    const matchingGroupIds = matchingGroups.map((group) => group._id);
+    const searchFields: Record<string, any>[] = [
+      { title: regex },
+      { subtitle: regex },
+      { content: regex },
+      { link: regex },
+      { planType: regex },
+    ];
+
+    if (matchingGroupIds.length > 0) {
+      searchFields.push({ group: { $in: matchingGroupIds } });
+    }
+
     const searchQuery = {
-      $or: [{ title: regex }, { subtitle: regex }, { content: regex }],
+      $or: searchFields,
     };
 
     query.$and = [...(Array.isArray(query.$and) ? query.$and : []), searchQuery];
@@ -112,7 +128,7 @@ export class BlogRepository extends BaseRepository<IBlog> {
     }
 
     this.normalizeGroupQuery(query);
-    this.applySearchQuery(query, search);
+    await this.applySearchQuery(query, search);
 
     const paginated = await this.getPaginated({
       ...paginationParams,
