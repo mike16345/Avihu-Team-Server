@@ -23,5 +23,8 @@ export const calculateTotalCalories = (meals: IMeal[], freeCalories: number = 0)
   const fatCalories = totalFats * AVG_FAT_CALORIES;
   const veggieCalories = totalVeggies * AVG_VEGGIE_CALORIES;
 
-  return proteinCalories + carbCalories + fatCalories + veggieCalories + freeCalories;
+  const finalResult = proteinCalories + carbCalories + fatCalories + veggieCalories + freeCalories;
+  console.log("[dietPlan.ts] Final totalCalories result: ", finalResult);
+
+  return finalResult;
 };
