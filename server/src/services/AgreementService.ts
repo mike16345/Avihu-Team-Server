@@ -22,6 +22,17 @@ import { IFormQuestion } from "../interfaces/IForm";
 const DOWNLOAD_URL_TTL_SECONDS = 60 * 10;
 const UPLOAD_URL_TTL_SECONDS = 60 * 10;
 
+const getQuestions = (
+  existingQuestions: IFormQuestion[],
+  newQuestions: IFormQuestion[]
+): IFormQuestion[] => {
+  if (newQuestions.length === 0) {
+    return existingQuestions;
+  }
+
+  return newQuestions;
+};
+
 export class AgreementService {
   private templateService: AgreementTemplateService;
   private signedService: SignedAgreementService;
@@ -41,7 +52,7 @@ export class AgreementService {
     });
 
     if (!template) return null;
-    const pdfUrl = await getPresignedGetUrl(template.templatePdfS3Key, DOWNLOAD_URL_TTL_SECONDS);
+    const pdfUrl = await getPresignedGetUrl(template?.templatePdfS3Key, DOWNLOAD_URL_TTL_SECONDS);
 
     return { ...template, pdfUrl };
   }
@@ -63,6 +74,7 @@ export class AgreementService {
 
     const nextVersion = (latest?.version ?? 0) + 1;
     const templatePdfS3Key = `agreements/templates/${agreementId}/${nextVersion}.pdf`;
+    const questions = getQuestions(latest?.questions ?? [], params.questions);
 
     const template: Omit<IAgreementTemplate, "_id"> = {
       title: params.title,
@@ -71,7 +83,7 @@ export class AgreementService {
       version: nextVersion,
       active: true,
       templatePdfS3Key,
-      questions: params.questions,
+      questions: questions,
       createdAt: new Date(),
     };
 

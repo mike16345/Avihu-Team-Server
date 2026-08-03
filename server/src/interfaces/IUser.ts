@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { USER_ACCOUNT_STATUSES } from "../models/userModel";
+import { SetInputType } from "./ISet";
 
 export type UserAccountStatus = (typeof USER_ACCOUNT_STATUSES)[keyof typeof USER_ACCOUNT_STATUSES];
 
@@ -32,6 +33,7 @@ export interface IUser {
   hasAccess: boolean;
   role: "admin" | "user" | "trainer" | "subTrainer";
   onboardingStep?: "form" | "agreement" | "completed";
+  setInputType: SetInputType;
   isAdmin: boolean;
   profileImage?: string;
   trainerId?: mongoose.Types.ObjectId;

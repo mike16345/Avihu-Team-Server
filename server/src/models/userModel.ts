@@ -46,6 +46,12 @@ const userSchema = new Schema<IUser>({
     required: false,
     default: true,
   },
+  setInputType:{
+    type:String,
+    enum:["wheel","table"],
+    required:true,
+    default:"wheel"
+  },
   // accountStatus — 4-state status for trainee categorization.
   // - "active":   פעיל   (paying client, has access)
   // - "user":     משתמש  (registered user, has access — e.g. trial / free tier)

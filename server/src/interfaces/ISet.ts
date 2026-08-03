@@ -14,8 +14,10 @@ export interface IRecordedSet {
   repsDone: number;
   note: string;
   date: Date;
+  rir: number;
 }
 
+export type SetInputType = "wheel" | "table";
 export interface IExerciseRecordedSets {
   [exercise: string]: IRecordedSet[];
 }
