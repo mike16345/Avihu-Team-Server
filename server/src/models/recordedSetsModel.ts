@@ -13,6 +13,7 @@ const recordedSetSchema = new Schema<IRecordedSet>({
   note: { type: String },
   exerciseId: { type: Schema.Types.ObjectId, required: false },
   date: { type: Date, default: Date.now },
+  rir: { type: Number, min: 0, required: false },
 });
 
 const exerciseRecordedSetsSchema = new Schema({

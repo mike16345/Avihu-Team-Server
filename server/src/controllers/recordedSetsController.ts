@@ -55,6 +55,7 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
       const result = await this.service.updateRecordedSetById(setId, userId, exercise, set);
 
       if (result.modifiedCount == 0) {
+        console.log("No recorded set was updated. Result:", result);
         return this.errorResponse("לא הצלחנו לעדכן את הסט", StatusCode.NOT_MODIFIED);
       }
 
