@@ -42,15 +42,17 @@ export class RecordedSetsRepository extends BaseRepository<IMuscleGroupRecordedS
       [`recordedSets.${exercise}._id`]: new mongoose.Types.ObjectId(setId),
       userId: new mongoose.Types.ObjectId(userId),
     };
+    console.log("Updating recorded set with query:", query, "and set:", set);
     const update = {
       $set: {
         [`recordedSets.${exercise}.$.repsDone`]: set.repsDone,
         [`recordedSets.${exercise}.$.weight`]: set.weight,
+        [`recordedSets.${exercise}.$.rir`]: set.rir,
       },
     };
 
     return this.model.updateOne(query, update);
-  }
+  } 
 
   async deleteRecordedSetById(userId: string, exercise: string, setId: string) {
     const query = {
