@@ -8,6 +8,7 @@ import { DietV2CatalogItemModel } from "../src/models/dietV2CatalogItemModel";
 import { User } from "../src/models/userModel";
 import { DietPlanService } from "../src/services/dietPlanService";
 import { runWithAuthContext } from "../src/utils/authContext";
+import { DietV2CatalogService } from "../src/services/dietV2CatalogService";
 
 const buildUser = async (trainerId: mongoose.Types.ObjectId) =>
   await User.create({
@@ -15,6 +16,7 @@ const buildUser = async (trainerId: mongoose.Types.ObjectId) =>
     lastName: "Trainee",
     email: `${new mongoose.Types.ObjectId()}@example.com`,
     phone: `+1${Math.floor(1_000_000_000 + Math.random() * 8_999_999_999)}`,
+    profileImage: `test-${new mongoose.Types.ObjectId()}.png`,
     trainerId,
     role: "user",
   });
@@ -180,6 +182,39 @@ describe("version-aware diet-plan saves", () => {
     ).rejects.toMatchObject({ status: 404 });
 
     expect(await DietPlan.collection.countDocuments({ userId: user._id.toString() })).toBe(0);
+  });
+
+  test("lists only plans belonging to the authenticated trainer team", async () => {
+    const trainerA = new mongoose.Types.ObjectId();
+    const trainerB = new mongoose.Types.ObjectId();
+    const userA = await buildUser(trainerA);
+    const userB = await buildUser(trainerB);
+    await DietPlan.create(buildV1Plan(userA._id.toString()));
+    await DietPlanV2Model.create({ ...buildV2Plan(userB._id.toString()), trainerId: trainerB });
+
+    const results = await withTrainer(trainerA, () => new DietPlanService().listTeamPlans());
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({ userId: userA._id.toString(), version: 1 });
+  });
+
+  test("keeps saved name snapshots after a catalog suggestion is deleted", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const user = await buildUser(trainerId);
+    const saved = await withTrainer(trainerId, () =>
+      new DietPlanService().saveActivePlan(buildV2Plan(user._id.toString()))
+    );
+    const item = (saved as any).meals[0].categories[0].items[0];
+
+    await withTrainer(trainerId, () =>
+      new DietV2CatalogService().deleteItem(item.catalogItemId.toString())
+    );
+    const stored = await DietPlan.collection.findOne({ userId: user._id.toString() });
+
+    expect(stored?.meals[0].categories[0].items[0]).toMatchObject({
+      name: "100g Chicken breast",
+      catalogItemId: item.catalogItemId,
+    });
   });
 
   test("selects V2 validation and saves V2 through the existing controller route", async () => {

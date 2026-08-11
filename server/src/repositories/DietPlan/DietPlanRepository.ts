@@ -32,6 +32,12 @@ export class DietPlanRepository extends BaseRepository<IDietPlan> {
     return await DietPlan.collection.findOne({ userId });
   };
 
+  findActiveByUserIds = async (userIds: string[]) => {
+    if (userIds.length === 0) return [];
+
+    return await DietPlan.collection.find({ userId: { $in: userIds } }).toArray();
+  };
+
   findActiveById = async (planId: string) => {
     if (!Types.ObjectId.isValid(planId)) return null;
 

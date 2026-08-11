@@ -201,6 +201,11 @@ context.
 The setting determines which builder is offered only when the trainee has no existing plan. It is
 not copied to the User and does not override an existing plan's version.
 
+The Admin trainer-creation dialog includes a required V1/V2 selector and sends the selected value
+with the create request. The trainer-edit dialog displays the stored selector but keeps it disabled
+in this phase. The disabled edit control is informational and `dietPlanVersion` is omitted from the
+Admin update payload until version switching is explicitly enabled.
+
 ## Trainer V2 Catalog
 
 The trainer string catalog is a separate collection because it is a new entity with different
@@ -373,6 +378,7 @@ Focused Jest and `mongodb-memory-server` coverage must include:
 - Daily Client consumption synchronization.
 - Plan-version history or rollback.
 - V1-to-V2 content conversion.
+- Trainer diet-plan version switching after account creation.
 - Rich-text highlights.
 - Structured supplement dose units or supplement parsing.
 - Atlas Search or another dedicated search service.
@@ -380,6 +386,8 @@ Focused Jest and `mongodb-memory-server` coverage must include:
 ## Acceptance Criteria
 
 - The existing V1 API remains backward-compatible.
+- Trainer creation persists an explicitly selected diet-plan version; trainer editing displays the
+  stored version without allowing changes.
 - V1 and V2 plans occupy the same collection with one active document per user.
 - Version changes replace the active document instead of creating parallel plans.
 - V2 plans and presets round-trip the approved Admin contract without item nutrition or serving

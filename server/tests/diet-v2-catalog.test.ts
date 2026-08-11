@@ -113,6 +113,30 @@ describe("Diet V2 trainer catalog", () => {
       name: "Shared chicken",
     });
   });
+
+  test("tolerates concurrent duplicate insertion and resolves the winning catalog item", async () => {
+    const trainerId = new mongoose.Types.ObjectId().toString();
+    const firstService = new DietV2CatalogService();
+    const secondService = new DietV2CatalogService();
+
+    const [first, second] = await withTrainer(trainerId, () =>
+      Promise.all([
+        firstService.resolveAndTouch([{ category: "protein", name: "Concurrent chicken" }]),
+        secondService.resolveAndTouch([{ category: "protein", name: " concurrent  CHICKEN " }]),
+      ])
+    );
+    const firstItem = first.get("protein:concurrent chicken");
+    const secondItem = second.get("protein:concurrent chicken");
+
+    expect(firstItem?._id?.toString()).toBe(secondItem?._id?.toString());
+    expect(
+      await DietV2CatalogItemModel.countDocuments({
+        trainerId,
+        category: "protein",
+        normalizedName: "concurrent chicken",
+      })
+    ).toBe(1);
+  });
 });
 
 describe("Diet V2 catalog HTTP boundary", () => {

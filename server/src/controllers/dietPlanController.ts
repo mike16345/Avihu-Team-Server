@@ -11,6 +11,16 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     super(new DietPlanService());
   }
 
+  getTeamDietPlans = async (): Promise<APIGatewayProxyResult> => {
+    try {
+      const plans = await this.service.listTeamPlans();
+
+      return this.successResponse({ data: plans, message: "Successfully found items!" });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
+
   addDietPlan = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const data = extractBodyFromEvent(event);
 

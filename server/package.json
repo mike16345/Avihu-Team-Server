@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "test": "jest",
+    "audit-diet-plan-v2": "ts-node scripts/auditDietPlanV2Migration.ts",
     "create-lambda": "node ./scripts/createLambda.js",
     "configure-api-gateway": "node ./scripts/configureApiGateway.js",
     "deploy": "node deploy.js",

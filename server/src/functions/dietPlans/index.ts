@@ -10,7 +10,7 @@ const dietPlanController = new DietPlanController();
 
 const dietPlanApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
-    handler: dietPlanController.getAll,
+    handler: dietPlanController.getTeamDietPlans,
     access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {

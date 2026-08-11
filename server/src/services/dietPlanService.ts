@@ -137,6 +137,19 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     return deleted;
   };
 
+  listTeamPlans = async () => {
+    requireTrainerAuthContext();
+    const trainees = (await this.userRepository.find({
+      query: { role: "user" } as any,
+      projection: { _id: 1 },
+    })) as any[];
+    const plans = await this.repository.findActiveByUserIds(
+      trainees.map((trainee) => trainee._id.toString())
+    );
+
+    return plans.map((plan) => this.normalizeVersion(plan as Record<string, any>));
+  };
+
   getDietPlanById = async (planId: string, populate: boolean = true) => {
     const raw = await this.repository.findActiveById(planId);
 

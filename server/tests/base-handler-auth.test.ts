@@ -73,6 +73,39 @@ describe("handleApiCall auth flow", () => {
     expect(executionOrder).toEqual(["auth", "middleware", "validator", "handler"]);
   });
 
+  test("stops the request when a route middleware rejects the body", async () => {
+    jest
+      .spyOn(JwtAuthService.prototype, "verifyAccessToken")
+      .mockReturnValue({ userId: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
+    (enforceRequestUserAccess as jest.Mock).mockResolvedValue({
+      _id: "u1",
+      trainerId: "t1",
+      role: "trainer",
+    });
+    const handler = jest.fn().mockResolvedValue({ statusCode: 200, body: "{}" });
+
+    const response = await handleApiCall(
+      {
+        httpMethod: "POST",
+        path: "/protected",
+        headers: { Authorization: "Bearer secret-token" },
+        requestContext: { requestId: "req-invalid-middleware" },
+      } as any,
+      {} as any,
+      {
+        "POST /protected": {
+          access: "authenticated",
+          middlewares: [async () => ({ isValid: false, message: "invalid diet plan" })],
+          handler,
+        },
+      }
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body).message).toBe("invalid diet plan");
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   test("exposes request-local auth context to protected handlers without mutating request input", async () => {
     jest
       .spyOn(JwtAuthService.prototype, "verifyAccessToken")
