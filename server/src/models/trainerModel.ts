@@ -2,6 +2,7 @@ import Joi from "joi";
 import { Schema, model } from "mongoose";
 import {
   ITrainer,
+  TRAINER_DIET_PLAN_VERSIONS,
   TRAINER_SOURCES,
   TRAINER_STATUSES,
   TRAINER_SUBSCRIPTION_PLANS,
@@ -65,6 +66,12 @@ export const trainerSchema = new Schema<ITrainer>(
       required: true,
       default: false,
     },
+    dietPlanVersion: {
+      type: Number,
+      required: true,
+      enum: TRAINER_DIET_PLAN_VERSIONS,
+      default: 1,
+    },
     userId: {
       type: Schema.Types.ObjectId,
       ref: "users",
@@ -127,6 +134,9 @@ export const TrainerSchemaValidation = Joi.object({
     .valid(...TRAINER_SOURCES)
     .required(),
   videoLibraryAccess: Joi.boolean().required(),
+  dietPlanVersion: Joi.number()
+    .valid(...TRAINER_DIET_PLAN_VERSIONS)
+    .default(1),
   userId: Joi.string().optional(),
 
   favoriteWorkoutPresetIds: Joi.array().items(Joi.string()).optional(),
