@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DietPlanService } from "../services/dietPlanService";
 import { StatusCode } from "../enums/StatusCode";
-import { extractBodyFromEvent, removeNestedIds, removeNestedIdsSafe } from "../utils/utils";
+import { extractBodyFromEvent } from "../utils/utils";
 import { calculateTotalCalories } from "../utils/dietPlan";
 import BaseController from "./BaseController";
 import { IDietPlan } from "../interfaces/IDietPlan";
@@ -15,9 +15,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     const data = extractBodyFromEvent(event);
 
     try {
-      const totalCalories = calculateTotalCalories(data.meals, data.freeCalories);
-
-      const dietPlanResult = await this.service.create({ ...data, totalCalories: totalCalories });
+      const dietPlanResult = await this.service.saveActivePlan(data);
 
       return this.successResponse({
         status: StatusCode.CREATED,
@@ -35,13 +33,19 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
 
     if (error) return error;
 
-    const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
-
     try {
-      const updatedDietPlan = await this.service.updateById(id, {
-        ...newDietPlan,
-        totalCalories: totalCalories,
+      const currentPlan = await this.service.getDietPlanById(id, false);
+
+      if (!currentPlan) {
+        return this.errorResponse({
+          status: StatusCode.NOT_FOUND,
+          message: "Diet plan not found for the given ID.",
+        });
+      }
+
+      const updatedDietPlan = await this.service.saveActivePlan({
+        ...body,
+        userId: currentPlan.userId,
       });
 
       return this.successResponse({
@@ -60,21 +64,8 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
 
     if (error) return error;
 
-    const newDietPlan = removeNestedIds(body);
-    const totalCalories = calculateTotalCalories(newDietPlan.meals, newDietPlan.freeCalories);
-
     try {
-      const updatedDietPlan = await this.service.updateOne(
-        { userId: id },
-        { ...newDietPlan, totalCalories }
-      );
-
-      if (!updatedDietPlan) {
-        return this.errorResponse({
-          status: StatusCode.NOT_FOUND,
-          message: "Diet plan not found for the given user ID.",
-        });
-      }
+      const updatedDietPlan = await this.service.saveActivePlan({ ...body, userId: id });
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -92,7 +83,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     if (error) return error;
 
     try {
-      const response = await this.service.delete({ userId: id });
+      const response = await this.service.deleteActiveByUserId(id);
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -102,6 +93,44 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
     } catch (err: any) {
       return this.errorResponse(err);
     }
+  };
+
+  deleteDietPlanById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const { id, error } = this.getParamsOrError(event, ["id"]);
+
+    if (error) return error;
+
+    try {
+      const response = await this.service.deleteActiveById(id);
+
+      return this.successResponse({
+        status: StatusCode.OK,
+        data: response,
+        message: "Successfully deleted diet plan!",
+      });
+    } catch (err: any) {
+      return this.errorResponse(err);
+    }
+  };
+
+  private repairLegacyCaloriesIfNeeded = async (dietPlan: any) => {
+    if (dietPlan.version === 2) return dietPlan;
+
+    const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
+    const current = Number.isFinite(+dietPlan.totalCalories)
+      ? +dietPlan.totalCalories
+      : undefined;
+
+    if (current !== computed) {
+      try {
+        await this.service.repairLegacyTotalCalories(dietPlan._id.toString(), computed);
+        dietPlan.totalCalories = computed;
+      } catch (fixErr) {
+        console.warn("Auto-fix totalCalories failed:", fixErr);
+      }
+    }
+
+    return dietPlan;
   };
 
   getDietPlanById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -120,22 +149,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
         });
       }
 
-      const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
-      const current = Number.isFinite(+dietPlan.totalCalories)
-        ? +dietPlan.totalCalories
-        : undefined;
-
-      if (current !== computed) {
-        try {
-          const id = dietPlan._id;
-          const cleaned = removeNestedIdsSafe(dietPlan);
-          await this.service.updateById?.(id, { ...cleaned, totalCalories: computed });
-
-          (dietPlan as any).totalCalories = computed;
-        } catch (fixErr) {
-          console.warn("Auto-fix totalCalories failed:", fixErr);
-        }
-      }
+      await this.repairLegacyCaloriesIfNeeded(dietPlan);
 
       return this.successResponse({
         status: StatusCode.OK,
@@ -162,25 +176,7 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
         });
       }
 
-      const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
-      const current = Number.isFinite(+dietPlan.totalCalories)
-        ? +dietPlan.totalCalories
-        : undefined;
-
-      if (current !== computed) {
-        try {
-          const id = dietPlan._id;
-          const cleaned = removeNestedIdsSafe(dietPlan);
-          (dietPlan as any).totalCalories = computed;
-          const result = await this.service.updateById?.(id, {
-            ...cleaned,
-            totalCalories: computed,
-          });
-          (dietPlan as any).totalCalories = computed;
-        } catch (fixErr) {
-          console.warn("Auto-fix totalCalories failed:", fixErr);
-        }
-      }
+      await this.repairLegacyCaloriesIfNeeded(dietPlan);
 
       return this.successResponse({
         status: StatusCode.OK,

@@ -41,7 +41,7 @@ const dietPlanApiRoutes: ApiRouteHandlers = {
     access: "subtrainer",
   },
   [`DELETE ${BASE_PATH}/one`]: {
-    handler: dietPlanController.deleteById,
+    handler: dietPlanController.deleteDietPlanById,
     access: "subtrainer",
   },
 };

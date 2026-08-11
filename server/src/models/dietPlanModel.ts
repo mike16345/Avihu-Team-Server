@@ -18,6 +18,7 @@ export const mealSchema = new Schema<IMeal>({
 });
 
 export const dietPlanSchema = new Schema<IDietPlan>({
+  version: { type: Number, enum: [1], required: false },
   userId: { type: String, required: true },
   meals: { type: [mealSchema], required: true },
   supplements: { type: [String], required: false, default: [] },
