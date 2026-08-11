@@ -63,6 +63,7 @@ export interface IDietPlanMeta {
 
 export interface IDietPlanPreset extends Omit<IDietPlan, "userId">, IDietPlanMeta {
   name: string;
+  normalizedName?: string;
 }
 
 export type DietItemUnit = "grams" | "spoons";

@@ -45,6 +45,7 @@ export const mealValidationSchema = Joi.object({
 });
 
 export const DietPlanSchemaValidation = Joi.object({
+  version: Joi.number().valid(1).optional(),
   userId: Joi.string().required(),
   meals: Joi.array()
     .items(mealValidationSchema)

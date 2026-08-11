@@ -149,7 +149,13 @@ export const dietPlanPresetV2Schema = new Schema<IDietPlanPresetV2Document>(
 
 dietPlanPresetV2Schema.index(
   { trainerId: 1, version: 1, normalizedName: 1 },
-  { unique: true }
+  {
+    unique: true,
+    partialFilterExpression: {
+      version: { $type: "number" },
+      normalizedName: { $type: "string" },
+    },
+  }
 );
 
 export const DietPlanV2Model = model<IDietPlanV2Document>(

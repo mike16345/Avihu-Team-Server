@@ -7,8 +7,7 @@ import {
 import { stableStringify } from "../utils/utils";
 import { BaseService } from "./baseService";
 import { IDietPlanV2SaveRequest } from "../interfaces/IDietPlanV2";
-import { DietV2CatalogService, getDietV2CatalogKey } from "./dietV2CatalogService";
-import { normalizeDietV2Name } from "../utils/dietPlanV2";
+import { DietV2CatalogService } from "./dietV2CatalogService";
 import { calculateTotalCalories } from "../utils/dietPlan";
 import UserRepository from "../repositories/User/UserRepository";
 import { getAuthContext, requireTrainerAuthContext } from "../utils/authContext";
@@ -70,60 +69,12 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
 
   private async prepareV2Plan(request: IDietPlanV2SaveRequest) {
     const { trainerId } = requireTrainerAuthContext();
-    const candidates = request.meals.flatMap((meal) => [
-      ...meal.categories.flatMap((category) =>
-        category.items.map((item) => ({ category: category.category, name: item.name }))
-      ),
-      ...(meal.freeCalories?.description.trim()
-        ? [{ category: "freeCalories" as const, name: meal.freeCalories.description }]
-        : []),
-    ]);
-    const resolved = await this.catalogService.resolveAndTouch(candidates);
-    const meals = request.meals.map((meal) => ({
-      id: meal.id,
-      name: meal.name,
-      categories: meal.categories.map((category) => ({
-        category: category.category,
-        items: category.items.map((item) => {
-          const key = getDietV2CatalogKey(
-            category.category,
-            normalizeDietV2Name(item.name)
-          );
-          const catalogItem = resolved.get(key);
-
-          if (!catalogItem?._id) {
-            throw {
-              status: StatusCode.INTERNAL_SERVER_ERROR,
-              message: `Could not resolve catalog item: ${item.name}`,
-            };
-          }
-
-          return { name: item.name.trim(), catalogItemId: catalogItem._id };
-        }),
-      })),
-      macros: {
-        calories: meal.macros.calories,
-        protein: meal.macros.protein,
-        carbs: meal.macros.carbs,
-        fat: meal.macros.fat,
-      },
-      ...(meal.freeCalories
-        ? {
-            freeCalories: {
-              calories: meal.freeCalories.calories,
-              description: meal.freeCalories.description.trim(),
-            },
-          }
-        : {}),
-      ...(meal.supplements ? { supplements: [...meal.supplements] } : {}),
-    }));
+    const content = await this.catalogService.resolveContent(request);
 
     return {
       userId: request.userId,
       trainerId: new Types.ObjectId(trainerId),
-      version: 2 as const,
-      meals,
-      highlights: request.highlights,
+      ...content,
     };
   }
 
