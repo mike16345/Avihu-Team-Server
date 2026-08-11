@@ -1,6 +1,7 @@
 import { ObjectId } from "mongoose";
 
 export interface IDietPlan {
+  version?: 1;
   userId: string;
   meals: IMeal[];
   totalCalories?: number;

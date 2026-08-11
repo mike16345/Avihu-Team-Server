@@ -4,6 +4,8 @@ import { mealSchema, mealValidationSchema } from "./dietPlanModel";
 import Joi from "joi";
 import { IModel } from "../interfaces/IModel";
 
+export const DIET_PLAN_PRESETS_COLLECTION = "dietplanpresets";
+
 /**
  * Optional trainer-tagged meta — used by the admin panel to filter
  * presets (goal / calorie bucket / dietary restrictions / who built it).
@@ -42,7 +44,8 @@ export const dietPlanSchema = new Schema<IDietPlanPreset & IModel>({
 
 export const DietPlanPresetsModel = model<IDietPlanPreset & IModel>(
   "dietPlanPresets",
-  dietPlanSchema
+  dietPlanSchema,
+  DIET_PLAN_PRESETS_COLLECTION
 );
 
 /** Kept in sync with dietMetaFields above. */

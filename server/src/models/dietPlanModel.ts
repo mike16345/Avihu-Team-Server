@@ -2,6 +2,8 @@ import { Schema, model } from "mongoose";
 import { IDietItem, IDietPlan, IMeal } from "../interfaces/IDietPlan";
 import Joi from "joi";
 
+export const DIET_PLANS_COLLECTION = "dietplans";
+
 export const dietItemSchema = new Schema<IDietItem>({
   quantity: { type: Number, required: true },
   customItems: [{ type: Schema.Types.ObjectId, ref: "menuItems", required: false }],
@@ -26,7 +28,7 @@ export const dietPlanSchema = new Schema<IDietPlan>({
   veggiesPerDay: { type: Number, required: false },
 });
 
-export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
+export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema, DIET_PLANS_COLLECTION);
 
 export const dietItemValidationSchema = Joi.object({
   quantity: Joi.number().required(),
