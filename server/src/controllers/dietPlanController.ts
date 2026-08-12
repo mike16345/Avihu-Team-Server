@@ -162,25 +162,25 @@ export class DietPlanController extends BaseController<IDietPlan, DietPlanServic
         });
       }
 
-      const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
-      const current = Number.isFinite(+dietPlan.totalCalories)
-        ? +dietPlan.totalCalories
-        : undefined;
+      // const computed = calculateTotalCalories(dietPlan.meals, dietPlan.freeCalories);
+      // const current = Number.isFinite(+dietPlan.totalCalories)
+      //   ? +dietPlan.totalCalories
+      //   : undefined;
 
-      if (current !== computed) {
-        try {
-          const id = dietPlan._id;
-          const cleaned = removeNestedIdsSafe(dietPlan);
-          (dietPlan as any).totalCalories = computed;
-          const result = await this.service.updateById?.(id, {
-            ...cleaned,
-            totalCalories: computed,
-          });
-          (dietPlan as any).totalCalories = computed;
-        } catch (fixErr) {
-          console.warn("Auto-fix totalCalories failed:", fixErr);
-        }
-      }
+      // if (current !== computed) {
+      //   try {
+      //     const id = dietPlan._id;
+      //     const cleaned = removeNestedIdsSafe(dietPlan);
+      //     (dietPlan as any).totalCalories = computed;
+      //     const result = await this.service.updateById?.(id, {
+      //       ...cleaned,
+      //       totalCalories: computed,
+      //     });
+      //     (dietPlan as any).totalCalories = computed;
+      //   } catch (fixErr) {
+      //     console.warn("Auto-fix totalCalories failed:", fixErr);
+      //   }
+      // }
 
       return this.successResponse({
         status: StatusCode.OK,
