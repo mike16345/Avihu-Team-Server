@@ -63,7 +63,7 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     }
 
     await this.userRepository.findOne({
-      query: { _id: new Types.ObjectId(userId), role: "user" } as any,
+      query: { _id: new Types.ObjectId(userId) } as any,
     });
   }
 
