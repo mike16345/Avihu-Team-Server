@@ -173,7 +173,12 @@ export class UserController extends BaseController<IUser, UserService> {
 
       return this.successResponse({
         status: StatusCode.OK,
-        data: { accessToken, refreshToken, sessionId: session._id, user: this.toSafeUser(user) },
+        data: {
+          accessToken,
+          refreshToken,
+          sessionId: session._id,
+          user: await this.toSafeUser(user),
+        },
         message: "התחברות בוצעה בהצלחה!",
       });
     } catch (err: any) {
@@ -198,7 +203,11 @@ export class UserController extends BaseController<IUser, UserService> {
 
       return this.successResponse({
         status: StatusCode.OK,
-        data: { accessToken, refreshToken: nextRefreshToken, user: this.toSafeUser(user) },
+        data: {
+          accessToken,
+          refreshToken: nextRefreshToken,
+          user: await this.toSafeUser(user),
+        },
       });
     } catch (err: any) {
       return this.errorResponse(err, err?.statusCode || StatusCode.UNAUTHORIZED);
@@ -259,18 +268,21 @@ export class UserController extends BaseController<IUser, UserService> {
         );
       }
 
-      return this.successResponse({ status: StatusCode.OK, data: this.toSafeUser(user) });
+      return this.successResponse({ status: StatusCode.OK, data: await this.toSafeUser(user) });
     } catch (err: any) {
       return this.errorResponse(err, err?.statusCode || StatusCode.UNAUTHORIZED);
     }
   };
 
-  private toSafeUser(user: IUser) {
+  private async toSafeUser(user: IUser) {
+    const dietPlanVersion = await this.service.getTrainerDietPlanVersion(user);
+
     return {
       ...user,
       status: user.hasAccess ? "active" : "inactive",
       isSuperAdmin: user.role === "admin",
       isTrainer: user.role === "trainer",
+      ...(dietPlanVersion ? { dietPlanVersion } : {}),
     };
   }
 
