@@ -89,7 +89,6 @@ const categoriesValidators = [
 
 export const dietV2MealSchema = new Schema<DietV2Meal>(
   {
-    id: nonBlankString,
     name: nonBlankString,
     categories: {
       type: [dietV2CategorySchema],
@@ -100,7 +99,7 @@ export const dietV2MealSchema = new Schema<DietV2Meal>(
     freeCalories: { type: dietV2FreeCaloriesSchema, required: false },
     supplements: { type: [String], required: false },
   },
-  { _id: false, strict: "throw" }
+  { strict: "throw" }
 );
 
 const dietPlanV2ContentDefinition = {
@@ -203,7 +202,6 @@ const dietV2CategoriesValidationSchema = Joi.array()
   });
 
 const dietV2MealValidationSchema = Joi.object({
-  id: Joi.string().trim().min(1).required(),
   name: Joi.string().trim().min(1).required(),
   categories: dietV2CategoriesValidationSchema,
   macros: dietV2MealMacrosValidationSchema.required(),
@@ -221,6 +219,11 @@ export const DietPlanV2SchemaValidation = Joi.object({
   userId: Joi.string().required(),
   ...dietPlanV2ContentValidationFields,
 }).prefs({ abortEarly: false, stripUnknown: true });
+
+export const DietPlanV2UpdateSchemaValidation = DietPlanV2SchemaValidation.fork(
+  ["userId"],
+  (schema) => schema.optional()
+);
 
 export const DietPlanPresetV2SchemaValidation = Joi.object({
   name: Joi.string().trim().min(1).max(100).required(),

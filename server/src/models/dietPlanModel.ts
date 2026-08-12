@@ -59,3 +59,7 @@ export const DietPlanSchemaValidation = Joi.object({
   veggiesPerDay: Joi.number().optional().min(0),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
 });
+
+export const DietPlanUpdateSchemaValidation = DietPlanSchemaValidation.fork(["userId"], (schema) =>
+  schema.optional()
+);

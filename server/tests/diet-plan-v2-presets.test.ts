@@ -24,7 +24,6 @@ const buildV2Preset = (name: string) => ({
   dietTags: ["kosher" as const],
   meals: [
     {
-      id: "meal-1",
       name: "Breakfast",
       categories: [
         { category: "protein" as const, items: [{ name: "200g Greek yogurt" }] },

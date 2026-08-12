@@ -21,7 +21,6 @@ const buildPlan = (overrides: Record<string, unknown> = {}) => ({
   version: 2,
   meals: [
     {
-      id: "meal-1",
       name: "Breakfast",
       categories: buildCategories(),
       macros: {
@@ -46,9 +45,7 @@ describe("Diet Plan V2 validation", () => {
     const result = DietPlanV2SchemaValidation.validate(buildPlan());
 
     expect(result.error).toBeUndefined();
-    expect(result.value.meals[0].categories[0].items[0].name).toBe(
-      "100g Chicken breast"
-    );
+    expect(result.value.meals[0].categories[0].items[0].name).toBe("100g Chicken breast");
   });
 
   test("rejects normalized duplicate names inside one category", () => {
@@ -89,10 +86,21 @@ describe("Diet Plan V2 validation", () => {
     const invalidMacros = DietPlanV2SchemaValidation.validate(
       buildPlan({ meals: [{ ...baseMeal, macros: { ...baseMeal.macros, protein: -1 } }] })
     );
+    const missingMacros = DietPlanV2SchemaValidation.validate(
+      buildPlan({
+        meals: [
+          {
+            ...baseMeal,
+            macros: { calories: 448, protein: 25, carbs: 45 },
+          },
+        ],
+      })
+    );
 
     expect(repeatedCategory.error?.message).toContain("duplicate category");
     expect(incompleteFreeCalories.error).toBeDefined();
     expect(invalidMacros.error).toBeDefined();
+    expect(missingMacros.error).toBeDefined();
   });
 });
 
@@ -115,7 +123,19 @@ describe("Diet Plan V2 shared collections", () => {
     expect(DietPlan.collection.name).toBe(DietPlanV2Model.collection.name);
     expect(v1.get("version")).toBeUndefined();
     expect(v2.version).toBe(2);
+    expect(v2.meals[0]._id).toBeDefined();
     expect(v2.meals[0].categories[0].items[0]).not.toHaveProperty("_id");
+  });
+
+  test("preserves a supplied Mongo meal _id", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const mealId = new mongoose.Types.ObjectId();
+    const request = buildPlan();
+    request.meals[0] = { ...request.meals[0], _id: mealId } as any;
+
+    const plan = await DietPlanV2Model.create({ ...request, trainerId });
+
+    expect(plan.meals[0]._id?.toString()).toBe(mealId.toString());
   });
 
   test("stores V1 and V2 presets in the same preset collection", async () => {
@@ -139,9 +159,7 @@ describe("Diet Plan V2 shared collections", () => {
       builtByTrainerId: trainerId,
     });
 
-    expect(DietPlanPresetsModel.collection.name).toBe(
-      DietPlanPresetV2Model.collection.name
-    );
+    expect(DietPlanPresetsModel.collection.name).toBe(DietPlanPresetV2Model.collection.name);
     expect(preset.version).toBe(2);
   });
 });

@@ -54,7 +54,7 @@ export interface DietV2FreeCalories {
 }
 
 export interface DietV2Meal {
-  id: string;
+  _id?: Types.ObjectId | string;
   name: string;
   categories: DietV2Category[];
   macros: DietV2MealMacros;

@@ -41,7 +41,6 @@ const buildV2Plan = (userId: string, catalogItemId?: string) => ({
   version: 2 as const,
   meals: [
     {
-      id: "meal-1",
       name: "Breakfast",
       categories: [
         {
@@ -73,11 +72,13 @@ const withTrainer = <T>(trainerId: mongoose.Types.ObjectId, callback: () => Prom
 
 const buildEvent = (
   body: Record<string, unknown>,
-  queryStringParameters: Record<string, string> | null = null
+  queryStringParameters: Record<string, string> | null = null,
+  httpMethod: "POST" | "PUT" = "POST"
 ) =>
   ({
     body: JSON.stringify(body),
     queryStringParameters,
+    httpMethod,
   }) as unknown as APIGatewayProxyEvent;
 
 describe("version-aware diet-plan saves", () => {
@@ -116,6 +117,33 @@ describe("version-aware diet-plan saves", () => {
     expect(stored).toMatchObject({ version: 1, customInstructions: ["Legacy instructions"] });
     expect(stored).not.toHaveProperty("highlights");
     expect(stored?.meals?.[0]).not.toHaveProperty("categories");
+  });
+
+  test("preserves a saved meal _id when replacing a V2 plan", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const user = await buildUser(trainerId);
+    const service = new DietPlanService();
+    const created = await withTrainer(trainerId, () =>
+      service.saveActivePlan(buildV2Plan(user._id.toString()))
+    );
+    const mealId = (created as any).meals[0]._id;
+
+    expect(mealId).toBeDefined();
+
+    const updated = await withTrainer(trainerId, () =>
+      service.saveActivePlan({
+        ...(created as any),
+        meals: [
+          {
+            ...(created as any).meals[0],
+            macros: { ...(created as any).meals[0].macros, calories: 500 },
+          },
+        ],
+      })
+    );
+
+    expect((updated as any).meals[0]._id.toString()).toBe(mealId.toString());
+    expect((updated as any).meals[0].macros.calories).toBe(500);
   });
 
   test("resolves catalog IDs from authenticated trainer names and catalogs free calories", async () => {
@@ -239,5 +267,13 @@ describe("version-aware diet-plan saves", () => {
 
     expect(response.statusCode).toBe(201);
     expect(JSON.parse(response.body).data).toMatchObject({ version: 2, highlights: "Drink water" });
+  });
+
+  test("requires body userId on create but derives it for updates", () => {
+    const request = buildV2Plan(new mongoose.Types.ObjectId().toString());
+    const { userId: _userId, ...bodyWithoutUserId } = request;
+
+    expect(validateDietPlan(buildEvent(bodyWithoutUserId, null, "POST")).isValid).toBe(false);
+    expect(validateDietPlan(buildEvent(bodyWithoutUserId, null, "PUT")).isValid).toBe(true);
   });
 });

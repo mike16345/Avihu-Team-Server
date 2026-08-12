@@ -79,7 +79,7 @@ export class DietV2CatalogService extends BaseService<
       version: 2,
       highlights: content.highlights,
       meals: content.meals.map((meal) => ({
-        id: meal.id,
+        ...(meal._id ? { _id: meal._id } : {}),
         name: meal.name,
         categories: meal.categories.map((category) => ({
           category: category.category,
