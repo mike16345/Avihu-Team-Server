@@ -46,12 +46,17 @@ const buildV2Plan = (userId: string, catalogItemId?: string) => ({
         {
           category: "protein" as const,
           items: [{ name: "100g Chicken breast", catalogItemId }],
+          macros: { calories: 200, protein: 25, carbs: 0, fat: 4 },
         },
-        { category: "carbs" as const, items: [{ name: "200g Rice" }] },
+        {
+          category: "carbs" as const,
+          items: [{ name: "200g Rice" }],
+          macros: { calories: 248, protein: 0, carbs: 45, fat: 8 },
+        },
         { category: "fat" as const, items: [] },
         { category: "vegetables" as const, items: [] },
-        { category: "addon" as const, items: [] },
       ],
+      addOns: [{ name: "Morning coffee" }],
       macros: { calories: 448, protein: 25, carbs: 45, fat: 12 },
       freeCalories: { calories: 150, description: "Fruit / snack / spread" },
       supplements: ["Creatine after training"],
@@ -136,14 +141,24 @@ describe("version-aware diet-plan saves", () => {
         meals: [
           {
             ...(created as any).meals[0],
-            macros: { ...(created as any).meals[0].macros, calories: 500 },
+            categories: (created as any).meals[0].categories.map((category: any) =>
+              category.category === "protein"
+                ? { ...category, macros: { ...category.macros, calories: 252 } }
+                : category
+            ),
+            macros: { calories: 9999, protein: 9999, carbs: 9999, fat: 9999 },
           },
         ],
       })
     );
 
     expect((updated as any).meals[0]._id.toString()).toBe(mealId.toString());
-    expect((updated as any).meals[0].macros.calories).toBe(500);
+    expect((updated as any).meals[0].macros).toMatchObject({
+      calories: 500,
+      protein: 25,
+      carbs: 45,
+      fat: 12,
+    });
   });
 
   test("resolves catalog IDs from authenticated trainer names and catalogs free calories", async () => {
@@ -174,6 +189,13 @@ describe("version-aware diet-plan saves", () => {
         category: "protein",
       })
     ).resolves.not.toBeNull();
+    await expect(
+      DietV2CatalogItemModel.findOne({
+        trainerId,
+        category: "addon",
+        normalizedName: "morning coffee",
+      })
+    ).resolves.toMatchObject({ usageCount: 1 });
     await expect(
       DietV2CatalogItemModel.findOne({
         trainerId,

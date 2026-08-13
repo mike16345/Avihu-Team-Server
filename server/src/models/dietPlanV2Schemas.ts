@@ -12,7 +12,7 @@ import {
   IDietPlanPresetV2Document,
   IDietPlanV2Document,
 } from "../interfaces/IDietPlanV2";
-import { validateDietV2Categories } from "../utils/dietPlanV2";
+import { validateDietV2Categories, validateDietV2PlanItems } from "../utils/dietPlanV2";
 import { DIET_PLANS_COLLECTION } from "./dietPlanModel";
 import { DIET_PLAN_PRESETS_COLLECTION } from "./dietPlanPresetModel";
 
@@ -43,6 +43,16 @@ export const dietV2PlanItemSchema = new Schema<DietV2PlanItem>(
   { _id: false, strict: "throw" }
 );
 
+export const dietV2MealMacrosSchema = new Schema<DietV2MealMacros>(
+  {
+    calories: finiteNonnegativeNumber,
+    protein: finiteNonnegativeNumber,
+    carbs: finiteNonnegativeNumber,
+    fat: finiteNonnegativeNumber,
+  },
+  { _id: false, strict: "throw" }
+);
+
 export const dietV2CategorySchema = new Schema<DietV2Category>(
   {
     category: {
@@ -51,16 +61,7 @@ export const dietV2CategorySchema = new Schema<DietV2Category>(
       required: true,
     },
     items: { type: [dietV2PlanItemSchema], required: true, default: [] },
-  },
-  { _id: false, strict: "throw" }
-);
-
-export const dietV2MealMacrosSchema = new Schema<DietV2MealMacros>(
-  {
-    calories: finiteNonnegativeNumber,
-    protein: finiteNonnegativeNumber,
-    carbs: finiteNonnegativeNumber,
-    fat: finiteNonnegativeNumber,
+    macros: { type: dietV2MealMacrosSchema, required: false },
   },
   { _id: false, strict: "throw" }
 );
@@ -94,6 +95,22 @@ export const dietV2MealSchema = new Schema<DietV2Meal>(
       type: [dietV2CategorySchema],
       required: true,
       validate: categoriesValidators,
+    },
+    addOns: {
+      type: [dietV2PlanItemSchema],
+      required: true,
+      default: [],
+      validate: {
+        validator: (items: DietV2PlanItem[]) => {
+          try {
+            validateDietV2PlanItems(items, "addOns");
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        message: "Meal add-ons contain duplicate item names",
+      },
     },
     macros: { type: dietV2MealMacrosSchema, required: true },
     freeCalories: { type: dietV2FreeCaloriesSchema, required: false },
@@ -174,18 +191,27 @@ const dietV2PlanItemValidationSchema = Joi.object({
   catalogItemId: Joi.string().hex().length(24).optional(),
 });
 
-const dietV2CategoryValidationSchema = Joi.object({
-  category: Joi.string()
-    .valid(...DIET_V2_MEAL_CATEGORIES)
-    .required(),
-  items: Joi.array().items(dietV2PlanItemValidationSchema).required(),
-});
-
 const dietV2MealMacrosValidationSchema = Joi.object({
   calories: Joi.number().min(0).required(),
   protein: Joi.number().min(0).required(),
   carbs: Joi.number().min(0).required(),
   fat: Joi.number().min(0).required(),
+});
+
+const dietV2CategoryValidationSchema = Joi.object({
+  category: Joi.string()
+    .valid(...DIET_V2_MEAL_CATEGORIES)
+    .required(),
+  items: Joi.array().items(dietV2PlanItemValidationSchema).required(),
+  macros: dietV2MealMacrosValidationSchema.optional(),
+}).custom((category: DietV2Category, helpers) => {
+  if (category.items.length > 0 && !category.macros) {
+    return helpers.message({
+      custom: `${category.category} macros are required when the category has food items`,
+    });
+  }
+
+  return category;
 });
 
 const dietV2FreeCaloriesValidationSchema = Joi.object({
@@ -204,6 +230,13 @@ const dietV2CategoriesValidationSchema = Joi.array()
 const dietV2MealValidationSchema = Joi.object({
   name: Joi.string().trim().min(1).required(),
   categories: dietV2CategoriesValidationSchema,
+  addOns: Joi.array()
+    .items(dietV2PlanItemValidationSchema)
+    .required()
+    .custom((items: DietV2PlanItem[]) => {
+      validateDietV2PlanItems(items, "addOns");
+      return items;
+    }),
   macros: dietV2MealMacrosValidationSchema.required(),
   freeCalories: dietV2FreeCaloriesValidationSchema.optional(),
   supplements: Joi.array().items(Joi.string()).optional(),

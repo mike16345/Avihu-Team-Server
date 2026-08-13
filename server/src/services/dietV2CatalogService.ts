@@ -8,6 +8,7 @@ import { DietV2CatalogCategory } from "../interfaces/IDietPlanV2";
 import { IDietPlanV2Content } from "../interfaces/IDietPlanV2";
 import { DietV2CatalogRepository } from "../repositories/MenuItems/DietV2CatalogRepository";
 import { normalizeDietV2Name } from "../utils/dietPlanV2";
+import { deriveDietV2MealMacros } from "../utils/dietPlanV2";
 import { BaseService } from "./baseService";
 
 const SEARCH_LIMIT = 12;
@@ -18,10 +19,7 @@ export const getDietV2CatalogKey = (
   normalizedName: string
 ): string => `${category}:${normalizedName}`;
 
-export class DietV2CatalogService extends BaseService<
-  IDietV2CatalogItem,
-  DietV2CatalogRepository
-> {
+export class DietV2CatalogService extends BaseService<IDietV2CatalogItem, DietV2CatalogRepository> {
   constructor() {
     super(new DietV2CatalogRepository(), "diet-v2-catalog");
   }
@@ -69,6 +67,7 @@ export class DietV2CatalogService extends BaseService<
       ...meal.categories.flatMap((category) =>
         category.items.map((item) => ({ category: category.category, name: item.name }))
       ),
+      ...meal.addOns.map((item) => ({ category: "addon" as const, name: item.name })),
       ...(meal.freeCalories?.description.trim()
         ? [{ category: "freeCalories" as const, name: meal.freeCalories.description }]
         : []),
@@ -83,11 +82,11 @@ export class DietV2CatalogService extends BaseService<
         name: meal.name,
         categories: meal.categories.map((category) => ({
           category: category.category,
+          ...(category.items.length > 0 && category.macros
+            ? { macros: { ...category.macros } }
+            : {}),
           items: category.items.map((item) => {
-            const key = getDietV2CatalogKey(
-              category.category,
-              normalizeDietV2Name(item.name)
-            );
+            const key = getDietV2CatalogKey(category.category, normalizeDietV2Name(item.name));
             const catalogItem = resolved.get(key);
 
             if (!catalogItem?._id) {
@@ -97,12 +96,17 @@ export class DietV2CatalogService extends BaseService<
             return { name: item.name.trim(), catalogItemId: catalogItem._id };
           }),
         })),
-        macros: {
-          calories: meal.macros.calories,
-          protein: meal.macros.protein,
-          carbs: meal.macros.carbs,
-          fat: meal.macros.fat,
-        },
+        addOns: meal.addOns.map((item) => {
+          const key = getDietV2CatalogKey("addon", normalizeDietV2Name(item.name));
+          const catalogItem = resolved.get(key);
+
+          if (!catalogItem?._id) {
+            throw new Error(`Could not resolve catalog item: ${item.name}`);
+          }
+
+          return { name: item.name.trim(), catalogItemId: catalogItem._id };
+        }),
+        macros: deriveDietV2MealMacros(meal.categories),
         ...(meal.freeCalories
           ? {
               freeCalories: {
@@ -116,10 +120,7 @@ export class DietV2CatalogService extends BaseService<
     };
   }
 
-  async search(
-    category: DietV2CatalogCategory,
-    query: string
-  ): Promise<IDietV2CatalogItem[]> {
+  async search(category: DietV2CatalogCategory, query: string): Promise<IDietV2CatalogItem[]> {
     const normalizedQuery = normalizeDietV2Name(query);
 
     if (!normalizedQuery) return [];

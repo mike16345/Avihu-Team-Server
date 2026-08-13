@@ -26,12 +26,20 @@ const buildV2Preset = (name: string) => ({
     {
       name: "Breakfast",
       categories: [
-        { category: "protein" as const, items: [{ name: "200g Greek yogurt" }] },
-        { category: "carbs" as const, items: [{ name: "50g Oats" }] },
+        {
+          category: "protein" as const,
+          items: [{ name: "200g Greek yogurt" }],
+          macros: { calories: 200, protein: 30, carbs: 0, fat: 4 },
+        },
+        {
+          category: "carbs" as const,
+          items: [{ name: "50g Oats" }],
+          macros: { calories: 250, protein: 0, carbs: 50, fat: 8 },
+        },
         { category: "fat" as const, items: [] },
         { category: "vegetables" as const, items: [] },
-        { category: "addon" as const, items: [] },
       ],
+      addOns: [{ name: "Cinnamon" }],
       macros: { calories: 450, protein: 30, carbs: 50, fat: 12 },
       freeCalories: { calories: 100, description: "Fruit or snack" },
     },

@@ -8,12 +8,19 @@ import {
   DietPlanV2SchemaValidation,
 } from "../../src/models/dietPlanV2Schemas";
 
-const buildCategories = () => [
-  { category: "protein", items: [{ name: "100g Chicken breast" }] },
-  { category: "carbs", items: [{ name: "200 grams rice" }] },
+const buildCategories = (): any[] => [
+  {
+    category: "protein",
+    items: [{ name: "100g Chicken breast" }],
+    macros: { calories: 200, protein: 25, carbs: 0, fat: 4 },
+  },
+  {
+    category: "carbs",
+    items: [{ name: "200 grams rice" }],
+    macros: { calories: 248, protein: 0, carbs: 45, fat: 8 },
+  },
   { category: "fat", items: [] },
   { category: "vegetables", items: [] },
-  { category: "addon", items: [] },
 ];
 
 const buildPlan = (overrides: Record<string, unknown> = {}) => ({
@@ -23,6 +30,7 @@ const buildPlan = (overrides: Record<string, unknown> = {}) => ({
     {
       name: "Breakfast",
       categories: buildCategories(),
+      addOns: [{ name: "Coffee" }],
       macros: {
         calories: 448,
         protein: 25,
@@ -101,6 +109,39 @@ describe("Diet Plan V2 validation", () => {
     expect(incompleteFreeCalories.error).toBeDefined();
     expect(invalidMacros.error).toBeDefined();
     expect(missingMacros.error).toBeDefined();
+  });
+
+  test("requires complete macros only for populated categories and accepts explicit zero", () => {
+    const baseMeal = buildPlan().meals[0];
+    const missingCategoryMacros = buildCategories();
+    delete (missingCategoryMacros[0] as any).macros;
+    const missing = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, categories: missingCategoryMacros }] })
+    );
+    const explicitZero = buildCategories();
+    explicitZero[0].macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    const valid = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, categories: explicitZero }] })
+    );
+
+    expect(missing.error?.message).toContain("protein macros are required");
+    expect(valid.error).toBeUndefined();
+  });
+
+  test("rejects normalized duplicate add-on names", () => {
+    const baseMeal = buildPlan().meals[0];
+    const result = DietPlanV2SchemaValidation.validate(
+      buildPlan({
+        meals: [
+          {
+            ...baseMeal,
+            addOns: [{ name: "Coffee" }, { name: "  COFFEE " }],
+          },
+        ],
+      })
+    );
+
+    expect(result.error?.message).toContain("duplicate item name in addOns");
   });
 });
 

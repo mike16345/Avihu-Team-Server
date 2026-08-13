@@ -1,14 +1,9 @@
 import { Types } from "mongoose";
 
-export const DIET_V2_MEAL_CATEGORIES = [
-  "protein",
-  "carbs",
-  "fat",
-  "vegetables",
-  "addon",
-] as const;
+export const DIET_V2_MEAL_CATEGORIES = ["protein", "carbs", "fat", "vegetables"] as const;
 export const DIET_V2_CATALOG_CATEGORIES = [
   ...DIET_V2_MEAL_CATEGORIES,
+  "addon",
   "freeCalories",
 ] as const;
 export const DIET_V2_TEMPLATE_GOALS = ["cutting", "maintain", "bulking"] as const;
@@ -39,6 +34,7 @@ export interface DietV2PlanItem {
 export interface DietV2Category {
   category: DietV2MealCategory;
   items: DietV2PlanItem[];
+  macros?: DietV2MealMacros;
 }
 
 export interface DietV2MealMacros {
@@ -57,6 +53,7 @@ export interface DietV2Meal {
   _id?: Types.ObjectId | string;
   name: string;
   categories: DietV2Category[];
+  addOns: DietV2PlanItem[];
   macros: DietV2MealMacros;
   freeCalories?: DietV2FreeCalories;
   supplements?: string[];
