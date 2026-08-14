@@ -406,3 +406,6 @@ FodyWeavers.xsd
 **/**/*.zip 
 **/**/release.js 
 insertTrainerId.ts
+
+# Local Codex/Superpowers design and implementation notes
+docs/superpowers/
