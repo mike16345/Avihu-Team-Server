@@ -45,6 +45,7 @@ const JWT_ACCESS_EXPIRES_IN = `JWT_ACCESS_EXPIRES_IN=${process.env.JWT_ACCESS_EX
 const JWT_REFRESH_EXPIRES_IN_MS = `JWT_REFRESH_EXPIRES_IN_MS=${process.env.JWT_REFRESH_EXPIRES_IN_MS}`;
 
 const AVIHU_TRAINER_ID = `AVIHU_TRAINER_ID=${process.env.AVIHU_TRAINER_ID}`;
+const OPEN_FOOD_FACTS_USER_AGENT = `OPEN_FOOD_FACTS_USER_AGENT=${process.env.OPEN_FOOD_FACTS_USER_AGENT}`;
 
 const JWT_ENV = `${JWT_ACCESS_SECRET},${JWT_ACCESS_EXPIRES_IN},${JWT_REFRESH_EXPIRES_IN_MS}`;
 const signedUrlEnv = `${AWS_BUCKET},${AMAZON_REGION},${ACCESS_KEY},${ACCESS_SECRET}`;
@@ -53,6 +54,7 @@ const ragEnv = `${OPEN_AI_KEY},${PINECONE_API_KEY},${PINECONE_INDEX}`;
 const envMap = {
   signedUrl: `${signedUrlEnv},${apiEnv}`,
   api: apiEnv,
+  foodCatalog: `${apiEnv},${OPEN_FOOD_FACTS_USER_AGENT}`,
   otp: `${EMAIL},${APP_PASSWORD},${apiEnv}`,
   rag: `${ragEnv},${apiEnv}`,
 };

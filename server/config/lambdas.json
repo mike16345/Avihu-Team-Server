@@ -23,5 +23,6 @@
   "MuscleMeasurements": { "functionName": "MuscleMeasurements", "envToUse": "api" },
   "agreements": { "functionName": "Agreements", "envToUse": "signedUrl" },
   "subTrainers": { "functionName": "SubTrainers", "envToUse": "otp" },
-  "trainers": { "functionName": "Trainers", "envToUse": "otp" }
+  "trainers": { "functionName": "Trainers", "envToUse": "otp" },
+  "foodCatalog": { "functionName": "FoodCatalog", "envToUse": "foodCatalog" }
 }

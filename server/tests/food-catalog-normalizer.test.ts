@@ -105,9 +105,7 @@ describe("OpenFoodFactsNormalizer", () => {
       carbohydrates: null,
       fat: 0,
     });
-    expect(result.providerData.nutrition.perServing).toEqual(
-      result.providerData.nutrition.per100
-    );
+    expect(result.providerData.nutrition.perServing).toEqual(result.providerData.nutrition.per100);
     expect(result.providerData.dataQuality.status).toBe("partial");
     expect(result.providerData.dataQuality.missingFields).toEqual([
       "nutrition.per100.protein",
