@@ -4,6 +4,7 @@ import { FoodCatalogRepository } from "../repositories/FoodCatalog/FoodCatalogRe
 import { FoodCatalogLookupCacheRepository } from "../repositories/FoodCatalog/FoodCatalogLookupCacheRepository";
 import { normalizeOpenFoodFactsProduct } from "./foodCatalog/OpenFoodFactsNormalizer";
 import { applyAdminOverridePatch, mergeFoodCatalogData } from "./foodCatalog/mergeFoodCatalogData";
+import { buildFoodCatalogSearchFields } from "../utils/foodCatalogSearch";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_MS = 30 * DAY_MS;
@@ -14,6 +15,8 @@ const NOT_FOUND_BACKOFF_MS = DAY_MS;
 type CacheStatus = "created" | "hit" | "refreshed" | "stale_fallback";
 
 export class FoodCatalogService {
+  private legacySearchBackfillComplete = false;
+
   constructor(
     private readonly repository = new FoodCatalogRepository(),
     private readonly negativeCache = new FoodCatalogLookupCacheRepository(),
@@ -42,6 +45,44 @@ export class FoodCatalogService {
       },
       cache: { status },
     };
+  }
+
+  private async rebuildSearchFields(item: any): Promise<any> {
+    let current = item;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const effective = mergeFoodCatalogData(current.providerData, current.adminOverrides);
+      const search = buildFoodCatalogSearchFields(current.providerData, effective);
+      const updated = await this.repository.updateSearchFields(
+        current._id.toString(),
+        search,
+        current.adminOverrides?.updatedAt ?? null,
+        current.source.normalizedDataHash
+      );
+      if (updated) return updated;
+      current = await this.repository.findByItemId(current._id.toString());
+      if (!current) return item;
+    }
+    return current;
+  }
+
+  private async backfillLegacySearchFields(): Promise<void> {
+    if (this.legacySearchBackfillComplete) return;
+    const batchSize = 200;
+    const items = await this.repository.findMissingSearchItems(batchSize);
+    if (items.length) {
+      await this.repository.bulkUpdateSearchFields(
+        items.map((item: any) => ({
+          itemId: item._id.toString(),
+          search: buildFoodCatalogSearchFields(
+            item.providerData,
+            mergeFoodCatalogData(item.providerData, item.adminOverrides)
+          ),
+          adminOverridesUpdatedAt: item.adminOverrides?.updatedAt ?? null,
+          normalizedDataHash: item.source.normalizedDataHash,
+        }))
+      );
+    }
+    this.legacySearchBackfillComplete = items.length < batchSize;
   }
 
   async lookupBarcode(barcodeInput: string, now = new Date()) {
@@ -111,7 +152,8 @@ export class FoodCatalogService {
           now,
           nextRefreshAt
         );
-        return this.response(unchanged ?? cached, "hit");
+        const searchable = await this.rebuildSearchFields(unchanged ?? cached);
+        return this.response(searchable, "hit");
       }
       const refreshed = await this.repository.completeRefresh(
         cached._id.toString(),
@@ -119,7 +161,8 @@ export class FoodCatalogService {
         now,
         nextRefreshAt
       );
-      return this.response(refreshed ?? cached, "refreshed");
+      const searchable = await this.rebuildSearchFields(refreshed ?? cached);
+      return this.response(searchable, "refreshed");
     } catch (_error) {
       const fallback = await this.repository.failRefresh(
         cached._id.toString(),
@@ -134,6 +177,13 @@ export class FoodCatalogService {
     const item = await this.repository.incrementConsumption(itemId, now);
     if (!item) throw { status: 404, message: "Food catalog item was not found." };
     return { id: item._id.toString(), analytics: item.analytics };
+  }
+
+  async search(query: string) {
+    await this.backfillLegacySearchFields();
+    const normalizedQuery = query.trim();
+    const items = await this.repository.searchCatalog(normalizedQuery, normalizedQuery ? 10 : 6);
+    return { products: items.map((item) => this.response(item, "hit").product) };
   }
 
   async applyAdminOverrides(
@@ -155,12 +205,17 @@ export class FoodCatalogService {
     const updated = overrides
       ? await this.repository.setAdminOverrides(itemId, overrides)
       : await this.repository.clearAdminOverrides(itemId);
-    return this.response(updated, "hit").product;
+    if (!updated) throw { status: 404, message: "Food catalog item was not found." };
+    const searchable = await this.rebuildSearchFields(updated);
+    return this.response(searchable, "hit").product;
   }
 
   async clearAdminOverrides(itemId: string) {
+    const current = await this.repository.findByItemId(itemId);
+    if (!current) throw { status: 404, message: "Food catalog item was not found." };
     const item = await this.repository.clearAdminOverrides(itemId);
     if (!item) throw { status: 404, message: "Food catalog item was not found." };
-    return this.response(item, "hit").product;
+    const searchable = await this.rebuildSearchFields(item);
+    return this.response(searchable, "hit").product;
   }
 }

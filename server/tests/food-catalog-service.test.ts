@@ -4,6 +4,7 @@ import {
   mergeFoodCatalogData,
 } from "../src/services/foodCatalog/mergeFoodCatalogData";
 import { FoodCatalogService } from "../src/services/foodCatalogService";
+import { buildFoodCatalogSearchFields } from "../src/utils/foodCatalogSearch";
 
 const now = new Date("2026-08-13T12:00:00.000Z");
 const nutrition = {
@@ -37,6 +38,10 @@ const item = (nextRefreshAt: Date): any => ({
 });
 
 describe("food catalog Admin overlays", () => {
+  test("does not index the original language code as a product name", () => {
+    expect(buildFoodCatalogSearchFields(providerData).normalizedNames).not.toContain("en");
+  });
+
   test("merges only overridden leaves and keeps provider siblings", () => {
     const effective = mergeFoodCatalogData(providerData, {
       names: { he: "תיקון" },
@@ -73,8 +78,12 @@ describe("FoodCatalogService", () => {
       failRefresh: jest.fn(),
       incrementConsumption: jest.fn(),
       findByItemId: jest.fn(),
+      searchCatalog: jest.fn(),
       setAdminOverrides: jest.fn(),
       clearAdminOverrides: jest.fn(),
+      findMissingSearchItems: jest.fn().mockResolvedValue([]),
+      bulkUpdateSearchFields: jest.fn(),
+      updateSearchFields: jest.fn(),
     };
     const negativeCache: any = {
       findActive: jest.fn().mockResolvedValue(null),
@@ -143,5 +152,170 @@ describe("FoodCatalogService", () => {
 
     expect(result.cache.status).toBe("hit");
     expect(provider.getProduct).not.toHaveBeenCalled();
+  });
+
+  test("keeps Admin override names searchable after a provider refresh", async () => {
+    const { service, repository, provider } = setup();
+    const cached = {
+      ...item(new Date("2026-08-01")),
+      adminOverrides: {
+        names: { he: "שם מתוקן" },
+        updatedAt: now,
+        updatedBy: new Types.ObjectId(),
+      },
+    };
+    repository.findByBarcode.mockResolvedValue(cached);
+    repository.tryAcquireRefreshLease.mockResolvedValue(cached);
+    provider.getProduct.mockResolvedValue({ status: "found", product: { code: "12345678" } });
+    repository.completeRefresh.mockResolvedValue(cached);
+    repository.updateSearchFields.mockResolvedValue(cached);
+
+    await service.lookupBarcode("12345678", now);
+
+    const search = repository.updateSearchFields.mock.calls[0][1];
+    expect(search.normalizedNames).toEqual(expect.arrayContaining(["מקור", "שם מתוקן"]));
+    expect(search.prefixes).toContain("מתוקן");
+  });
+
+  test("retries search indexing when an Admin override changes during refresh", async () => {
+    const { service, repository, provider } = setup();
+    const cached = item(new Date("2026-08-01"));
+    const latest = {
+      ...cached,
+      adminOverrides: {
+        names: { he: "השם החדש" },
+        updatedAt: new Date("2026-08-13T12:00:01.000Z"),
+        updatedBy: new Types.ObjectId(),
+      },
+      source: { ...cached.source, normalizedDataHash: "new" },
+    };
+    repository.findByBarcode.mockResolvedValue(cached);
+    repository.tryAcquireRefreshLease.mockResolvedValue(cached);
+    provider.getProduct.mockResolvedValue({ status: "found", product: { code: "12345678" } });
+    repository.completeRefresh.mockResolvedValue({
+      ...cached,
+      source: { ...cached.source, normalizedDataHash: "new" },
+    });
+    repository.updateSearchFields.mockResolvedValueOnce(null).mockResolvedValueOnce(latest);
+    repository.findByItemId.mockResolvedValue(latest);
+
+    await service.lookupBarcode("12345678", now);
+
+    expect(repository.updateSearchFields).toHaveBeenCalledTimes(2);
+    expect(repository.updateSearchFields.mock.calls[1][1].prefixes).toContain("החדש");
+  });
+
+  test("returns effective overridden products from local catalog search", async () => {
+    const { service, repository, provider } = setup();
+    repository.searchCatalog.mockResolvedValue([
+      {
+        ...item(new Date("2026-09-01")),
+        adminOverrides: {
+          names: { he: "שם מתוקן" },
+          updatedAt: now,
+          updatedBy: new Types.ObjectId(),
+        },
+      },
+    ]);
+
+    const result = await service.search("שם");
+
+    expect(repository.searchCatalog).toHaveBeenCalledWith("שם", 10);
+    expect(result.products[0].displayName).toBe("שם מתוקן");
+    expect(provider.getProduct).not.toHaveBeenCalled();
+  });
+
+  test("rebuilds searchable prefixes when an Admin overrides a product name", async () => {
+    const { service, repository } = setup();
+    const current = item(new Date("2026-09-01"));
+    repository.findByItemId.mockResolvedValue(current);
+    repository.setAdminOverrides.mockImplementation(async (_id: string, overrides: any) => ({
+      ...current,
+      adminOverrides: overrides,
+    }));
+    repository.updateSearchFields.mockImplementation(async (_id: string, search: any) => ({
+      ...current,
+      adminOverrides: {
+        names: { he: "שם מתוקן" },
+        updatedAt: now,
+        updatedBy: new Types.ObjectId(),
+      },
+      search,
+    }));
+
+    await service.applyAdminOverrides(
+      current._id.toString(),
+      { names: { he: "שם מתוקן" } },
+      new Types.ObjectId().toString()
+    );
+
+    const search = repository.updateSearchFields.mock.calls[0][1];
+    expect(search.normalizedNames).toEqual(expect.arrayContaining(["מקור", "שם מתוקן"]));
+    expect(search.prefixes).toEqual(expect.arrayContaining(["שם", "מתו", "מתוקן"]));
+  });
+
+  test("owns popular and textual result counts on the server", async () => {
+    const { service, repository } = setup();
+    repository.searchCatalog.mockResolvedValue([]);
+
+    await service.search("");
+    await service.search("chicken");
+
+    expect(repository.searchCatalog.mock.calls).toEqual([
+      ["", 6],
+      ["chicken", 10],
+    ]);
+  });
+
+  test("backfills normalized search fields for legacy catalog items", async () => {
+    const { service, repository } = setup();
+    const legacy = {
+      ...item(new Date("2026-09-01")),
+      adminOverrides: {
+        names: { he: "שם מתוקן" },
+        updatedAt: now,
+        updatedBy: new Types.ObjectId(),
+      },
+    };
+    repository.findMissingSearchItems.mockResolvedValue([legacy]);
+    repository.searchCatalog.mockResolvedValue([]);
+
+    await service.search("");
+
+    expect(repository.bulkUpdateSearchFields).toHaveBeenCalledWith([
+      expect.objectContaining({
+        itemId: legacy._id.toString(),
+        search: expect.objectContaining({ prefixes: expect.arrayContaining(["מתוקן"]) }),
+        adminOverridesUpdatedAt: now,
+        normalizedDataHash: "old",
+      }),
+    ]);
+  });
+
+  test("rebuilds search fields even when provider nutrition is unchanged", async () => {
+    const { service, repository, provider, normalizer } = setup();
+    const cached = {
+      ...item(new Date("2026-08-01")),
+      adminOverrides: {
+        names: { he: "שם מתוקן" },
+        updatedAt: now,
+        updatedBy: new Types.ObjectId(),
+      },
+    };
+    repository.findByBarcode.mockResolvedValue(cached);
+    repository.tryAcquireRefreshLease.mockResolvedValue(cached);
+    provider.getProduct.mockResolvedValue({ status: "found", product: { code: "12345678" } });
+    normalizer.mockReturnValue({
+      providerData,
+      schemaVersion: 1004,
+      sourceLastModifiedAt: null,
+      normalizedDataHash: "old",
+    });
+    repository.markRefreshUnchanged = jest.fn().mockResolvedValue(cached);
+    repository.updateSearchFields.mockResolvedValue(cached);
+
+    await service.lookupBarcode("12345678", now);
+
+    expect(repository.updateSearchFields.mock.calls[0][1].prefixes).toContain("מתוקן");
   });
 });

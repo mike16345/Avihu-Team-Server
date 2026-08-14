@@ -81,6 +81,7 @@ export interface IFoodCatalogItem extends Document {
     normalizedNames: string[];
     normalizedBrand: string | null;
     aliases: string[];
+    prefixes: string[];
   };
   source: {
     provider: "open_food_facts" | "admin" | "future_provider";

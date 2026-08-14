@@ -4,6 +4,7 @@ import {
   validateFoodCatalogItemId,
   validateFoodCatalogLookup,
   validateFoodCatalogOverride,
+  validateFoodCatalogSearch,
 } from "../../middleware/foodCatalogMiddleware";
 import { ApiRouteHandlers } from "../../types/lambdaTypes";
 import { handleApiCall } from "../baseHandler";
@@ -16,6 +17,11 @@ export const foodCatalogApiRoutes: ApiRouteHandlers = {
     handler: controller.lookupBarcode,
     access: "authenticated",
     middlewares: [validateFoodCatalogLookup],
+  },
+  [`GET ${BASE_PATH}/search`]: {
+    handler: controller.search,
+    access: "authenticated",
+    middlewares: [validateFoodCatalogSearch],
   },
   [`POST ${BASE_PATH}/consumption`]: {
     handler: controller.reportConsumption,

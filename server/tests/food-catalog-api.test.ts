@@ -3,6 +3,7 @@ import {
   validateFoodCatalogItemId,
   validateFoodCatalogLookup,
   validateFoodCatalogOverride,
+  validateFoodCatalogSearch,
 } from "../src/middleware/foodCatalogMiddleware";
 import { FoodCatalogController } from "../src/controllers/FoodCatalogController";
 import { foodCatalogApiRoutes } from "../src/functions/foodCatalog";
@@ -22,6 +23,13 @@ describe("food catalog request validation", () => {
   test("requires valid item ids", () => {
     expect(validateFoodCatalogItemId(event({ id: "64b000000000000000000001" })).isValid).toBe(true);
     expect(validateFoodCatalogItemId(event({ id: "bad" })).isValid).toBe(false);
+  });
+
+  test("accepts an empty popular query and constrains textual searches", () => {
+    expect(validateFoodCatalogSearch(event()).isValid).toBe(true);
+    expect(validateFoodCatalogSearch(event({ q: "  חזה עוף  " })).isValid).toBe(true);
+    expect(validateFoodCatalogSearch(event({ q: "א" })).isValid).toBe(false);
+    expect(validateFoodCatalogSearch(event({ q: "chicken", limit: "20" })).isValid).toBe(false);
   });
 
   test("allows finite nonnegative override values and null for clearing", () => {
@@ -47,6 +55,7 @@ describe("food catalog request validation", () => {
 describe("food catalog API", () => {
   test("declares ordinary catalog routes as authenticated and overrides as admin-only", () => {
     expect(foodCatalogApiRoutes["GET /foodCatalog/barcode"].access).toBe("authenticated");
+    expect(foodCatalogApiRoutes["GET /foodCatalog/search"].access).toBe("authenticated");
     expect(foodCatalogApiRoutes["POST /foodCatalog/consumption"].access).toBe("authenticated");
     expect(foodCatalogApiRoutes["PATCH /foodCatalog/admin-overrides"].access).toBe("admin");
     expect(foodCatalogApiRoutes["DELETE /foodCatalog/admin-overrides"].access).toBe("admin");
@@ -68,5 +77,18 @@ describe("food catalog API", () => {
       product: { id: "item", displayName: "מוצר" },
       cache: { status: "hit" },
     });
+  });
+
+  test("returns catalog search products without triggering barcode lookup", async () => {
+    const service: any = {
+      search: jest.fn().mockResolvedValue({ products: [{ id: "item", displayName: "מוצר" }] }),
+    };
+    const controller = new FoodCatalogController(service);
+
+    const response = await controller.search(event({ q: "מוצר" }));
+
+    expect(response.statusCode).toBe(200);
+    expect(service.search).toHaveBeenCalledWith("מוצר");
+    expect(JSON.parse(response.body).data.products[0].displayName).toBe("מוצר");
   });
 });

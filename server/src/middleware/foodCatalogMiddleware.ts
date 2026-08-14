@@ -13,6 +13,10 @@ const barcodeQuerySchema = Joi.object({
     .required(),
 }).unknown(false);
 
+const searchQuerySchema = Joi.object({
+  q: Joi.string().trim().min(2).max(80).allow(""),
+}).unknown(false);
+
 const nullableText = Joi.string().trim().max(500).allow(null);
 const nullableNutrient = Joi.number().min(0).allow(null);
 const nutritionValues = Joi.object({
@@ -74,6 +78,11 @@ const overrideBodySchema = Joi.object({
 
 export const validateFoodCatalogLookup = (event: APIGatewayProxyEvent) => {
   const { error } = barcodeQuerySchema.validate(event.queryStringParameters ?? {});
+  return createValidatorResponse(!error, error?.message);
+};
+
+export const validateFoodCatalogSearch = (event: APIGatewayProxyEvent) => {
+  const { error } = searchQuerySchema.validate(event.queryStringParameters ?? {});
   return createValidatorResponse(!error, error?.message);
 };
 

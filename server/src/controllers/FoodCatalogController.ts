@@ -23,6 +23,16 @@ export class FoodCatalogController {
     }
   };
 
+  search = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const query = event.queryStringParameters?.q?.trim() ?? "";
+      const data = await this.service.search(query);
+      return createServerResponse(StatusCode.OK, "Food catalog searched successfully.", data);
+    } catch (error) {
+      return this.error(error);
+    }
+  };
+
   reportConsumption = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
     try {
       const data = await this.service.reportConsumption(event.queryStringParameters!.id!);

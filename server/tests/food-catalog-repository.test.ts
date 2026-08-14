@@ -56,4 +56,43 @@ describe("FoodCatalogRepository", () => {
     expect(first).not.toBeNull();
     expect(second).toBeNull();
   });
+
+  test("finds word prefixes and ranks the empty catalog by consumption", async () => {
+    const repository = new FoodCatalogRepository();
+    const now = new Date("2026-08-13T12:00:00.000Z");
+    const chicken = normalizeOpenFoodFactsProduct(
+      {
+        code: "7290000000001",
+        product_name_en: "Chicken Breast",
+        product_name_he: "חזה עוף",
+        brands: "Example",
+      },
+      "7290000000001"
+    );
+    const yogurt = normalizeOpenFoodFactsProduct(
+      { code: "7290000000002", product_name_en: "Greek Yogurt" },
+      "7290000000002"
+    );
+    const chickenItem = await repository.upsertProviderProduct(
+      chicken,
+      "7290000000001",
+      now,
+      new Date("2026-09-12T12:00:00.000Z")
+    );
+    await repository.upsertProviderProduct(
+      yogurt,
+      "7290000000002",
+      now,
+      new Date("2026-09-12T12:00:00.000Z")
+    );
+    await repository.incrementConsumption(chickenItem._id.toString(), now);
+
+    const matches = await repository.searchCatalog("chic bre", 10);
+    const popular = await repository.searchCatalog("", 1);
+    const languageCodeMatches = await repository.searchCatalog("en", 10);
+
+    expect(matches.map((item: any) => item.providerData.names.en)).toEqual(["Chicken Breast"]);
+    expect(popular[0].providerData.names.en).toBe("Chicken Breast");
+    expect(languageCodeMatches).toHaveLength(0);
+  });
 });

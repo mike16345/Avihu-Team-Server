@@ -5,23 +5,14 @@ import {
   NormalizedOpenFoodFactsProduct,
 } from "../../interfaces/IFoodCatalogItem";
 import { FoodCatalogItemModel } from "../../models/foodCatalogItemModel";
+import {
+  buildFoodCatalogSearchFields,
+  FoodCatalogSearchFields,
+  tokenizeFoodCatalogSearch,
+} from "../../utils/foodCatalogSearch";
 import { BaseRepository } from "../BaseRepository";
 
-const normalizeSearchValue = (value: string | null): string | null =>
-  value ? value.normalize("NFKC").trim().toLocaleLowerCase() : null;
-
-const buildSearch = (normalized: NormalizedOpenFoodFactsProduct) => ({
-  normalizedNames: Array.from(
-    new Set(
-      Object.values(normalized.providerData.names)
-        .filter((value): value is string => typeof value === "string")
-        .map((value) => normalizeSearchValue(value))
-        .filter((value): value is string => value !== null)
-    )
-  ),
-  normalizedBrand: normalizeSearchValue(normalized.providerData.brand),
-  aliases: [],
-});
+const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
   constructor() {
@@ -62,6 +53,93 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
     ).lean();
   }
 
+  async searchCatalog(query: string, limit: number): Promise<any[]> {
+    const terms = tokenizeFoodCatalogSearch(query);
+    const filter: any = terms.length
+      ? {
+          $or: [
+            { "search.prefixes": { $all: terms } },
+            {
+              $and: terms.map((term) => {
+                const expression = new RegExp(`(^|\\s)${escapeRegex(term)}`, "u");
+                return {
+                  $or: [
+                    { "search.normalizedNames": expression },
+                    { "search.normalizedBrand": expression },
+                    { "search.aliases": expression },
+                  ],
+                };
+              }),
+            },
+          ],
+        }
+      : {};
+
+    return FoodCatalogItemModel.find(filter)
+      .sort({ "analytics.consumptionCount": -1, "analytics.lookupCount": -1, _id: 1 })
+      .limit(limit)
+      .lean();
+  }
+
+  async findMissingSearchItems(limit: number): Promise<any[]> {
+    return FoodCatalogItemModel.find({
+      $or: [{ "search.prefixes": { $exists: false } }, { "search.prefixes": { $size: 0 } }],
+    })
+      .limit(limit)
+      .lean();
+  }
+
+  async bulkUpdateSearchFields(
+    updates: Array<{
+      itemId: string;
+      search: FoodCatalogSearchFields;
+      adminOverridesUpdatedAt: Date | null;
+      normalizedDataHash: string;
+    }>
+  ): Promise<void> {
+    if (!updates.length) return;
+    await FoodCatalogItemModel.bulkWrite(
+      updates.map(({ itemId, search, adminOverridesUpdatedAt, normalizedDataHash }) => ({
+        updateOne: {
+          filter: this.searchVersionFilter(itemId, adminOverridesUpdatedAt, normalizedDataHash),
+          update: { $set: { search } },
+        },
+      }))
+    );
+  }
+
+  async updateSearchFields(
+    itemId: string,
+    search: FoodCatalogSearchFields,
+    adminOverridesUpdatedAt: Date | null,
+    normalizedDataHash: string
+  ): Promise<any | null> {
+    return FoodCatalogItemModel.findOneAndUpdate(
+      this.searchVersionFilter(itemId, adminOverridesUpdatedAt, normalizedDataHash),
+      { $set: { search } },
+      { new: true }
+    ).lean();
+  }
+
+  private searchVersionFilter(
+    itemId: string,
+    adminOverridesUpdatedAt: Date | null,
+    normalizedDataHash: string
+  ): any {
+    const providerVersion = { "source.normalizedDataHash": normalizedDataHash };
+    return adminOverridesUpdatedAt
+      ? {
+          _id: itemId,
+          ...providerVersion,
+          "adminOverrides.updatedAt": adminOverridesUpdatedAt,
+        }
+      : {
+          _id: itemId,
+          ...providerVersion,
+          $or: [{ adminOverrides: null }, { adminOverrides: { $exists: false } }],
+        };
+  }
+
   async upsertProviderProduct(
     normalized: NormalizedOpenFoodFactsProduct,
     requestedBarcode: string,
@@ -85,7 +163,7 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
             },
           },
           adminOverrides: null,
-          search: buildSearch(normalized),
+          search: buildFoodCatalogSearchFields(normalized.providerData),
           source: {
             provider: "open_food_facts",
             providerId: normalized.providerData.identifiers.providerId,
@@ -134,7 +212,6 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
       {
         $set: {
           providerData: normalized.providerData,
-          search: buildSearch(normalized),
           "source.providerId": normalized.providerData.identifiers.providerId,
           "source.schemaVersion": normalized.schemaVersion,
           "source.sourceLastModifiedAt": normalized.sourceLastModifiedAt,

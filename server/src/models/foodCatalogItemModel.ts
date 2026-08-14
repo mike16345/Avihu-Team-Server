@@ -108,6 +108,7 @@ export const foodCatalogItemSchema = new Schema<IFoodCatalogItem>(
       normalizedNames: { type: [String], default: [] },
       normalizedBrand: { type: String, default: null },
       aliases: { type: [String], default: [] },
+      prefixes: { type: [String], default: [] },
     },
     source: {
       provider: {
@@ -153,6 +154,7 @@ foodCatalogItemSchema.index(
 );
 foodCatalogItemSchema.index({ "source.nextRefreshAt": 1 });
 foodCatalogItemSchema.index({ "analytics.consumptionCount": -1 });
+foodCatalogItemSchema.index({ "search.prefixes": 1, "analytics.consumptionCount": -1 });
 
 export const FoodCatalogItemModel = model<IFoodCatalogItem>(
   "FoodCatalogItem",
