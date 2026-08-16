@@ -33,7 +33,12 @@ const item = (nextRefreshAt: Date): any => ({
   _id: new Types.ObjectId("64b000000000000000000001"),
   providerData,
   adminOverrides: null,
-  source: { normalizedDataHash: "old", nextRefreshAt },
+  source: {
+    provider: "open_food_facts",
+    providerId: "12345678",
+    normalizedDataHash: "old",
+    nextRefreshAt,
+  },
   analytics: { lookupCount: 1, consumptionCount: 0 },
 });
 
@@ -112,6 +117,11 @@ describe("FoodCatalogService", () => {
     expect(result.cache.status).toBe("hit");
     expect(result.product.displayName).toBe("מקור");
     expect(result.product.analytics.lookupCount).toBe(2);
+    expect(result.product.provenance).toEqual({
+      provider: "open_food_facts",
+      license: "ODbL-1.0",
+      sourceUrl: "https://world.openfoodfacts.org/product/12345678",
+    });
     expect(provider.getProduct).not.toHaveBeenCalled();
   });
 

@@ -26,6 +26,11 @@ describe("FoodCatalogRepository", () => {
     expect(second._id.toString()).toBe(first._id.toString());
     expect(second.analytics.lookupCount).toBe(2);
     expect(second.analytics.consumptionCount).toBe(0);
+    expect(second.source).toMatchObject({
+      provider: "open_food_facts",
+      license: "ODbL-1.0",
+      sourceUrl: "https://world.openfoodfacts.org/product/12345678",
+    });
   });
 
   test("allows only one concurrent owner to acquire an active refresh lease", async () => {

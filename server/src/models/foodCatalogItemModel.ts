@@ -117,6 +117,8 @@ export const foodCatalogItemSchema = new Schema<IFoodCatalogItem>(
         enum: ["open_food_facts", "admin", "future_provider"],
       },
       providerId: { type: String, default: null },
+      license: { type: String, default: null },
+      sourceUrl: { type: String, default: null },
       schemaVersion: { type: Number, default: null },
       sourceLastModifiedAt: { type: Date, default: null },
       normalizedDataHash: { type: String, required: true },

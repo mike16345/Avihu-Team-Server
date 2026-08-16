@@ -48,6 +48,8 @@ const validDocument = () => ({
   source: {
     provider: "open_food_facts",
     providerId: "7290001234567",
+    license: "ODbL-1.0",
+    sourceUrl: "https://world.openfoodfacts.org/product/7290001234567",
     schemaVersion: 1004,
     sourceLastModifiedAt: null,
     normalizedDataHash: "a".repeat(64),
@@ -66,6 +68,10 @@ describe("FoodCatalogItemModel", () => {
     expect(saved.providerData.nutrition.per100.protein).toBe(0);
     expect(saved.providerData.nutrition.per100.carbohydrates).toBeNull();
     expect(saved.analytics).toMatchObject({ lookupCount: 0, consumptionCount: 0 });
+    expect(saved.source).toMatchObject({
+      license: "ODbL-1.0",
+      sourceUrl: "https://world.openfoodfacts.org/product/7290001234567",
+    });
     expect((saved as any).trainerId).toBeUndefined();
   });
 

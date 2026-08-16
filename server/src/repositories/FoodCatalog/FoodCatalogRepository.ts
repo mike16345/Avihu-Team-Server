@@ -11,6 +11,7 @@ import {
   tokenizeFoodCatalogSearch,
 } from "../../utils/foodCatalogSearch";
 import { BaseRepository } from "../BaseRepository";
+import { buildFoodCatalogProvenance } from "../../utils/foodCatalogProvenance";
 
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -150,6 +151,7 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
     const aliases = Array.from(
       new Set([...normalized.providerData.identifiers.barcodeAliases, requestedBarcode])
     ).filter((barcode) => barcode !== canonicalBarcode);
+    const provenance = buildFoodCatalogProvenance("open_food_facts", canonicalBarcode);
 
     return FoodCatalogItemModel.findOneAndUpdate(
       { "providerData.identifiers.barcode": canonicalBarcode },
@@ -167,6 +169,8 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
           source: {
             provider: "open_food_facts",
             providerId: normalized.providerData.identifiers.providerId,
+            license: provenance.license,
+            sourceUrl: provenance.sourceUrl,
             schemaVersion: normalized.schemaVersion,
             sourceLastModifiedAt: normalized.sourceLastModifiedAt,
             normalizedDataHash: normalized.normalizedDataHash,
@@ -207,12 +211,18 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
     now: Date,
     nextRefreshAt: Date
   ): Promise<any | null> {
+    const provenance = buildFoodCatalogProvenance(
+      "open_food_facts",
+      normalized.providerData.identifiers.barcode ?? normalized.providerData.identifiers.providerId
+    );
     return FoodCatalogItemModel.findByIdAndUpdate(
       itemId,
       {
         $set: {
           providerData: normalized.providerData,
           "source.providerId": normalized.providerData.identifiers.providerId,
+          "source.license": provenance.license,
+          "source.sourceUrl": provenance.sourceUrl,
           "source.schemaVersion": normalized.schemaVersion,
           "source.sourceLastModifiedAt": normalized.sourceLastModifiedAt,
           "source.normalizedDataHash": normalized.normalizedDataHash,

@@ -5,6 +5,10 @@ import { FoodCatalogLookupCacheRepository } from "../repositories/FoodCatalog/Fo
 import { normalizeOpenFoodFactsProduct } from "./foodCatalog/OpenFoodFactsNormalizer";
 import { applyAdminOverridePatch, mergeFoodCatalogData } from "./foodCatalog/mergeFoodCatalogData";
 import { buildFoodCatalogSearchFields } from "../utils/foodCatalogSearch";
+import {
+  buildFoodCatalogProvenance,
+  type FoodCatalogProvider,
+} from "../utils/foodCatalogProvenance";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_MS = 30 * DAY_MS;
@@ -26,6 +30,11 @@ export class FoodCatalogService {
 
   private response(item: any, status: CacheStatus) {
     const effective = mergeFoodCatalogData(item.providerData, item.adminOverrides);
+    const provider = (item.source?.provider ?? "open_food_facts") as FoodCatalogProvider;
+    const derivedProvenance = buildFoodCatalogProvenance(
+      provider,
+      item.source?.providerId ?? item.providerData.identifiers.barcode
+    );
     const displayName =
       effective.names.he ?? effective.names.en ?? effective.names.original ?? null;
     return {
@@ -41,6 +50,11 @@ export class FoodCatalogService {
               ? "original"
               : null,
         hasAdminOverrides: Boolean(item.adminOverrides),
+        provenance: {
+          provider,
+          license: item.source?.license ?? derivedProvenance.license,
+          sourceUrl: item.source?.sourceUrl ?? derivedProvenance.sourceUrl,
+        },
         analytics: item.analytics,
       },
       cache: { status },

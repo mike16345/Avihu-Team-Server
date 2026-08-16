@@ -1,4 +1,5 @@
 import { Document, Types } from "mongoose";
+import type { FoodCatalogProvider } from "../utils/foodCatalogProvenance";
 
 export type FoodMeasurementUnit = "g" | "ml";
 
@@ -84,8 +85,10 @@ export interface IFoodCatalogItem extends Document {
     prefixes: string[];
   };
   source: {
-    provider: "open_food_facts" | "admin" | "future_provider";
+    provider: FoodCatalogProvider;
     providerId: string | null;
+    license: string | null;
+    sourceUrl: string | null;
     schemaVersion: number | null;
     sourceLastModifiedAt: Date | null;
     normalizedDataHash: string;
