@@ -47,6 +47,24 @@ describe("OpenFoodFactsNormalizer", () => {
       unit: "g",
       source: "open_food_facts",
     });
+    expect(result.providerData.servings).toEqual([
+      {
+        id: "off-serving",
+        description: "1 cup (30 g)",
+        quantity: 30,
+        unit: "g",
+        nutrition: expect.objectContaining({ calories: 30, protein: 3 }),
+        source: "open_food_facts",
+      },
+      {
+        id: "off-100-g",
+        description: "100 g",
+        quantity: 100,
+        unit: "g",
+        nutrition: expect.objectContaining({ calories: 100, protein: 10 }),
+        source: "fallback_100",
+      },
+    ]);
     expect(result.providerData.nutrition.per100).toEqual({
       calories: 100,
       protein: 10,
@@ -106,6 +124,15 @@ describe("OpenFoodFactsNormalizer", () => {
       fat: 0,
     });
     expect(result.providerData.nutrition.perServing).toEqual(result.providerData.nutrition.per100);
+    expect(result.providerData.servings).toEqual([
+      expect.objectContaining({
+        id: "off-100-ml",
+        description: "100 ml",
+        quantity: 100,
+        unit: "ml",
+        nutrition: result.providerData.nutrition.per100,
+      }),
+    ]);
     expect(result.providerData.dataQuality.status).toBe("partial");
     expect(result.providerData.dataQuality.missingFields).toEqual([
       "nutrition.per100.protein",

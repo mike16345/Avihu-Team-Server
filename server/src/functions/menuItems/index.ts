@@ -7,6 +7,7 @@ import { DietV2CatalogController } from "../../controllers/dietV2CatalogControll
 import {
   validateDietV2CatalogDelete,
   validateDietV2CatalogSearch,
+  validateDietV2CatalogUpdate,
 } from "../../middleware/dietV2CatalogMiddleware";
 
 const BASE_PATH = "/menuItems";
@@ -54,6 +55,11 @@ const menuItemApiRoutes: ApiRouteHandlers = {
     handler: dietV2CatalogController.deleteItem,
     access: "subtrainer",
     middlewares: [validateDietV2CatalogDelete],
+  },
+  [`PATCH ${BASE_PATH}/v2/one`]: {
+    handler: dietV2CatalogController.updateItem,
+    access: "subtrainer",
+    middlewares: [validateDietV2CatalogUpdate],
   },
 };
 

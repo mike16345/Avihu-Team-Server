@@ -48,6 +48,22 @@ const servingSchema = new Schema(
   { _id: false, strict: "throw" }
 );
 
+const servingOptionSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    description: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 0 },
+    unit: { type: String, required: true },
+    nutrition: { type: nutritionValuesSchema, required: true },
+    source: {
+      type: String,
+      required: true,
+      enum: ["open_food_facts", "fallback_100", "admin"],
+    },
+  },
+  { _id: false, strict: "throw" }
+);
+
 const providerDataSchema = new Schema(
   {
     identifiers: {
@@ -60,6 +76,7 @@ const providerDataSchema = new Schema(
     imageUrl: { type: String, default: null },
     package: { type: measurementSchema, required: true },
     serving: { type: servingSchema, default: null },
+    servings: { type: [servingOptionSchema], required: true, default: [] },
     nutrition: {
       basisUnit: { type: String, enum: ["g", "ml", null], default: null },
       per100: { type: nutritionValuesSchema, required: true },
@@ -82,6 +99,7 @@ const adminOverridesSchema = new Schema(
     imageUrl: { type: String, required: false },
     package: { type: measurementSchema, required: false },
     serving: { type: servingSchema, required: false },
+    servings: { type: [servingOptionSchema], required: false },
     nutrition: {
       type: new Schema(
         {

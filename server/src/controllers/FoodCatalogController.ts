@@ -69,4 +69,30 @@ export class FoodCatalogController {
       return this.error(error);
     }
   };
+
+  createManualItem = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const data = await this.service.createManualItem(extractBodyFromEvent(event));
+      return createServerResponse(StatusCode.CREATED, "Food catalog item created.", data);
+    } catch (error) {
+      return this.error(error);
+    }
+  };
+
+  updateAdminItem = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
+    const adminId = event.authUser?._id?.toString();
+    if (!adminId) {
+      return createServerResponse(StatusCode.UNAUTHORIZED, "Authenticated Admin is required.");
+    }
+    try {
+      const data = await this.service.updateAdminItem(
+        event.queryStringParameters!.id!,
+        extractBodyFromEvent(event),
+        adminId
+      );
+      return createServerResponse(StatusCode.OK, "Food catalog item updated.", data);
+    } catch (error) {
+      return this.error(error);
+    }
+  };
 }

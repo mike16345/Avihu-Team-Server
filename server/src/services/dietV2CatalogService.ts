@@ -68,9 +68,10 @@ export class DietV2CatalogService extends BaseService<IDietV2CatalogItem, DietV2
         category.items.map((item) => ({ category: category.category, name: item.name }))
       ),
       ...meal.addOns.map((item) => ({ category: "addon" as const, name: item.name })),
-      ...(meal.freeCalories?.description.trim()
-        ? [{ category: "freeCalories" as const, name: meal.freeCalories.description }]
-        : []),
+      ...(meal.freeCalories?.items.map((item) => ({
+        category: "freeCalories" as const,
+        name: item.name,
+      })) ?? []),
     ]);
     const resolved = await this.resolveAndTouch(candidates);
 
@@ -111,7 +112,16 @@ export class DietV2CatalogService extends BaseService<IDietV2CatalogItem, DietV2
           ? {
               freeCalories: {
                 calories: meal.freeCalories.calories,
-                description: meal.freeCalories.description.trim(),
+                items: meal.freeCalories.items.map((item) => {
+                  const key = getDietV2CatalogKey("freeCalories", normalizeDietV2Name(item.name));
+                  const catalogItem = resolved.get(key);
+
+                  if (!catalogItem?._id) {
+                    throw new Error(`Could not resolve catalog item: ${item.name}`);
+                  }
+
+                  return { name: item.name.trim(), catalogItemId: catalogItem._id };
+                }),
               },
             }
           : {}),
@@ -138,5 +148,18 @@ export class DietV2CatalogService extends BaseService<IDietV2CatalogItem, DietV2
     this.cache.invalidateAll();
 
     return deleted;
+  }
+
+  async updateItem(id: string, name: string): Promise<IDietV2CatalogItem> {
+    const trimmedName = name.trim();
+    const normalizedName = normalizeDietV2Name(trimmedName);
+    const updated = await this.repository.updateNameScoped(id, trimmedName, normalizedName);
+
+    if (!updated) {
+      throw { status: 404, message: "Diet catalog item was not found." };
+    }
+
+    this.cache.invalidateAll();
+    return updated;
   }
 }

@@ -5,6 +5,8 @@ import {
   validateFoodCatalogLookup,
   validateFoodCatalogOverride,
   validateFoodCatalogSearch,
+  validateManualFoodCatalogItem,
+  validateManualFoodCatalogItemUpdate,
 } from "../../middleware/foodCatalogMiddleware";
 import { ApiRouteHandlers } from "../../types/lambdaTypes";
 import { handleApiCall } from "../baseHandler";
@@ -37,6 +39,16 @@ export const foodCatalogApiRoutes: ApiRouteHandlers = {
     handler: controller.clearAdminOverrides,
     access: "admin",
     middlewares: [validateFoodCatalogItemId],
+  },
+  [`POST ${BASE_PATH}/admin/items`]: {
+    handler: controller.createManualItem,
+    access: "admin",
+    middlewares: [validateManualFoodCatalogItem],
+  },
+  [`PUT ${BASE_PATH}/admin/items`]: {
+    handler: controller.updateAdminItem,
+    access: "admin",
+    middlewares: [validateManualFoodCatalogItemUpdate],
   },
 };
 

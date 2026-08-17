@@ -6,13 +6,18 @@ import {
   DIET_V2_TEMPLATE_GENDERS,
   DIET_V2_TEMPLATE_GOALS,
   DietV2Category,
+  DietV2CategoryMacros,
   DietV2Meal,
   DietV2MealMacros,
   DietV2PlanItem,
   IDietPlanPresetV2Document,
   IDietPlanV2Document,
 } from "../interfaces/IDietPlanV2";
-import { validateDietV2Categories, validateDietV2PlanItems } from "../utils/dietPlanV2";
+import {
+  DIET_V2_CATEGORY_MACRO_FIELDS,
+  validateDietV2Categories,
+  validateDietV2PlanItems,
+} from "../utils/dietPlanV2";
 import { DIET_PLANS_COLLECTION } from "./dietPlanModel";
 import { DIET_PLAN_PRESETS_COLLECTION } from "./dietPlanPresetModel";
 
@@ -53,6 +58,16 @@ export const dietV2MealMacrosSchema = new Schema<DietV2MealMacros>(
   { _id: false, strict: "throw" }
 );
 
+export const dietV2CategoryMacrosSchema = new Schema<DietV2CategoryMacros>(
+  {
+    calories: finiteNonnegativeNumber,
+    protein: { ...finiteNonnegativeNumber, required: false },
+    carbs: { ...finiteNonnegativeNumber, required: false },
+    fat: { ...finiteNonnegativeNumber, required: false },
+  },
+  { _id: false, strict: "throw" }
+);
+
 export const dietV2CategorySchema = new Schema<DietV2Category>(
   {
     category: {
@@ -61,7 +76,7 @@ export const dietV2CategorySchema = new Schema<DietV2Category>(
       required: true,
     },
     items: { type: [dietV2PlanItemSchema], required: true, default: [] },
-    macros: { type: dietV2MealMacrosSchema, required: false },
+    macros: { type: dietV2CategoryMacrosSchema, required: false },
   },
   { _id: false, strict: "throw" }
 );
@@ -69,7 +84,21 @@ export const dietV2CategorySchema = new Schema<DietV2Category>(
 export const dietV2FreeCaloriesSchema = new Schema(
   {
     calories: finiteNonnegativeNumber,
-    description: nonBlankString,
+    items: {
+      type: [dietV2PlanItemSchema],
+      required: true,
+      validate: {
+        validator: (items: DietV2PlanItem[]) => {
+          try {
+            validateDietV2PlanItems(items, "freeCalories");
+            return items.length > 0;
+          } catch {
+            return false;
+          }
+        },
+        message: "Free calories must contain unique food items",
+      },
+    },
   },
   { _id: false, strict: "throw" }
 );
@@ -198,17 +227,28 @@ const dietV2MealMacrosValidationSchema = Joi.object({
   fat: Joi.number().min(0).required(),
 });
 
+const dietV2CategoryMacrosValidationSchema = Joi.object({
+  calories: Joi.number().min(0).required(),
+  protein: Joi.number().min(0),
+  carbs: Joi.number().min(0),
+  fat: Joi.number().min(0),
+}).unknown(false);
+
 const dietV2CategoryValidationSchema = Joi.object({
   category: Joi.string()
     .valid(...DIET_V2_MEAL_CATEGORIES)
     .required(),
   items: Joi.array().items(dietV2PlanItemValidationSchema).required(),
-  macros: dietV2MealMacrosValidationSchema.optional(),
+  macros: dietV2CategoryMacrosValidationSchema.optional(),
 }).custom((category: DietV2Category, helpers) => {
-  if (category.items.length > 0 && !category.macros) {
-    return helpers.message({
-      custom: `${category.category} macros are required when the category has food items`,
-    });
+  if (category.items.length > 0) {
+    for (const field of DIET_V2_CATEGORY_MACRO_FIELDS[category.category]) {
+      if (typeof category.macros?.[field] !== "number") {
+        return helpers.message({
+          custom: `${field} macros are required for ${category.category}`,
+        });
+      }
+    }
   }
 
   return category;
@@ -216,7 +256,14 @@ const dietV2CategoryValidationSchema = Joi.object({
 
 const dietV2FreeCaloriesValidationSchema = Joi.object({
   calories: Joi.number().min(0).required(),
-  description: Joi.string().trim().min(1).required(),
+  items: Joi.array()
+    .items(dietV2PlanItemValidationSchema)
+    .min(1)
+    .required()
+    .custom((items: DietV2PlanItem[]) => {
+      validateDietV2PlanItems(items, "freeCalories");
+      return items;
+    }),
 });
 
 const dietV2CategoriesValidationSchema = Joi.array()

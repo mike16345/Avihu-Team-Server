@@ -62,6 +62,19 @@ const overrideBodySchema = Joi.object({
       .min(1)
       .allow(null)
       .unknown(false),
+    servings: Joi.array()
+      .items(
+        Joi.object({
+          id: Joi.string().trim().max(100).required(),
+          description: Joi.string().trim().min(1).max(200).required(),
+          quantity: Joi.number().positive().required(),
+          unit: Joi.string().trim().min(1).max(50).required(),
+          nutrition: nutritionValues.required(),
+          source: Joi.string().valid("open_food_facts", "fallback_100", "admin").required(),
+        }).unknown(false)
+      )
+      .min(1)
+      .allow(null),
     nutrition: Joi.object({
       basisUnit: Joi.string().valid("g", "ml").allow(null),
       per100: nutritionValues,
@@ -74,6 +87,44 @@ const overrideBodySchema = Joi.object({
     .required()
     .unknown(false),
   reason: Joi.string().trim().max(500),
+}).unknown(false);
+
+const manualCoreNutrition = Joi.object({
+  calories: Joi.number().min(0).required(),
+  protein: Joi.number().min(0).required(),
+  carbohydrates: Joi.number().min(0).required(),
+  fat: Joi.number().min(0).required(),
+  saturatedFat: nullableNutrient,
+  sugars: nullableNutrient,
+  fiber: nullableNutrient,
+  sodium: nullableNutrient,
+  salt: nullableNutrient,
+}).unknown(false);
+
+const manualFoodCatalogItemSchema = Joi.object({
+  names: Joi.object({
+    he: nullableText,
+    en: nullableText,
+    original: nullableText,
+    originalLanguage: Joi.string().trim().max(10).allow(null),
+  })
+    .or("he", "en", "original")
+    .required()
+    .unknown(false),
+  brand: nullableText,
+  aliases: Joi.array().items(Joi.string().trim().min(1).max(100)).max(30),
+  servings: Joi.array()
+    .items(
+      Joi.object({
+        id: Joi.string().trim().max(100),
+        description: Joi.string().trim().min(1).max(200).required(),
+        quantity: Joi.number().positive().required(),
+        unit: Joi.string().trim().min(1).max(50).required(),
+        nutrition: manualCoreNutrition.required(),
+      }).unknown(false)
+    )
+    .min(1)
+    .required(),
 }).unknown(false);
 
 export const validateFoodCatalogLookup = (event: APIGatewayProxyEvent) => {
@@ -100,4 +151,19 @@ export const validateFoodCatalogOverride = (event: APIGatewayProxyEvent) => {
   } catch (_error) {
     return createValidatorResponse(false, "Request body must be valid JSON.");
   }
+};
+
+export const validateManualFoodCatalogItem = (event: APIGatewayProxyEvent) => {
+  try {
+    const { error } = manualFoodCatalogItemSchema.validate(extractBodyFromEvent(event));
+    return createValidatorResponse(!error, error?.message);
+  } catch (_error) {
+    return createValidatorResponse(false, "Request body must be valid JSON.");
+  }
+};
+
+export const validateManualFoodCatalogItemUpdate = (event: APIGatewayProxyEvent) => {
+  const queryResult = itemQuerySchema.validate(event.queryStringParameters ?? {});
+  if (queryResult.error) return createValidatorResponse(false, queryResult.error.message);
+  return validateManualFoodCatalogItem(event);
 };

@@ -46,19 +46,19 @@ const buildV2Plan = (userId: string, catalogItemId?: string) => ({
         {
           category: "protein" as const,
           items: [{ name: "100g Chicken breast", catalogItemId }],
-          macros: { calories: 200, protein: 25, carbs: 0, fat: 4 },
+          macros: { calories: 200, protein: 25 },
         },
         {
           category: "carbs" as const,
           items: [{ name: "200g Rice" }],
-          macros: { calories: 248, protein: 0, carbs: 45, fat: 8 },
+          macros: { calories: 248, carbs: 45 },
         },
         { category: "fat" as const, items: [] },
         { category: "vegetables" as const, items: [] },
       ],
       addOns: [{ name: "Morning coffee" }],
       macros: { calories: 448, protein: 25, carbs: 45, fat: 12 },
-      freeCalories: { calories: 150, description: "Fruit / snack / spread" },
+      freeCalories: { calories: 150, items: [{ name: "Fruit" }, { name: "Snack" }] },
       supplements: ["Creatine after training"],
     },
   ],
@@ -71,6 +71,16 @@ const withTrainer = <T>(trainerId: mongoose.Types.ObjectId, callback: () => Prom
       userId: trainerId.toString(),
       trainerId: trainerId.toString(),
       role: "trainer",
+    },
+    callback
+  );
+
+const withAdmin = <T>(trainerId: mongoose.Types.ObjectId, callback: () => Promise<T>) =>
+  runWithAuthContext(
+    {
+      userId: trainerId.toString(),
+      trainerId: trainerId.toString(),
+      role: "admin",
     },
     callback
   );
@@ -101,13 +111,50 @@ describe("version-aware diet-plan saves", () => {
     expect(stored).not.toHaveProperty("version");
   });
 
-  test("fully replaces V1 with V2 and V2 with V1 while keeping one active document", async () => {
+  test("normalizes older V2 highlights and free-calorie descriptions only in the response", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const user = await buildUser(trainerId);
+    await DietPlan.collection.insertOne({
+      userId: user._id.toString(),
+      trainerId,
+      version: 2,
+      highlights: ["Drink water", "<unsafe>"],
+      meals: [
+        {
+          name: "Breakfast",
+          categories: [],
+          addOns: [],
+          macros: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          freeCalories: { calories: 100, description: "Fruit or snack" },
+        },
+      ],
+    });
+
+    const result = await withTrainer(trainerId, () =>
+      new DietPlanService().getDietPlanByUserId(user._id.toString(), false)
+    );
+    const stored = await DietPlan.collection.findOne({ userId: user._id.toString() });
+
+    expect(result?.highlights).toBe("<p>Drink water</p><p>&lt;unsafe&gt;</p>");
+    expect((result as any)?.meals[0].freeCalories).toEqual({
+      calories: 100,
+      items: [{ name: "Fruit or snack" }],
+    });
+    expect(stored?.highlights).toEqual(["Drink water", "<unsafe>"]);
+    expect((stored as any)?.meals[0].freeCalories.description).toBe("Fruit or snack");
+  });
+
+  test("allows only an Admin to replace a plan with a different version", async () => {
     const trainerId = new mongoose.Types.ObjectId();
     const user = await buildUser(trainerId);
     const service = new DietPlanService();
     await DietPlan.create(buildV1Plan(user._id.toString()));
 
-    await withTrainer(trainerId, () => service.saveActivePlan(buildV2Plan(user._id.toString())));
+    await expect(
+      withTrainer(trainerId, () => service.saveActivePlan(buildV2Plan(user._id.toString())))
+    ).rejects.toMatchObject({ status: 403 });
+
+    await withAdmin(trainerId, () => service.saveActivePlan(buildV2Plan(user._id.toString())));
 
     let stored = await DietPlan.collection.findOne({ userId: user._id.toString() });
     expect(await DietPlan.collection.countDocuments({ userId: user._id.toString() })).toBe(1);
@@ -115,7 +162,7 @@ describe("version-aware diet-plan saves", () => {
     expect(stored).not.toHaveProperty("customInstructions");
     expect(stored).not.toHaveProperty("totalCalories");
 
-    await withTrainer(trainerId, () => service.saveActivePlan(buildV1Plan(user._id.toString())));
+    await withAdmin(trainerId, () => service.saveActivePlan(buildV1Plan(user._id.toString())));
 
     stored = await DietPlan.collection.findOne({ userId: user._id.toString() });
     expect(await DietPlan.collection.countDocuments({ userId: user._id.toString() })).toBe(1);
@@ -157,7 +204,7 @@ describe("version-aware diet-plan saves", () => {
       calories: 500,
       protein: 25,
       carbs: 45,
-      fat: 12,
+      fat: 0,
     });
   });
 
@@ -200,7 +247,14 @@ describe("version-aware diet-plan saves", () => {
       DietV2CatalogItemModel.findOne({
         trainerId,
         category: "freeCalories",
-        normalizedName: "fruit / snack / spread",
+        normalizedName: "fruit",
+      })
+    ).resolves.toMatchObject({ usageCount: 1 });
+    await expect(
+      DietV2CatalogItemModel.findOne({
+        trainerId,
+        category: "freeCalories",
+        normalizedName: "snack",
       })
     ).resolves.toMatchObject({ usageCount: 1 });
   });

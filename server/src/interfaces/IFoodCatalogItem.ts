@@ -35,6 +35,15 @@ export interface FoodServing {
   source: "open_food_facts" | "fallback_100";
 }
 
+export interface FoodServingOption {
+  id: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  nutrition: NutritionValues;
+  source: "open_food_facts" | "fallback_100" | "admin";
+}
+
 export interface FoodCatalogProviderData {
   identifiers: {
     barcode: string | null;
@@ -46,6 +55,7 @@ export interface FoodCatalogProviderData {
   imageUrl: string | null;
   package: FoodMeasurement;
   serving: FoodServing | null;
+  servings: FoodServingOption[];
   nutrition: {
     basisUnit: FoodMeasurementUnit | null;
     per100: NutritionValues;
@@ -65,6 +75,7 @@ export interface FoodCatalogAdminOverrides {
   imageUrl?: string | null;
   package?: Partial<FoodMeasurement> | null;
   serving?: Partial<FoodServing> | null;
+  servings?: FoodServingOption[] | null;
   nutrition?: {
     basisUnit?: FoodMeasurementUnit | null;
     per100?: Partial<NutritionValues>;
@@ -73,6 +84,13 @@ export interface FoodCatalogAdminOverrides {
   updatedAt: Date;
   updatedBy: Types.ObjectId;
   reason?: string;
+}
+
+export interface ManualFoodCatalogInput {
+  names: Partial<LocalizedFoodNames>;
+  brand?: string | null;
+  aliases?: string[];
+  servings: Array<Omit<FoodServingOption, "id" | "source"> & { id?: string }>;
 }
 
 export interface IFoodCatalogItem extends Document {

@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import {
+  FoodCatalogProviderData,
   FoodCatalogAdminOverrides,
   IFoodCatalogItem,
   NormalizedOpenFoodFactsProduct,
@@ -8,6 +9,7 @@ import { FoodCatalogItemModel } from "../../models/foodCatalogItemModel";
 import {
   buildFoodCatalogSearchFields,
   FoodCatalogSearchFields,
+  normalizeFoodCatalogSearchText,
   tokenizeFoodCatalogSearch,
 } from "../../utils/foodCatalogSearch";
 import { BaseRepository } from "../BaseRepository";
@@ -291,6 +293,82 @@ export class FoodCatalogRepository extends BaseRepository<IFoodCatalogItem> {
       itemId,
       { $set: { adminOverrides: null } },
       { new: true }
+    ).lean();
+  }
+
+  async createManualItem(
+    itemId: Types.ObjectId,
+    providerData: FoodCatalogProviderData,
+    normalizedDataHash: string,
+    aliases: string[]
+  ): Promise<any> {
+    const search = buildFoodCatalogSearchFields(providerData);
+    search.aliases = aliases.map(normalizeFoodCatalogSearchText).filter(Boolean);
+    const aliasSearch = buildFoodCatalogSearchFields({
+      ...providerData,
+      names: {
+        ...providerData.names,
+        original: aliases.join(" ") || providerData.names.original,
+      },
+    });
+    search.prefixes = Array.from(new Set([...search.prefixes, ...aliasSearch.prefixes]));
+
+    return FoodCatalogItemModel.create({
+      _id: itemId,
+      providerData,
+      adminOverrides: null,
+      search,
+      source: {
+        provider: "admin",
+        providerId: itemId.toString(),
+        license: null,
+        sourceUrl: null,
+        schemaVersion: 1,
+        sourceLastModifiedAt: null,
+        normalizedDataHash,
+        lastFetchAttemptAt: null,
+        lastSuccessfulFetchAt: null,
+        nextRefreshAt: null,
+        consecutiveFailures: 0,
+        refreshLeaseUntil: null,
+      },
+      analytics: {
+        lookupCount: 0,
+        consumptionCount: 0,
+        lastLookedUpAt: null,
+        lastConsumedAt: null,
+      },
+    }).then((document) => document.toObject());
+  }
+
+  async replaceManualItem(
+    itemId: string,
+    providerData: FoodCatalogProviderData,
+    normalizedDataHash: string,
+    aliases: string[]
+  ): Promise<any | null> {
+    if (!Types.ObjectId.isValid(itemId)) return null;
+    const search = buildFoodCatalogSearchFields(providerData);
+    search.aliases = aliases.map(normalizeFoodCatalogSearchText).filter(Boolean);
+    const aliasSearch = buildFoodCatalogSearchFields({
+      ...providerData,
+      names: {
+        ...providerData.names,
+        original: aliases.join(" ") || providerData.names.original,
+      },
+    });
+    search.prefixes = Array.from(new Set([...search.prefixes, ...aliasSearch.prefixes]));
+
+    return FoodCatalogItemModel.findOneAndUpdate(
+      { _id: new Types.ObjectId(itemId), "source.provider": "admin" },
+      {
+        $set: {
+          providerData,
+          search,
+          "source.normalizedDataHash": normalizedDataHash,
+        },
+      },
+      { new: true, runValidators: true }
     ).lean();
   }
 }

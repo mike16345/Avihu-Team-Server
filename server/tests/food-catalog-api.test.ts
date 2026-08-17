@@ -4,6 +4,7 @@ import {
   validateFoodCatalogLookup,
   validateFoodCatalogOverride,
   validateFoodCatalogSearch,
+  validateManualFoodCatalogItem,
 } from "../src/middleware/foodCatalogMiddleware";
 import { FoodCatalogController } from "../src/controllers/FoodCatalogController";
 import { foodCatalogApiRoutes } from "../src/functions/foodCatalog";
@@ -50,6 +51,32 @@ describe("food catalog request validation", () => {
       ).isValid
     ).toBe(false);
   });
+
+  test("accepts manual foods with direct per-serving macros and no barcode", () => {
+    expect(
+      validateManualFoodCatalogItem(
+        event(
+          {},
+          {
+            names: { he: "חזה עוף", en: "Chicken breast" },
+            servings: [
+              {
+                description: "כף",
+                quantity: 1,
+                unit: "spoon",
+                nutrition: {
+                  calories: 40,
+                  protein: 8,
+                  carbohydrates: 0,
+                  fat: 1,
+                },
+              },
+            ],
+          }
+        )
+      ).isValid
+    ).toBe(true);
+  });
 });
 
 describe("food catalog API", () => {
@@ -59,6 +86,8 @@ describe("food catalog API", () => {
     expect(foodCatalogApiRoutes["POST /foodCatalog/consumption"].access).toBe("authenticated");
     expect(foodCatalogApiRoutes["PATCH /foodCatalog/admin-overrides"].access).toBe("admin");
     expect(foodCatalogApiRoutes["DELETE /foodCatalog/admin-overrides"].access).toBe("admin");
+    expect(foodCatalogApiRoutes["POST /foodCatalog/admin/items"].access).toBe("admin");
+    expect(foodCatalogApiRoutes["PUT /foodCatalog/admin/items"].access).toBe("admin");
   });
 
   test("returns the stable service payload for a barcode lookup", async () => {

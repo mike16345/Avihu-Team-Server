@@ -4,10 +4,7 @@ import {
   IDietV2NormalizedCatalogCandidate,
   DietV2PopularItems,
 } from "../../interfaces/IDietV2CatalogItem";
-import {
-  DIET_V2_CATALOG_CATEGORIES,
-  DietV2CatalogCategory,
-} from "../../interfaces/IDietPlanV2";
+import { DIET_V2_CATALOG_CATEGORIES, DietV2CatalogCategory } from "../../interfaces/IDietPlanV2";
 import { DietV2CatalogItemModel } from "../../models/dietV2CatalogItemModel";
 import { BaseRepository } from "../BaseRepository";
 
@@ -30,10 +27,7 @@ export class DietV2CatalogRepository extends BaseRepository<IDietV2CatalogItem> 
     super(DietV2CatalogItemModel, { type: "trainer", field: "trainerId" });
   }
 
-  async upsertAndTouch(
-    candidates: IDietV2NormalizedCatalogCandidate[],
-    now: Date
-  ): Promise<void> {
+  async upsertAndTouch(candidates: IDietV2NormalizedCatalogCandidate[], now: Date): Promise<void> {
     const { trainerId } = this.getScopeMatch();
     const operations = candidates.map((candidate) => ({
       updateOne: {
@@ -126,5 +120,26 @@ export class DietV2CatalogRepository extends BaseRepository<IDietV2CatalogItem> 
     return await DietV2CatalogItemModel.findOneAndDelete(
       this.applyScopeToQuery({ _id: new Types.ObjectId(id) })
     ).lean();
+  }
+
+  async updateNameScoped(
+    id: string,
+    name: string,
+    normalizedName: string
+  ): Promise<IDietV2CatalogItem | null> {
+    if (!Types.ObjectId.isValid(id)) return null;
+
+    try {
+      return await DietV2CatalogItemModel.findOneAndUpdate(
+        this.applyScopeToQuery({ _id: new Types.ObjectId(id) }),
+        { $set: { name, normalizedName } },
+        { new: true, runValidators: true }
+      ).lean();
+    } catch (error: any) {
+      if (error?.code === 11000) {
+        throw { status: 409, message: "A catalog item with this name already exists." };
+      }
+      throw error;
+    }
   }
 }

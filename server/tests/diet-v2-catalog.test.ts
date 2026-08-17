@@ -4,6 +4,7 @@ import { DietV2CatalogController } from "../src/controllers/dietV2CatalogControl
 import {
   validateDietV2CatalogDelete,
   validateDietV2CatalogSearch,
+  validateDietV2CatalogUpdate,
 } from "../src/middleware/dietV2CatalogMiddleware";
 import { DietV2CatalogItemModel } from "../src/models/dietV2CatalogItemModel";
 import { DietV2CatalogService } from "../src/services/dietV2CatalogService";
@@ -108,8 +109,12 @@ describe("Diet V2 trainer catalog", () => {
     const itemId = resolved.get("protein:shared chicken")?._id?.toString();
 
     expect(itemId).toBeDefined();
-    await expect(withTrainer(otherTrainerId, () => service.deleteItem(itemId!))).resolves.toBeNull();
-    await expect(withTrainer(parentTrainerId, () => service.deleteItem(itemId!))).resolves.toMatchObject({
+    await expect(
+      withTrainer(otherTrainerId, () => service.deleteItem(itemId!))
+    ).resolves.toBeNull();
+    await expect(
+      withTrainer(parentTrainerId, () => service.deleteItem(itemId!))
+    ).resolves.toMatchObject({
       name: "Shared chicken",
     });
   });
@@ -137,16 +142,41 @@ describe("Diet V2 trainer catalog", () => {
       })
     ).toBe(1);
   });
+
+  test("renames only the authenticated trainer catalog item and preserves usage", async () => {
+    const trainerId = new mongoose.Types.ObjectId().toString();
+    const otherTrainerId = new mongoose.Types.ObjectId().toString();
+    const service = new DietV2CatalogService();
+    const resolved = await withTrainer(trainerId, () =>
+      service.resolveAndTouch([{ category: "protein", name: "Chicken brest" }])
+    );
+    await withTrainer(otherTrainerId, () =>
+      service.resolveAndTouch([{ category: "protein", name: "Chicken brest" }])
+    );
+    const itemId = resolved.get("protein:chicken brest")!._id!.toString();
+
+    const updated = await withTrainer(trainerId, () =>
+      service.updateItem(itemId, "Chicken breast")
+    );
+
+    expect(updated).toMatchObject({
+      name: "Chicken breast",
+      normalizedName: "chicken breast",
+      usageCount: 1,
+    });
+    await expect(
+      DietV2CatalogItemModel.findOne({ trainerId: otherTrainerId })
+    ).resolves.toMatchObject({ name: "Chicken brest" });
+  });
 });
 
 describe("Diet V2 catalog HTTP boundary", () => {
   const eventWithQuery = (query: Record<string, string>): APIGatewayProxyEvent =>
-    ({ queryStringParameters: query } as unknown as APIGatewayProxyEvent);
+    ({ queryStringParameters: query }) as unknown as APIGatewayProxyEvent;
 
   test("rejects invalid search categories, blank queries, and invalid delete IDs", () => {
     expect(
-      validateDietV2CatalogSearch(eventWithQuery({ category: "dessert", q: "chicken" }))
-        .isValid
+      validateDietV2CatalogSearch(eventWithQuery({ category: "dessert", q: "chicken" })).isValid
     ).toBe(false);
     expect(
       validateDietV2CatalogSearch(eventWithQuery({ category: "protein", q: "  " })).isValid
@@ -154,6 +184,12 @@ describe("Diet V2 catalog HTTP boundary", () => {
     expect(validateDietV2CatalogDelete(eventWithQuery({ id: "not-an-object-id" })).isValid).toBe(
       false
     );
+    expect(
+      validateDietV2CatalogUpdate({
+        ...eventWithQuery({ id: new mongoose.Types.ObjectId().toString() }),
+        body: JSON.stringify({ name: "Corrected item" }),
+      }).isValid
+    ).toBe(true);
   });
 
   test("returns authenticated category matches through the controller", async () => {

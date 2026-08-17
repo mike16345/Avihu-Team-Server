@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { Types } from "mongoose";
 import { OpenFoodFactsProvider } from "../providers/OpenFoodFactsProvider";
 import { FoodCatalogRepository } from "../repositories/FoodCatalog/FoodCatalogRepository";
@@ -9,6 +10,12 @@ import {
   buildFoodCatalogProvenance,
   type FoodCatalogProvider,
 } from "../utils/foodCatalogProvenance";
+import {
+  FoodCatalogProviderData,
+  FoodServingOption,
+  ManualFoodCatalogInput,
+  NutritionValues,
+} from "../interfaces/IFoodCatalogItem";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_MS = 30 * DAY_MS;
@@ -17,6 +24,26 @@ const TRANSIENT_BACKOFF_MS = 5 * 60 * 1000;
 const NOT_FOUND_BACKOFF_MS = DAY_MS;
 
 type CacheStatus = "created" | "hit" | "refreshed" | "stale_fallback";
+
+const EMPTY_NUTRITION: NutritionValues = {
+  calories: null,
+  protein: null,
+  carbohydrates: null,
+  fat: null,
+  saturatedFat: null,
+  sugars: null,
+  fiber: null,
+  sodium: null,
+  salt: null,
+};
+
+const normalizeManualNutrition = (nutrition: NutritionValues): NutritionValues =>
+  Object.fromEntries(
+    Object.keys(EMPTY_NUTRITION).map((field) => [
+      field,
+      nutrition[field as keyof NutritionValues] ?? null,
+    ])
+  ) as unknown as NutritionValues;
 
 export class FoodCatalogService {
   private legacySearchBackfillComplete = false;
@@ -30,6 +57,20 @@ export class FoodCatalogService {
 
   private response(item: any, status: CacheStatus) {
     const effective = mergeFoodCatalogData(item.providerData, item.adminOverrides);
+    if (!Array.isArray(effective.servings) || effective.servings.length === 0) {
+      effective.servings = effective.serving
+        ? [
+            {
+              id: "legacy-serving",
+              description: effective.serving.description,
+              quantity: effective.serving.quantity,
+              unit: effective.serving.unit,
+              nutrition: effective.nutrition.perServing,
+              source: effective.serving.source,
+            },
+          ]
+        : [];
+    }
     const provider = (item.source?.provider ?? "open_food_facts") as FoodCatalogProvider;
     const derivedProvenance = buildFoodCatalogProvenance(
       provider,
@@ -231,5 +272,106 @@ export class FoodCatalogService {
     if (!item) throw { status: 404, message: "Food catalog item was not found." };
     const searchable = await this.rebuildSearchFields(item);
     return this.response(searchable, "hit").product;
+  }
+
+  private buildManualProviderData(input: ManualFoodCatalogInput): FoodCatalogProviderData {
+    const servings: FoodServingOption[] = input.servings.map((serving, index) => ({
+      id: serving.id?.trim() || `admin-serving-${index + 1}`,
+      description: serving.description.trim(),
+      quantity: serving.quantity,
+      unit: serving.unit.trim(),
+      nutrition: normalizeManualNutrition(serving.nutrition as NutritionValues),
+      source: "admin",
+    }));
+    const first = servings[0];
+    const basisUnit = first?.unit === "g" || first?.unit === "ml" ? first.unit : null;
+    const missingFields = (["calories", "protein", "carbohydrates", "fat"] as const)
+      .filter((field) => first?.nutrition[field] === null)
+      .map((field) => `servings.0.nutrition.${field}`);
+
+    return {
+      identifiers: { barcode: null, barcodeAliases: [], providerId: null },
+      names: {
+        he: input.names.he?.trim() || null,
+        en: input.names.en?.trim() || null,
+        original: input.names.original?.trim() || null,
+        originalLanguage: input.names.originalLanguage?.trim() || null,
+      },
+      brand: input.brand?.trim() || null,
+      imageUrl: null,
+      package: { description: null, quantity: null, unit: null },
+      serving:
+        first && basisUnit
+          ? {
+              description: first.description,
+              quantity: first.quantity,
+              unit: basisUnit,
+              source: "fallback_100",
+            }
+          : null,
+      servings,
+      nutrition: {
+        basisUnit,
+        per100: basisUnit && first.quantity === 100 ? first.nutrition : { ...EMPTY_NUTRITION },
+        perServing: first?.nutrition ?? { ...EMPTY_NUTRITION },
+      },
+      dataQuality: {
+        status: missingFields.length === 0 ? "complete" : "partial",
+        missingFields,
+        errors: [],
+        warnings: [],
+      },
+    };
+  }
+
+  async createManualItem(input: ManualFoodCatalogInput) {
+    const providerData = this.buildManualProviderData(input);
+    const itemId = new Types.ObjectId();
+    providerData.identifiers.providerId = itemId.toString();
+    const hash = createHash("sha256").update(JSON.stringify(providerData)).digest("hex");
+    const created = await this.repository.createManualItem(
+      itemId,
+      providerData,
+      hash,
+      input.aliases ?? []
+    );
+    return this.response(created, "created").product;
+  }
+
+  async updateAdminItem(itemId: string, input: ManualFoodCatalogInput, adminId: string) {
+    const current = await this.repository.findByItemId(itemId);
+    if (!current) throw { status: 404, message: "Food catalog item was not found." };
+
+    if (current.source.provider !== "admin") {
+      return this.applyAdminOverrides(
+        itemId,
+        {
+          names: input.names,
+          brand: input.brand ?? null,
+          servings: input.servings.map((serving, index) => ({
+            id: serving.id?.trim() || `admin-serving-${index + 1}`,
+            description: serving.description.trim(),
+            quantity: serving.quantity,
+            unit: serving.unit.trim(),
+            nutrition: normalizeManualNutrition(serving.nutrition as NutritionValues),
+            source: "admin",
+          })),
+        },
+        adminId,
+        "Admin food catalog edit"
+      );
+    }
+
+    const providerData = this.buildManualProviderData(input);
+    providerData.identifiers.providerId = current.source.providerId ?? itemId;
+    const hash = createHash("sha256").update(JSON.stringify(providerData)).digest("hex");
+    const updated = await this.repository.replaceManualItem(
+      itemId,
+      providerData,
+      hash,
+      input.aliases ?? []
+    );
+    if (!updated) throw { status: 404, message: "Manual food catalog item was not found." };
+    return this.response(updated, "hit").product;
   }
 }

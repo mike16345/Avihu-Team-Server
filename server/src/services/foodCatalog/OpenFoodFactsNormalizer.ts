@@ -3,6 +3,7 @@ import {
   FoodCatalogProviderData,
   FoodMeasurementUnit,
   FoodServing,
+  FoodServingOption,
   NormalizedOpenFoodFactsProduct,
   NutritionValues,
 } from "../../interfaces/IFoodCatalogItem";
@@ -100,6 +101,56 @@ const determineServing = (
 const stringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
+const determineServings = (
+  serving: FoodServing | null,
+  basisUnit: FoodMeasurementUnit | null,
+  per100: NutritionValues,
+  perServing: NutritionValues
+): FoodServingOption[] => {
+  const options: FoodServingOption[] = [];
+
+  if (serving && serving.source === "open_food_facts") {
+    options.push({
+      id: "off-serving",
+      description: serving.description,
+      quantity: serving.quantity,
+      unit: serving.unit,
+      nutrition: perServing,
+      source: "open_food_facts",
+    });
+  }
+
+  if (basisUnit) {
+    const duplicatesDeclaredServing =
+      serving?.source === "open_food_facts" &&
+      serving.quantity === 100 &&
+      serving.unit === basisUnit;
+    if (!duplicatesDeclaredServing) {
+      options.push({
+        id: `off-100-${basisUnit}`,
+        description: `100 ${basisUnit}`,
+        quantity: 100,
+        unit: basisUnit,
+        nutrition: per100,
+        source: "fallback_100",
+      });
+    }
+  }
+
+  if (options.length === 0 && serving) {
+    options.push({
+      id: `off-100-${serving.unit}`,
+      description: serving.description,
+      quantity: serving.quantity,
+      unit: serving.unit,
+      nutrition: perServing,
+      source: serving.source,
+    });
+  }
+
+  return options;
+};
+
 export const normalizeOpenFoodFactsProduct = (
   raw: Record<string, any>,
   requestedBarcode: string
@@ -137,6 +188,7 @@ export const normalizeOpenFoodFactsProduct = (
       unit: packageUnit,
     },
     serving,
+    servings: determineServings(serving, basisUnit, per100, perServing),
     nutrition: { basisUnit, per100, perServing },
     dataQuality: {
       status: missingFields.length === 0 ? "complete" : "partial",

@@ -12,12 +12,12 @@ const buildCategories = (): any[] => [
   {
     category: "protein",
     items: [{ name: "100g Chicken breast" }],
-    macros: { calories: 200, protein: 25, carbs: 0, fat: 4 },
+    macros: { calories: 200, protein: 25 },
   },
   {
     category: "carbs",
     items: [{ name: "200 grams rice" }],
-    macros: { calories: 248, protein: 0, carbs: 45, fat: 8 },
+    macros: { calories: 248, carbs: 45 },
   },
   { category: "fat", items: [] },
   { category: "vegetables", items: [] },
@@ -39,7 +39,7 @@ const buildPlan = (overrides: Record<string, unknown> = {}) => ({
       },
       freeCalories: {
         calories: 150,
-        description: "Fruit / snack / spread",
+        items: [{ name: "Fruit" }, { name: "Snack" }],
       },
       supplements: ["Creatine after training"],
     },
@@ -89,7 +89,7 @@ describe("Diet Plan V2 validation", () => {
       })
     );
     const incompleteFreeCalories = DietPlanV2SchemaValidation.validate(
-      buildPlan({ meals: [{ ...baseMeal, freeCalories: { calories: 100 } }] })
+      buildPlan({ meals: [{ ...baseMeal, freeCalories: { calories: 100, items: [] } }] })
     );
     const invalidMacros = DietPlanV2SchemaValidation.validate(
       buildPlan({ meals: [{ ...baseMeal, macros: { ...baseMeal.macros, protein: -1 } }] })
@@ -119,13 +119,48 @@ describe("Diet Plan V2 validation", () => {
       buildPlan({ meals: [{ ...baseMeal, categories: missingCategoryMacros }] })
     );
     const explicitZero = buildCategories();
-    explicitZero[0].macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    explicitZero[0].macros = { calories: 0, protein: 0 };
     const valid = DietPlanV2SchemaValidation.validate(
       buildPlan({ meals: [{ ...baseMeal, categories: explicitZero }] })
     );
 
-    expect(missing.error?.message).toContain("protein macros are required");
+    expect(missing.error?.message).toContain("calories macros are required for protein");
     expect(valid.error).toBeUndefined();
+  });
+
+  test("requires only the category-relevant macro and calories", () => {
+    const baseMeal = buildPlan().meals[0];
+    const categories = buildCategories();
+    categories[2] = {
+      category: "fat",
+      items: [{ name: "Tahini" }],
+      macros: { calories: 90, fat: 8 },
+    };
+    categories[3] = {
+      category: "vegetables",
+      items: [{ name: "Tomato" }],
+      macros: { calories: 20, carbs: 4 },
+    };
+
+    expect(
+      DietPlanV2SchemaValidation.validate(buildPlan({ meals: [{ ...baseMeal, categories }] })).error
+    ).toBeUndefined();
+    expect(
+      DietPlanV2SchemaValidation.validate(
+        buildPlan({
+          meals: [
+            {
+              ...baseMeal,
+              categories: categories.map((category) =>
+                category.category === "protein"
+                  ? { ...category, macros: { calories: 200 } }
+                  : category
+              ),
+            },
+          ],
+        })
+      ).error?.message
+    ).toContain("protein");
   });
 
   test("rejects normalized duplicate add-on names", () => {
