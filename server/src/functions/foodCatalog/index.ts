@@ -15,6 +15,11 @@ const BASE_PATH = "/foodCatalog";
 const controller = new FoodCatalogController();
 
 export const foodCatalogApiRoutes: ApiRouteHandlers = {
+  [`GET ${BASE_PATH}/item`]: {
+    handler: controller.lookupItem,
+    access: "authenticated",
+    middlewares: [validateFoodCatalogItemId],
+  },
   [`GET ${BASE_PATH}/barcode`]: {
     handler: controller.lookupBarcode,
     access: "authenticated",

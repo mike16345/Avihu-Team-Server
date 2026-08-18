@@ -14,6 +14,16 @@ export class FoodCatalogController {
     );
   }
 
+  lookupItem = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
+    try {
+      const data = await this.service.lookupItem(event.queryStringParameters!.id!);
+
+      return createServerResponse(StatusCode.OK, "Food retrieved successfully.", data.product);
+    } catch (error) {
+      return this.error(error);
+    }
+  };
+
   lookupBarcode = async (event: AppEvent): Promise<APIGatewayProxyResult> => {
     try {
       const data = await this.service.lookupBarcode(event.queryStringParameters!.barcode!);

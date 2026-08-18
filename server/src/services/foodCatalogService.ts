@@ -55,6 +55,13 @@ export class FoodCatalogService {
     private readonly normalizer = normalizeOpenFoodFactsProduct
   ) {}
 
+  lookupItem = async (itemId: string, now = new Date()) => {
+    const item = await this.repository.findByItemId(itemId);
+    const counted = await this.repository.incrementLookup(item._id.toString(), now);
+
+    return this.response(counted ?? item, "hit");
+  };
+
   private response(item: any, status: CacheStatus) {
     const effective = mergeFoodCatalogData(item.providerData, item.adminOverrides);
     if (!Array.isArray(effective.servings) || effective.servings.length === 0) {
