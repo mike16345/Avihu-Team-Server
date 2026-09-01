@@ -1,5 +1,7 @@
 import { ObjectId } from "mongoose";
 
+export type DietPlanUnitMode = 1 | 2;
+
 export interface IDietPlan {
   userId: string;
   meals: IMeal[];
@@ -9,6 +11,7 @@ export interface IDietPlan {
   supplements: string[];
   veggiesPerDay?: number;
   customInstructions?: string[];
+  unitDisplayMode?: DietPlanUnitMode;
 }
 
 export interface ICustomItemInstructions {
