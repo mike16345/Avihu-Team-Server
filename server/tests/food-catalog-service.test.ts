@@ -106,6 +106,27 @@ describe("FoodCatalogService", () => {
     return { service, repository, negativeCache, provider, normalizer };
   };
 
+  test("loads an item for Admin editing without counting it as a food lookup", async () => {
+    const { service, repository } = setup();
+    const cached = item(new Date("2026-09-01T00:00:00.000Z"));
+    repository.findByItemId.mockResolvedValue(cached);
+
+    const result = await service.lookupItem(cached._id.toString(), now);
+
+    expect(result.product.id).toBe(cached._id.toString());
+    expect(repository.incrementLookup).not.toHaveBeenCalled();
+  });
+
+  test("returns a not-found error for a missing catalog item", async () => {
+    const { service, repository } = setup();
+    repository.findByItemId.mockResolvedValue(null);
+
+    await expect(service.lookupItem(new Types.ObjectId().toString(), now)).rejects.toMatchObject({
+      status: 404,
+      message: "Food catalog item not found.",
+    });
+  });
+
   test("returns and counts a fresh cached item without calling the provider", async () => {
     const { service, repository, provider } = setup();
     const cached = item(new Date("2026-09-01T00:00:00.000Z"));

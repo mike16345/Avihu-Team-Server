@@ -16,6 +16,7 @@ import {
   ManualFoodCatalogInput,
   NutritionValues,
 } from "../interfaces/IFoodCatalogItem";
+import { StatusCode } from "../enums/StatusCode";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_MS = 30 * DAY_MS;
@@ -55,11 +56,13 @@ export class FoodCatalogService {
     private readonly normalizer = normalizeOpenFoodFactsProduct
   ) {}
 
-  lookupItem = async (itemId: string, now = new Date()) => {
+  lookupItem = async (itemId: string, _now = new Date()) => {
     const item = await this.repository.findByItemId(itemId);
-    const counted = await this.repository.incrementLookup(item._id.toString(), now);
+    if (!item) {
+      throw { status: StatusCode.NOT_FOUND, message: "Food catalog item not found." };
+    }
 
-    return this.response(counted ?? item, "hit");
+    return this.response(item, "hit");
   };
 
   private response(item: any, status: CacheStatus) {
