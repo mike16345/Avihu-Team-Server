@@ -3,6 +3,7 @@ import S3 from "aws-sdk/clients/s3";
 import { createResponse, createResponseWithData } from "../../utils/utils";
 import { StatusCode } from "../../enums/StatusCode";
 import { API_HEADERS } from "../../constants/Constants";
+import { buildS3ObjectKey } from "../../utils/s3ObjectKey";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
@@ -25,16 +26,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
   const contentType = event.queryStringParameters?.contentType || "image/jpeg";
   const date = event.queryStringParameters?.date;
 
-  const objectKey = `${folderName}/${clientId}/${date}/${fileName}`;
-
-  const params = {
-    Bucket: bucketName,
-    Key: objectKey,
-    Expires: URL_TTL,
-    ContentType: contentType,
-  };
   console.log(`${httpMethod} Event:`, JSON.stringify(event));
-  console.log(`params`, params);
 
   if (!methodToAllow) {
     return {
@@ -43,6 +35,13 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     };
   }
   try {
+    const objectKey = buildS3ObjectKey({ folderName, clientId, date, fileName });
+    const params = {
+      Bucket: bucketName,
+      Key: objectKey,
+      Expires: URL_TTL,
+      ContentType: contentType,
+    };
     console.log("method to allow ", methodToAllow);
     console.log("params", JSON.stringify(params));
     const signedUrl = s3.getSignedUrl(methodToAllow, params);
@@ -51,6 +50,10 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     return { ...createResponseWithData(StatusCode.OK, signedUrl), headers: API_HEADERS };
   } catch (e: any) {
     console.log("Error retrieving signed url:", JSON.stringify(e));
+    return {
+      ...createResponse(StatusCode.BAD_REQUEST, e?.message || "Invalid image path"),
+      headers: API_HEADERS,
+    };
   }
 };
 
