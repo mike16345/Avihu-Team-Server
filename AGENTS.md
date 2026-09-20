@@ -441,6 +441,7 @@ Important envs used in current codebase include:
 - `OPENAI_API_KEY`
 - `PINECONE_API_KEY`
 - `PINECONE_INDEX`
+- `OPEN_FOOD_FACTS_USER_AGENT`
 - several `RAG_*` variables in `server/src/rag/config.ts`
 
 Deployment scripts load `.env.local` with `dotenv`.

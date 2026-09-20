@@ -3,6 +3,7 @@ import { IDietV2CatalogItem } from "../interfaces/IDietV2CatalogItem";
 import { DietV2CatalogCategory } from "../interfaces/IDietPlanV2";
 import { DietV2CatalogService } from "../services/dietV2CatalogService";
 import { StatusCode } from "../enums/StatusCode";
+import { extractBodyFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 
 export class DietV2CatalogController extends BaseController<
@@ -54,6 +55,21 @@ export class DietV2CatalogController extends BaseController<
         status: StatusCode.OK,
         data,
         message: "Diet catalog item deleted successfully!",
+      });
+    } catch (error) {
+      return this.errorResponse(error);
+    }
+  };
+
+  updateItem = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    const id = event.queryStringParameters?.id ?? "";
+
+    try {
+      const data = await this.service.updateItem(id, extractBodyFromEvent(event).name);
+      return this.successResponse({
+        status: StatusCode.OK,
+        data,
+        message: "Diet catalog item updated successfully!",
       });
     } catch (error) {
       return this.errorResponse(error);

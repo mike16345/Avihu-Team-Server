@@ -1,4 +1,5 @@
 const { execSync } = require("child_process");
+const { putLambdaIntegration } = require("./apiGatewayIntegration");
 const dotenv = require("dotenv");
 dotenv.config({ path: "./.env.local" });
 const sleep = require("./utils");
@@ -94,11 +95,13 @@ function setupAuthorization(apiId, resourceId, authorizerId) {
 
 function setupIntegration(apiId, resourceId, functionName) {
   console.log("🔗 Setting up integration with stage variable for alias...");
-  const uri = `arn:aws:apigateway:${AMAZON_REGION}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AMAZON_REGION}:${AWS_ACCOUNT_ID}:function:${functionName}:\${stageVariables.lambdaAlias}/invocations`;
-
-  run(
-    `aws apigateway put-integration --rest-api-id ${apiId} --resource-id ${resourceId} --http-method ANY --type AWS_PROXY --integration-http-method POST --uri "${uri}"`
-  );
+  putLambdaIntegration({
+    apiId,
+    resourceId,
+    functionName,
+    region: AMAZON_REGION,
+    accountId: AWS_ACCOUNT_ID,
+  });
 }
 
 function addLambdaPermission(apiId, resourceId, resourcePath, functionName, alias) {
@@ -171,7 +174,7 @@ async function configureGateway() {
     console.log(`✅ Created resource "${resourcePath}" with ID ${newResourceId}`);
 
     if (proxyEnabled) {
-      createProxyResource(apiId, newResourceId);
+      await createProxyResource(apiId, newResourceId);
     }
 
     await sleep(3000); // 🔁 Wait 2 seconds before second deployment

@@ -8,7 +8,7 @@ import { Types } from "mongoose";
 import { BaseService } from "./baseService";
 import { DietV2CatalogService } from "./dietV2CatalogService";
 import { getAuthContext, requireTrainerAuthContext } from "../utils/authContext";
-import { normalizeDietV2Name } from "../utils/dietPlanV2";
+import { normalizeDietV2Name, normalizeDietV2Response } from "../utils/dietPlanV2";
 import { StatusCode } from "../enums/StatusCode";
 
 const baseKey = "diet-plan-preset";
@@ -21,10 +21,11 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
     this.catalogService = new DietV2CatalogService();
   }
 
-  private normalizeVersion = <T extends Record<string, any>>(preset: T) => ({
-    ...preset,
-    version: preset.version === 2 ? (2 as const) : (1 as const),
-  });
+  private normalizeVersion = <T extends Record<string, any>>(preset: T) =>
+    normalizeDietV2Response({
+      ...preset,
+      version: preset.version === 2 ? (2 as const) : (1 as const),
+    });
 
   private getOwnership() {
     const { trainerId } = requireTrainerAuthContext();
@@ -104,9 +105,7 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
   async listPresets(version: 1 | 2) {
     const presets = await this.repository.findByVersion(version);
 
-    return presets.map((preset) =>
-      this.normalizeVersion(preset as unknown as Record<string, any>)
-    );
+    return presets.map((preset) => this.normalizeVersion(preset as unknown as Record<string, any>));
   }
 
   async getPresetById(id: string) {
@@ -115,10 +114,7 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
     return preset ? this.normalizeVersion(preset as unknown as Record<string, any>) : null;
   }
 
-  async replacePresetById(
-    id: string,
-    request: IDietPlanPreset | IDietPlanPresetV2SaveRequest
-  ) {
+  async replacePresetById(id: string, request: IDietPlanPreset | IDietPlanPresetV2SaveRequest) {
     const existing = await this.repository.findScopedById(id);
 
     if (!existing) return null;
@@ -128,9 +124,7 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
 
     this.cache.invalidateAll();
 
-    return updated
-      ? this.normalizeVersion(updated as unknown as Record<string, any>)
-      : null;
+    return updated ? this.normalizeVersion(updated as unknown as Record<string, any>) : null;
   }
 
   async deletePresetById(id: string) {
@@ -138,8 +132,6 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
 
     this.cache.invalidateAll();
 
-    return deleted
-      ? this.normalizeVersion(deleted as unknown as Record<string, any>)
-      : null;
+    return deleted ? this.normalizeVersion(deleted as unknown as Record<string, any>) : null;
   }
 }

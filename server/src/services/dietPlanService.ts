@@ -12,6 +12,7 @@ import { calculateTotalCalories } from "../utils/dietPlan";
 import UserRepository from "../repositories/User/UserRepository";
 import { getAuthContext, requireTrainerAuthContext } from "../utils/authContext";
 import { StatusCode } from "../enums/StatusCode";
+import { normalizeDietV2Response } from "../utils/dietPlanV2";
 
 const baseKey = "diet-plan";
 
@@ -37,10 +38,11 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     return dietPlan;
   };
 
-  private normalizeVersion = <T extends Record<string, any>>(plan: T): T & { version: 1 | 2 } => ({
-    ...plan,
-    version: plan.version === 2 ? 2 : 1,
-  });
+  private normalizeVersion = <T extends Record<string, any>>(plan: T): T & { version: 1 | 2 } =>
+    normalizeDietV2Response({
+      ...plan,
+      version: plan.version === 2 ? 2 : 1,
+    }) as T & { version: 1 | 2 };
 
   private async assertCanAccessUser(userId: string, write: boolean = false): Promise<void> {
     const authContext = getAuthContext();
@@ -96,6 +98,19 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
 
   saveActivePlan = async (request: IDietPlan | IDietPlanV2SaveRequest) => {
     await this.assertCanAccessUser(request.userId, true);
+    const existing = await this.repository.findActiveByUserId(request.userId);
+    const existingVersion = existing?.version === 2 ? 2 : existing ? 1 : null;
+    const requestedVersion = request.version === 2 ? 2 : 1;
+    if (
+      existingVersion !== null &&
+      existingVersion !== requestedVersion &&
+      getAuthContext()?.role !== "admin"
+    ) {
+      throw {
+        status: StatusCode.FORBIDDEN,
+        message: "Only an Admin can replace a diet plan with a different version.",
+      };
+    }
     const replacement =
       request.version === 2
         ? await this.prepareV2Plan(request as IDietPlanV2SaveRequest)
