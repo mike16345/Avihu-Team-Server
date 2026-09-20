@@ -1,6 +1,7 @@
 import { ObjectId } from "mongoose";
 
 export interface IDietPlan {
+  version?: 1;
   userId: string;
   meals: IMeal[];
   totalCalories?: number;
@@ -62,6 +63,7 @@ export interface IDietPlanMeta {
 
 export interface IDietPlanPreset extends Omit<IDietPlan, "userId">, IDietPlanMeta {
   name: string;
+  normalizedName?: string;
 }
 
 export type DietItemUnit = "grams" | "spoons";

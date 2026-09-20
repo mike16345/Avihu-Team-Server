@@ -115,7 +115,14 @@ export const handleApiCall = async (
 
       if (hasMiddleWares) {
         console.log("Running middlewares");
-        await runMiddlewares(apiHandler.middlewares!, event, context);
+        const middlewareResult = await runMiddlewares(apiHandler.middlewares!, event, context);
+
+        if (!middlewareResult.isValid) {
+          return {
+            ...createResponse(StatusCode.BAD_REQUEST, middlewareResult.message),
+            headers: API_HEADERS,
+          };
+        }
       }
 
       if (apiValidators && apiValidators[routeKey]) {

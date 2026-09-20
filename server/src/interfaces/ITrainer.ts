@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const TRAINER_SUBSCRIPTION_PLANS = ["Pro", "בסיסי"] as const;
 export const TRAINER_STATUSES = ["active", "inactive", "blocked"] as const;
+export const TRAINER_DIET_PLAN_VERSIONS = [1, 2] as const;
 export const TRAINER_SOURCES = [
   "פנייה קרה",
   "יוטיוב",
@@ -13,6 +14,7 @@ export const TRAINER_SOURCES = [
 
 export type TrainerSubscriptionPlan = (typeof TRAINER_SUBSCRIPTION_PLANS)[number];
 export type TrainerStatus = (typeof TRAINER_STATUSES)[number];
+export type TrainerDietPlanVersion = (typeof TRAINER_DIET_PLAN_VERSIONS)[number];
 export type TrainerSource = (typeof TRAINER_SOURCES)[number];
 
 export interface ITrainer {
@@ -29,6 +31,7 @@ export interface ITrainer {
   status: TrainerStatus;
   source: TrainerSource;
   videoLibraryAccess: boolean;
+  dietPlanVersion: TrainerDietPlanVersion;
   userId?: mongoose.Types.ObjectId;
   /**
    * IDs of workout presets the trainer has starred as favourites.
