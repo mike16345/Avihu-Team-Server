@@ -2,6 +2,8 @@ import { Schema, model } from "mongoose";
 import { IDietItem, IDietPlan, IMeal } from "../interfaces/IDietPlan";
 import Joi from "joi";
 
+export const DIET_PLANS_COLLECTION = "dietplans";
+
 export const dietItemSchema = new Schema<IDietItem>({
   quantity: { type: Number, required: true },
   customItems: [{ type: Schema.Types.ObjectId, ref: "menuItems", required: false }],
@@ -16,6 +18,7 @@ export const mealSchema = new Schema<IMeal>({
 });
 
 export const dietPlanSchema = new Schema<IDietPlan>({
+  version: { type: Number, enum: [1], required: false },
   userId: { type: String, required: true },
   meals: { type: [mealSchema], required: true },
   supplements: { type: [String], required: false, default: [] },
@@ -26,7 +29,7 @@ export const dietPlanSchema = new Schema<IDietPlan>({
   veggiesPerDay: { type: Number, required: false },
 });
 
-export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema);
+export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema, DIET_PLANS_COLLECTION);
 
 export const dietItemValidationSchema = Joi.object({
   quantity: Joi.number().required(),
@@ -42,6 +45,7 @@ export const mealValidationSchema = Joi.object({
 });
 
 export const DietPlanSchemaValidation = Joi.object({
+  version: Joi.number().valid(1).optional(),
   userId: Joi.string().required(),
   meals: Joi.array()
     .items(mealValidationSchema)
@@ -55,3 +59,7 @@ export const DietPlanSchemaValidation = Joi.object({
   veggiesPerDay: Joi.number().optional().min(0),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
 });
+
+export const DietPlanUpdateSchemaValidation = DietPlanSchemaValidation.fork(["userId"], (schema) =>
+  schema.optional()
+);

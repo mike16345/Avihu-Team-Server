@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "test": "jest",
+    "audit-diet-plan-v2": "ts-node scripts/auditDietPlanV2Migration.ts",
     "create-lambda": "node ./scripts/createLambda.js",
     "configure-api-gateway": "node ./scripts/configureApiGateway.js",
     "deploy": "node deploy.js",
@@ -32,7 +33,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.97",
-    "@types/node": "^20.19.39",
+    "@types/node": "^20.19.43",
     "@types/nodemailer": "^6.4.17",
     "dotenv": "^17.2.1",
     "inquirer": "^10.2.0",

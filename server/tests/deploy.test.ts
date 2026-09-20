@@ -11,6 +11,7 @@ describe("deploy env resolution", () => {
 
     expect(resolveEnvToUse("Users")).toBe("otp");
     expect(resolveEnvToUse("Agreements")).toBe("signedUrl");
+    expect(resolveEnvToUse("FoodCatalog")).toBe("foodCatalog");
   });
 
   test("prefers the explicit env override when provided", () => {

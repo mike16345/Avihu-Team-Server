@@ -10,7 +10,7 @@ const dietPlanController = new DietPlanController();
 
 const dietPlanApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
-    handler: dietPlanController.getAll,
+    handler: dietPlanController.getTeamDietPlans,
     access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
@@ -41,7 +41,7 @@ const dietPlanApiRoutes: ApiRouteHandlers = {
     access: "subtrainer",
   },
   [`DELETE ${BASE_PATH}/one`]: {
-    handler: dietPlanController.deleteById,
+    handler: dietPlanController.deleteDietPlanById,
     access: "subtrainer",
   },
 };

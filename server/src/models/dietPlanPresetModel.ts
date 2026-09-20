@@ -4,6 +4,8 @@ import { mealSchema, mealValidationSchema } from "./dietPlanModel";
 import Joi from "joi";
 import { IModel } from "../interfaces/IModel";
 
+export const DIET_PLAN_PRESETS_COLLECTION = "dietplanpresets";
+
 /**
  * Optional trainer-tagged meta — used by the admin panel to filter
  * presets (goal / calorie bucket / dietary restrictions / who built it).
@@ -24,7 +26,9 @@ export const dietMetaFields = {
 };
 
 export const dietPlanSchema = new Schema<IDietPlanPreset & IModel>({
-  name: { type: String, required: true, unique: true, min: 1, max: 100 },
+  version: { type: Number, enum: [1], required: false },
+  name: { type: String, required: true, min: 1, max: 100 },
+  normalizedName: { type: String, required: false },
   trainerId: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -40,9 +44,21 @@ export const dietPlanSchema = new Schema<IDietPlanPreset & IModel>({
   ...dietMetaFields,
 });
 
+dietPlanSchema.index(
+  { trainerId: 1, version: 1, normalizedName: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      version: { $type: "number" },
+      normalizedName: { $type: "string" },
+    },
+  }
+);
+
 export const DietPlanPresetsModel = model<IDietPlanPreset & IModel>(
   "dietPlanPresets",
-  dietPlanSchema
+  dietPlanSchema,
+  DIET_PLAN_PRESETS_COLLECTION
 );
 
 /** Kept in sync with dietMetaFields above. */
@@ -59,6 +75,7 @@ export const dietMetaValidationFields = {
 };
 
 export const DietPlanPresetSchemaValidation = Joi.object({
+  version: Joi.number().valid(1).optional(),
   name: Joi.string().min(1).max(100).required(),
   meals: Joi.array().items(mealValidationSchema).min(1).required(),
   totalCalories: Joi.number().optional(),
