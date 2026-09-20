@@ -22,17 +22,12 @@ describe("API Gateway Lambda integration", () => {
       "aws",
       expect.arrayContaining([
         "--uri",
-        buildLambdaIntegrationUri(
-          "il-central-1",
-          "123456789012",
-          "FoodCatalog"
-        ),
+        buildLambdaIntegrationUri("il-central-1", "123456789012", "FoodCatalog"),
       ]),
       { encoding: "utf-8" }
     );
-    expect(buildLambdaIntegrationUri("il-central-1", "123456789012", "FoodCatalog"))
-      .toBe(
-        "arn:aws:apigateway:il-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:il-central-1:123456789012:function:FoodCatalog:${stageVariables.lambdaAlias}/invocations"
-      );
+    expect(buildLambdaIntegrationUri("il-central-1", "123456789012", "FoodCatalog")).toBe(
+      "arn:aws:apigateway:il-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:il-central-1:123456789012:function:FoodCatalog:${stageVariables.lambdaAlias}/invocations"
+    );
   });
 });

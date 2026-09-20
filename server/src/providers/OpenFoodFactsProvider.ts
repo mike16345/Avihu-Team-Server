@@ -21,8 +21,7 @@ const OPEN_FOOD_FACTS_FIELDS = [
 ].join(",");
 
 export type OpenFoodFactsLookupResult =
-  | { status: "found"; product: Record<string, any> }
-  | { status: "not_found" };
+  { status: "found"; product: Record<string, any> } | { status: "not_found" };
 
 export class OpenFoodFactsProviderError extends Error {
   constructor(message: string) {

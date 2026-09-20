@@ -27,7 +27,9 @@ function putLambdaIntegration(options, execute = execFileSync) {
       uri,
     ],
     { encoding: "utf-8" }
-  ).toString().trim();
+  )
+    .toString()
+    .trim();
 }
 
 module.exports = {
