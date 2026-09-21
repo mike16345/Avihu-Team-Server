@@ -1,0 +1,241 @@
+import mongoose from "mongoose";
+import { DietPlan } from "../../src/models/dietPlanModel";
+import { DietPlanPresetsModel } from "../../src/models/dietPlanPresetModel";
+import {
+  DietPlanPresetV2Model,
+  DietPlanPresetV2SchemaValidation,
+  DietPlanV2Model,
+  DietPlanV2SchemaValidation,
+} from "../../src/models/dietPlanV2Schemas";
+
+const buildCategories = (): any[] => [
+  {
+    category: "protein",
+    items: [{ name: "100g Chicken breast" }],
+    macros: { calories: 200, protein: 25 },
+  },
+  {
+    category: "carbs",
+    items: [{ name: "200 grams rice" }],
+    macros: { calories: 248, carbs: 45 },
+  },
+  { category: "fat", items: [] },
+  { category: "vegetables", items: [] },
+];
+
+const buildPlan = (overrides: Record<string, unknown> = {}) => ({
+  userId: new mongoose.Types.ObjectId().toString(),
+  version: 2,
+  meals: [
+    {
+      name: "Breakfast",
+      categories: buildCategories(),
+      addOns: [{ name: "Coffee" }],
+      macros: {
+        calories: 448,
+        protein: 25,
+        carbs: 45,
+        fat: 12,
+      },
+      freeCalories: {
+        calories: 150,
+        items: [{ name: "Fruit" }, { name: "Snack" }],
+      },
+      supplements: ["Creatine after training"],
+    },
+  ],
+  highlights: "Drink water",
+  ...overrides,
+});
+
+describe("Diet Plan V2 validation", () => {
+  test("accepts the complete literal-name plan contract", () => {
+    const result = DietPlanV2SchemaValidation.validate(buildPlan());
+
+    expect(result.error).toBeUndefined();
+    expect(result.value.meals[0].categories[0].items[0].name).toBe("100g Chicken breast");
+  });
+
+  test("rejects normalized duplicate names inside one category", () => {
+    const categories = buildCategories();
+    categories[0].items.push({ name: "  100G   chicken BREAST " });
+    const result = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...buildPlan().meals[0], categories }] })
+    );
+
+    expect(result.error?.message).toContain("duplicate");
+  });
+
+  test("allows the same normalized name in different categories", () => {
+    const categories = buildCategories();
+    categories[1].items = [{ name: " 100G   chicken BREAST " }];
+    const result = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...buildPlan().meals[0], categories }] })
+    );
+
+    expect(result.error).toBeUndefined();
+  });
+
+  test("rejects repeated categories, incomplete free calories, and invalid macros", () => {
+    const baseMeal = buildPlan().meals[0];
+    const repeatedCategory = DietPlanV2SchemaValidation.validate(
+      buildPlan({
+        meals: [
+          {
+            ...baseMeal,
+            categories: [baseMeal.categories[0], baseMeal.categories[0]],
+          },
+        ],
+      })
+    );
+    const incompleteFreeCalories = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, freeCalories: { calories: 100, items: [] } }] })
+    );
+    const invalidMacros = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, macros: { ...baseMeal.macros, protein: -1 } }] })
+    );
+    const missingMacros = DietPlanV2SchemaValidation.validate(
+      buildPlan({
+        meals: [
+          {
+            ...baseMeal,
+            macros: { calories: 448, protein: 25, carbs: 45 },
+          },
+        ],
+      })
+    );
+
+    expect(repeatedCategory.error?.message).toContain("duplicate category");
+    expect(incompleteFreeCalories.error).toBeDefined();
+    expect(invalidMacros.error).toBeDefined();
+    expect(missingMacros.error).toBeDefined();
+  });
+
+  test("requires complete macros only for populated categories and accepts explicit zero", () => {
+    const baseMeal = buildPlan().meals[0];
+    const missingCategoryMacros = buildCategories();
+    delete (missingCategoryMacros[0] as any).macros;
+    const missing = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, categories: missingCategoryMacros }] })
+    );
+    const explicitZero = buildCategories();
+    explicitZero[0].macros = { calories: 0, protein: 0 };
+    const valid = DietPlanV2SchemaValidation.validate(
+      buildPlan({ meals: [{ ...baseMeal, categories: explicitZero }] })
+    );
+
+    expect(missing.error?.message).toContain("calories macros are required for protein");
+    expect(valid.error).toBeUndefined();
+  });
+
+  test("requires only the category-relevant macro and calories", () => {
+    const baseMeal = buildPlan().meals[0];
+    const categories = buildCategories();
+    categories[2] = {
+      category: "fat",
+      items: [{ name: "Tahini" }],
+      macros: { calories: 90, fat: 8 },
+    };
+    categories[3] = {
+      category: "vegetables",
+      items: [{ name: "Tomato" }],
+      macros: { calories: 20, carbs: 4 },
+    };
+
+    expect(
+      DietPlanV2SchemaValidation.validate(buildPlan({ meals: [{ ...baseMeal, categories }] })).error
+    ).toBeUndefined();
+    expect(
+      DietPlanV2SchemaValidation.validate(
+        buildPlan({
+          meals: [
+            {
+              ...baseMeal,
+              categories: categories.map((category) =>
+                category.category === "protein"
+                  ? { ...category, macros: { calories: 200 } }
+                  : category
+              ),
+            },
+          ],
+        })
+      ).error?.message
+    ).toContain("protein");
+  });
+
+  test("rejects normalized duplicate add-on names", () => {
+    const baseMeal = buildPlan().meals[0];
+    const result = DietPlanV2SchemaValidation.validate(
+      buildPlan({
+        meals: [
+          {
+            ...baseMeal,
+            addOns: [{ name: "Coffee" }, { name: "  COFFEE " }],
+          },
+        ],
+      })
+    );
+
+    expect(result.error?.message).toContain("duplicate item name in addOns");
+  });
+});
+
+describe("Diet Plan V2 shared collections", () => {
+  test("stores strict V1 and V2 documents in the same diet-plan collection", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const v1 = await DietPlan.create({
+      userId: new mongoose.Types.ObjectId().toString(),
+      meals: [
+        {
+          totalProtein: { quantity: 1 },
+          totalCarbs: { quantity: 1 },
+        },
+      ],
+      supplements: [],
+    });
+    const request = buildPlan();
+    const v2 = await DietPlanV2Model.create({ ...request, trainerId });
+
+    expect(DietPlan.collection.name).toBe(DietPlanV2Model.collection.name);
+    expect(v1.get("version")).toBeUndefined();
+    expect(v2.version).toBe(2);
+    expect(v2.meals[0]._id).toBeDefined();
+    expect(v2.meals[0].categories[0].items[0]).not.toHaveProperty("_id");
+  });
+
+  test("preserves a supplied Mongo meal _id", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const mealId = new mongoose.Types.ObjectId();
+    const request = buildPlan();
+    request.meals[0] = { ...request.meals[0], _id: mealId } as any;
+
+    const plan = await DietPlanV2Model.create({ ...request, trainerId });
+
+    expect(plan.meals[0]._id?.toString()).toBe(mealId.toString());
+  });
+
+  test("stores V1 and V2 presets in the same preset collection", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const request = buildPlan();
+    delete (request as Record<string, unknown>).userId;
+    const validation = DietPlanPresetV2SchemaValidation.validate({
+      ...request,
+      name: "Quick V2 Plan",
+      goal: "maintain",
+      targetGender: "both",
+      dietTags: ["kosher"],
+    });
+
+    expect(validation.error).toBeUndefined();
+
+    const preset = await DietPlanPresetV2Model.create({
+      ...validation.value,
+      normalizedName: "quick v2 plan",
+      trainerId,
+      builtByTrainerId: trainerId,
+    });
+
+    expect(DietPlanPresetsModel.collection.name).toBe(DietPlanPresetV2Model.collection.name);
+    expect(preset.version).toBe(2);
+  });
+});

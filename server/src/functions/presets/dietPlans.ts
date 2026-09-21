@@ -8,15 +8,15 @@ const dietPlanPresetController = new DietPlanPresetController();
 
 export const dietPlanPresetApiRoutes: ApiRouteHandlers = {
   [`GET ${BASE_PATH}`]: {
-    handler: dietPlanPresetController.getAll,
+    handler: dietPlanPresetController.getDietPlanPresets,
     access: "subtrainer",
   },
   [`GET ${BASE_PATH}/one`]: {
-    handler: dietPlanPresetController.getById,
+    handler: dietPlanPresetController.getDietPlanPresetById,
     access: "subtrainer",
   },
   [`POST ${BASE_PATH}`]: {
-    handler: dietPlanPresetController.create,
+    handler: dietPlanPresetController.createDietPlanPreset,
     access: "subtrainer",
     middlewares: [validateDietPlanPreset],
   },
@@ -26,7 +26,7 @@ export const dietPlanPresetApiRoutes: ApiRouteHandlers = {
     middlewares: [validateDietPlanPreset],
   },
   [`DELETE ${BASE_PATH}/one`]: {
-    handler: dietPlanPresetController.deleteById,
+    handler: dietPlanPresetController.deleteDietPlanPreset,
     access: "subtrainer",
   },
 };

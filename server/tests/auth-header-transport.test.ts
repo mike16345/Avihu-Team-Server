@@ -34,10 +34,36 @@ describe("Bearer token transport", () => {
         firstName: "A",
         lastName: "B",
       }),
+      getTrainerDietPlanVersion: jest.fn().mockResolvedValue(1),
     };
 
     const response = await controller.me({ headers: { Authorization: "Bearer valid" } });
     expect(response.statusCode).toBe(200);
+  });
+
+  test("/auth/me includes the head trainer diet-plan version", async () => {
+    const controller = new UserController() as any;
+    controller.jwtAuthService = { verifyAccessToken: jest.fn().mockReturnValue({ userId: "u1" }) };
+    controller.service = {
+      findById: jest.fn().mockResolvedValue({
+        _id: "u1",
+        trainerId: "trainer-1",
+        email: "trainer@example.com",
+        role: "trainer",
+        hasAccess: true,
+        firstName: "A",
+        lastName: "B",
+      }),
+      getTrainerDietPlanVersion: jest.fn().mockResolvedValue(2),
+    };
+
+    const response = await controller.me({ headers: { Authorization: "Bearer valid" } });
+    const payload = JSON.parse(response.body);
+
+    expect(payload.data.dietPlanVersion).toBe(2);
+    expect(controller.service.getTrainerDietPlanVersion).toHaveBeenCalledWith(
+      expect.objectContaining({ _id: "u1", trainerId: "trainer-1" })
+    );
   });
 
   test("/auth/me succeeds with lowercase authorization", async () => {
@@ -52,6 +78,7 @@ describe("Bearer token transport", () => {
         firstName: "A",
         lastName: "B",
       }),
+      getTrainerDietPlanVersion: jest.fn().mockResolvedValue(1),
     };
 
     const response = await controller.me({ headers: { authorization: "Bearer valid" } });

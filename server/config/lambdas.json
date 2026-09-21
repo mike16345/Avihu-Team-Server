@@ -24,5 +24,6 @@
   "agreements": { "functionName": "Agreements", "envToUse": "signedUrl" },
   "subTrainers": { "functionName": "SubTrainers", "envToUse": "otp" },
   "trainers": { "functionName": "Trainers", "envToUse": "otp" },
-  "WeeklyFeedback": { "functionName": "WeeklyFeedback", "envToUse": "api" }
+  "WeeklyFeedback": { "functionName": "WeeklyFeedback", "envToUse": "api" },
+  "foodCatalog": { "functionName": "FoodCatalog", "envToUse": "foodCatalog" }
 }

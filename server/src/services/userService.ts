@@ -93,6 +93,23 @@ export default class UserService extends BaseService<IUser, UserRepository> {
     return (await this.globalUserRepository.findOne({ query: filter })) as any as IUser | null;
   };
 
+  getTrainerDietPlanVersion = async (user: IUser): Promise<1 | 2 | undefined> => {
+    if (!["admin", "trainer", "subTrainer"].includes(user.role)) return undefined;
+
+    const trainerId = user.trainerId?.toString();
+    let trainer = trainerId
+      ? ((await this.trainerRepository.findById(trainerId)) as any as ITrainer | null)
+      : null;
+
+    if (!trainer) {
+      trainer = (await this.trainerRepository.findOne({
+        query: { userId: user._id.toString() } as any,
+      })) as any as ITrainer | null;
+    }
+
+    return trainer?.dietPlanVersion ?? 1;
+  };
+
   async deleteById(id: string) {
     if (isSystemLibraryOwnerId(id)) {
       throw {

@@ -441,6 +441,7 @@ Important envs used in current codebase include:
 - `OPENAI_API_KEY`
 - `PINECONE_API_KEY`
 - `PINECONE_INDEX`
+- `OPEN_FOOD_FACTS_USER_AGENT`
 - several `RAG_*` variables in `server/src/rag/config.ts`
 
 Deployment scripts load `.env.local` with `dotenv`.
@@ -753,6 +754,15 @@ Configure API Gateway resource:
 cd server
 npm run configure-api-gateway -- path=resourcePath function=LambdaName proxy=true
 ```
+
+### Deployment Handoff Requirements
+
+Whenever changes are made, the final handoff must include a `Lambda functions requiring redeployment` section.
+
+- List every affected Lambda using its exact `functionName` from `server/config/lambdas.json`.
+- Trace changed routes, entry points, and shared imports so that changes to shared code include every Lambda that consumes that code.
+- Do not assume that only the most obvious route Lambda is affected, and do not default to redeploying all Lambdas.
+- If the changes do not affect deployed runtime code, explicitly write `Lambda functions requiring redeployment: none`.
 
 ### Commands Not Currently Defined
 
