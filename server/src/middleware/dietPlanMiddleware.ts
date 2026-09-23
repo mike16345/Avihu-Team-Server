@@ -1,8 +1,7 @@
 import { DietPlanSchemaValidation, DietPlanUpdateSchemaValidation } from "../models/dietPlanModel";
-import { validateBody } from "../utils/utils";
+import { stripClientTrainerIdFromBody, validateBody } from "../utils/utils";
 import { DietPlanPresetSchemaValidation } from "../models/dietPlanPresetModel";
 import { APIGatewayEvent } from "aws-lambda";
-import { extractBodyFromEvent } from "../utils/utils";
 import {
   DietPlanPresetV2SchemaValidation,
   DietPlanV2SchemaValidation,
@@ -18,7 +17,7 @@ const getDietPlanValidationSchema = (version: unknown, isUpdate: boolean) => {
 };
 
 export const validateDietPlan = (event: APIGatewayEvent) => {
-  const body = extractBodyFromEvent(event);
+  const body = stripClientTrainerIdFromBody(event);
   const isUpdate = event.httpMethod === "PUT";
   const schema = getDietPlanValidationSchema(body.version, isUpdate);
 
@@ -26,7 +25,7 @@ export const validateDietPlan = (event: APIGatewayEvent) => {
 };
 
 export const validateDietPlanPreset = (event: APIGatewayEvent) => {
-  const body = extractBodyFromEvent(event);
+  const body = stripClientTrainerIdFromBody(event);
 
   return validateBody(
     event,

@@ -143,6 +143,23 @@ export const extractBodyFromEvent = (event: APIGatewayEvent) => {
   return JSON.parse(event.body || "{}");
 };
 
+export const stripClientTrainerIdFromBody = (event: APIGatewayEvent) => {
+  const body = extractBodyFromEvent(event);
+
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return body;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(body, "trainerId")) {
+    return body;
+  }
+
+  const { trainerId: _trainerId, ...sanitizedBody } = body;
+  event.body = JSON.stringify(sanitizedBody);
+
+  return sanitizedBody;
+};
+
 export const extractQueryFromEvent = (event: any) => {
   return event.queryStringParameters || {};
 };

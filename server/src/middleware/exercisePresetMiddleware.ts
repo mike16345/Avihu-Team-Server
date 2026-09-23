@@ -2,12 +2,13 @@ import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { ExercisePresetService } from "../services/exercisePresetService";
 import { FIND_ONE_FAILURE } from "../constants/repository";
+import { stripClientTrainerIdFromBody } from "../utils/utils";
 
 export const validateExercise = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<{ isValid: boolean; message?: string; validatedExercise?: any }> => {
-  const exercise = JSON.parse(event.body || "{}");
+  const exercise = stripClientTrainerIdFromBody(event);
   const { id } = event.queryStringParameters || {};
 
   try {
