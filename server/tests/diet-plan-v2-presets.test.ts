@@ -11,6 +11,8 @@ const buildV1Preset = (name: string) => ({
     {
       totalProtein: { quantity: 1 },
       totalCarbs: { quantity: 1 },
+      totalFats: { quantity: 0 },
+      totalVeggies: { quantity: 0 },
     },
   ],
   supplements: [],
@@ -63,6 +65,40 @@ const withTeam = <T>(
   );
 
 describe("Diet Plan V2 presets", () => {
+  test.each([1, 2])("persists unit display mode %i on a V1 preset", async (unitDisplayMode) => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const service = new DietPlanPresetsService();
+
+    const saved = await withTeam(trainerId, trainerId, "trainer", () =>
+      service.createPreset({
+        ...buildV1Preset(`Unit mode ${unitDisplayMode}`),
+        unitDisplayMode: unitDisplayMode as 1 | 2,
+      })
+    );
+
+    expect((saved as any).unitDisplayMode).toBe(unitDisplayMode);
+    await expect(DietPlanPresetsModel.findById((saved as any)._id).lean()).resolves.toMatchObject({
+      unitDisplayMode,
+    });
+  });
+
+  test("preserves an existing unit display mode when a legacy replacement omits it", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const service = new DietPlanPresetsService();
+    const created = await withTeam(trainerId, trainerId, "trainer", () =>
+      service.createPreset({ ...buildV1Preset("Legacy update"), unitDisplayMode: 2 })
+    );
+
+    const updated = await withTeam(trainerId, trainerId, "trainer", () =>
+      service.replacePresetById(
+        (created as any)._id.toString(),
+        buildV1Preset("Legacy update renamed")
+      )
+    );
+
+    expect((updated as any).unitDisplayMode).toBe(2);
+  });
+
   test("creates a V2 preset in the parent trainer catalog and records the acting builder", async () => {
     const trainerId = new mongoose.Types.ObjectId();
     const subTrainerId = new mongoose.Types.ObjectId();

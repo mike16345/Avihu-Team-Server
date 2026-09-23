@@ -97,6 +97,38 @@ const buildEvent = (
   }) as unknown as APIGatewayProxyEvent;
 
 describe("version-aware diet-plan saves", () => {
+  test.each([1, 2])("persists unit display mode %i on a V1 plan", async (unitDisplayMode) => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const user = await buildUser(trainerId);
+
+    const saved = await withTrainer(trainerId, () =>
+      new DietPlanService().saveActivePlan({
+        ...buildV1Plan(user._id.toString()),
+        unitDisplayMode: unitDisplayMode as 1 | 2,
+      })
+    );
+
+    expect((saved as any).unitDisplayMode).toBe(unitDisplayMode);
+    await expect(
+      DietPlan.collection.findOne({ userId: user._id.toString() })
+    ).resolves.toMatchObject({ unitDisplayMode });
+  });
+
+  test("preserves an existing unit display mode when a legacy update omits it", async () => {
+    const trainerId = new mongoose.Types.ObjectId();
+    const user = await buildUser(trainerId);
+    const service = new DietPlanService();
+    await withTrainer(trainerId, () =>
+      service.saveActivePlan({ ...buildV1Plan(user._id.toString()), unitDisplayMode: 2 })
+    );
+
+    const updated = await withTrainer(trainerId, () =>
+      service.saveActivePlan(buildV1Plan(user._id.toString()))
+    );
+
+    expect((updated as any).unitDisplayMode).toBe(2);
+  });
+
   test("reads an unversioned legacy plan as version 1 without mutating storage", async () => {
     const trainerId = new mongoose.Types.ObjectId();
     const user = await buildUser(trainerId);

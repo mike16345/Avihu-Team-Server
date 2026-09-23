@@ -4,6 +4,7 @@ import {
   mealSchema,
   dietPlanSchema,
   DietPlanSchemaValidation,
+  DietPlanUpdateSchemaValidation,
 } from "../../src/models/dietPlanModel";
 import {
   validDietItem,
@@ -55,6 +56,13 @@ describe("Mongoose Schemas", () => {
     expect(savedPlan.totalCalories).toBe(validDietPlan.totalCalories);
   });
 
+  test.each([1, 2])("should persist unit display mode %i", async (unitDisplayMode) => {
+    const plan = new DietPlan({ ...validDietPlan, unitDisplayMode });
+    const savedPlan = await plan.save();
+
+    expect(savedPlan.get("unitDisplayMode")).toBe(unitDisplayMode);
+  });
+
   test("should throw validation error for invalid diet plan", async () => {
     const invalidPlan = new DietPlan(invalidDietPlan);
 
@@ -65,6 +73,30 @@ describe("Mongoose Schemas", () => {
 describe("Joi Validation", () => {
   test("should validate a valid diet plan", () => {
     const { error } = DietPlanSchemaValidation.validate(validDietPlan);
+
+    expect(error).toBeUndefined();
+  });
+
+  test("should remain valid when unit display mode is omitted", () => {
+    const { error } = DietPlanSchemaValidation.validate(validDietPlan);
+
+    expect(error).toBeUndefined();
+  });
+
+  test.each([1, 2])("should accept unit display mode %i", (unitDisplayMode) => {
+    const { error } = DietPlanSchemaValidation.validate({ ...validDietPlan, unitDisplayMode });
+
+    expect(error).toBeUndefined();
+  });
+
+  test.each([0, 3])("should reject invalid unit display mode %i", (unitDisplayMode) => {
+    const { error } = DietPlanSchemaValidation.validate({ ...validDietPlan, unitDisplayMode });
+
+    expect(error).toBeDefined();
+  });
+
+  test("should allow legacy updates without unit display mode", () => {
+    const { error } = DietPlanUpdateSchemaValidation.validate(validDietPlan);
 
     expect(error).toBeUndefined();
   });

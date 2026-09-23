@@ -27,6 +27,7 @@ export const dietPlanSchema = new Schema<IDietPlan>({
   totalCalories: { type: Number, required: false },
   fatsPerDay: { type: Number, required: false },
   veggiesPerDay: { type: Number, required: false },
+  unitDisplayMode: { type: Number, enum: [1, 2], required: false },
 });
 
 export const DietPlan = model<IDietPlan>("dietPlans", dietPlanSchema, DIET_PLANS_COLLECTION);
@@ -58,6 +59,7 @@ export const DietPlanSchemaValidation = Joi.object({
   supplements: Joi.array().min(0).optional(),
   veggiesPerDay: Joi.number().optional().min(0),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
+  unitDisplayMode: Joi.number().valid(1, 2).optional(),
 });
 
 export const DietPlanUpdateSchemaValidation = DietPlanSchemaValidation.fork(["userId"], (schema) =>

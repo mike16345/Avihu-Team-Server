@@ -1,9 +1,6 @@
 import { FilterQuery, Types } from "mongoose";
 import { IDietPlan } from "../interfaces/IDietPlan";
-import {
-  AnyDietPlanDocument,
-  DietPlanRepository,
-} from "../repositories/DietPlan/DietPlanRepository";
+import { DietPlanRepository } from "../repositories/DietPlan/DietPlanRepository";
 import { stableStringify } from "../utils/utils";
 import { BaseService } from "./baseService";
 import { IDietPlanV2SaveRequest } from "../interfaces/IDietPlanV2";
@@ -80,7 +77,14 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     };
   }
 
-  private prepareV1Plan(request: IDietPlan) {
+  private prepareV1Plan(
+    request: IDietPlan,
+    existing?: { version?: unknown; unitDisplayMode?: IDietPlan["unitDisplayMode"] } | null
+  ) {
+    const existingUnitDisplayMode =
+      existing?.version !== 2 ? existing?.unitDisplayMode : undefined;
+    const unitDisplayMode = request.unitDisplayMode ?? existingUnitDisplayMode;
+
     return {
       userId: request.userId,
       version: 1 as const,
@@ -92,6 +96,7 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
       ...(request.freeCalories !== undefined ? { freeCalories: request.freeCalories } : {}),
       ...(request.fatsPerDay !== undefined ? { fatsPerDay: request.fatsPerDay } : {}),
       ...(request.veggiesPerDay !== undefined ? { veggiesPerDay: request.veggiesPerDay } : {}),
+      ...(unitDisplayMode !== undefined ? { unitDisplayMode } : {}),
       totalCalories: calculateTotalCalories(request.meals, request.freeCalories),
     };
   }
@@ -114,7 +119,7 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     const replacement =
       request.version === 2
         ? await this.prepareV2Plan(request as IDietPlanV2SaveRequest)
-        : this.prepareV1Plan(request as IDietPlan);
+        : this.prepareV1Plan(request as IDietPlan, existing as unknown as IDietPlan | null);
     const saved = await this.repository.replaceActiveByUserId(request.userId, replacement);
 
     this.cache.invalidateAll();

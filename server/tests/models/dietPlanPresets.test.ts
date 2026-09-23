@@ -22,6 +22,17 @@ describe("Mongoose Schemas for Diet Plan Presets", () => {
     expect(savedPreset.totalCalories).toBe(validDietPlanPreset.totalCalories);
   });
 
+  test.each([1, 2])("should persist unit display mode %i", async (unitDisplayMode) => {
+    const preset = new DietPlanPresetsModel({
+      ...validDietPlanPreset,
+      trainerId: new mongoose.Types.ObjectId(),
+      unitDisplayMode,
+    });
+    const savedPreset = await preset.save();
+
+    expect(savedPreset.get("unitDisplayMode")).toBe(unitDisplayMode);
+  });
+
   test("should throw validation error for invalid diet plan preset", async () => {
     const invalidPreset = new DietPlanPresetsModel(invalidDietPlanPreset);
 
@@ -34,6 +45,30 @@ describe("Joi Validation for Diet Plan Presets", () => {
     const { error } = DietPlanPresetSchemaValidation.validate(validDietPlanPreset);
 
     expect(error).toBeUndefined();
+  });
+
+  test("should remain valid when unit display mode is omitted", () => {
+    const { error } = DietPlanPresetSchemaValidation.validate(validDietPlanPreset);
+
+    expect(error).toBeUndefined();
+  });
+
+  test.each([1, 2])("should accept unit display mode %i", (unitDisplayMode) => {
+    const { error } = DietPlanPresetSchemaValidation.validate({
+      ...validDietPlanPreset,
+      unitDisplayMode,
+    });
+
+    expect(error).toBeUndefined();
+  });
+
+  test.each([0, 3])("should reject invalid unit display mode %i", (unitDisplayMode) => {
+    const { error } = DietPlanPresetSchemaValidation.validate({
+      ...validDietPlanPreset,
+      unitDisplayMode,
+    });
+
+    expect(error).toBeDefined();
   });
 
   test("should return validation error for invalid diet plan preset", () => {
