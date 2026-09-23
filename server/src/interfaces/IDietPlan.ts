@@ -46,12 +46,7 @@ export interface IMeal {
  */
 export type DietGoal = "cutting" | "mass";
 export type DietaryRestriction =
-  | "lactose-free"
-  | "vegetarian"
-  | "vegan"
-  | "no-fish"
-  | "no-meat"
-  | "gluten-free";
+  "lactose-free" | "vegetarian" | "vegan" | "no-fish" | "no-meat" | "gluten-free";
 
 export interface IDietPlanMeta {
   goal?: DietGoal;

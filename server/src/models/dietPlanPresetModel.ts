@@ -70,7 +70,9 @@ export const dietMetaValidationFields = {
   carbServings: Joi.number().min(0).max(100).optional(),
   fatServings: Joi.number().min(0).max(100).optional(),
   dietaryRestrictions: Joi.array()
-    .items(Joi.string().valid("lactose-free", "vegetarian", "vegan", "no-fish", "no-meat", "gluten-free"))
+    .items(
+      Joi.string().valid("lactose-free", "vegetarian", "vegan", "no-fish", "no-meat", "gluten-free")
+    )
     .optional(),
   builtByTrainerId: Joi.string().optional(),
 };

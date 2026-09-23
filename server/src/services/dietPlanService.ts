@@ -81,8 +81,7 @@ export class DietPlanService extends BaseService<IDietPlan, DietPlanRepository> 
     request: IDietPlan,
     existing?: { version?: unknown; unitDisplayMode?: IDietPlan["unitDisplayMode"] } | null
   ) {
-    const existingUnitDisplayMode =
-      existing?.version !== 2 ? existing?.unitDisplayMode : undefined;
+    const existingUnitDisplayMode = existing?.version !== 2 ? existing?.unitDisplayMode : undefined;
     const unitDisplayMode = request.unitDisplayMode ?? existingUnitDisplayMode;
 
     return {
