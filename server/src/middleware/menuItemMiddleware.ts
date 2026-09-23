@@ -1,13 +1,17 @@
 import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { menuItemShcemaValidation } from "../models/menuItemModel";
 import { MenuItemService } from "../services/menuItemServices";
-import { createValidatorResponse, validateBody } from "../utils/utils";
+import {
+  createValidatorResponse,
+  stripClientTrainerIdFromBody,
+  validateBody,
+} from "../utils/utils";
 import { FIND_ONE_FAILURE } from "../constants/repository";
 
 const menuItemService = new MenuItemService();
 
 export const validateMenuItem = async (event: APIGatewayProxyEvent, context: Context) => {
-  const menuItem = JSON.parse(event.body || "{}");
+  const menuItem = stripClientTrainerIdFromBody(event);
   const { id } = event.queryStringParameters || {};
 
   try {

@@ -56,8 +56,13 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
     };
   }
 
-  private prepareV1Preset(request: IDietPlanPreset) {
+  private prepareV1Preset(request: IDietPlanPreset, existing?: AnyDietPlanPresetDocument | null) {
     const ownership = this.getOwnership();
+    const existingUnitDisplayMode =
+      existing?.version !== 2
+        ? (existing as IDietPlanPreset | null | undefined)?.unitDisplayMode
+        : undefined;
+    const unitDisplayMode = request.unitDisplayMode ?? existingUnitDisplayMode;
 
     return {
       version: 1 as const,
@@ -74,6 +79,7 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
       ...(request.customInstructions !== undefined
         ? { customInstructions: request.customInstructions }
         : {}),
+      ...(unitDisplayMode !== undefined ? { unitDisplayMode } : {}),
       ...(request.goal !== undefined ? { goal: request.goal } : {}),
       ...(request.calories !== undefined ? { calories: request.calories } : {}),
       ...(request.proteinServings !== undefined
@@ -87,10 +93,13 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
     };
   }
 
-  private async preparePreset(request: IDietPlanPreset | IDietPlanPresetV2SaveRequest) {
+  private async preparePreset(
+    request: IDietPlanPreset | IDietPlanPresetV2SaveRequest,
+    existing?: AnyDietPlanPresetDocument | null
+  ) {
     return request.version === 2
       ? await this.prepareV2Preset(request as IDietPlanPresetV2SaveRequest)
-      : this.prepareV1Preset(request as IDietPlanPreset);
+      : this.prepareV1Preset(request as IDietPlanPreset, existing);
   }
 
   async createPreset(request: IDietPlanPreset | IDietPlanPresetV2SaveRequest) {
@@ -119,7 +128,7 @@ export class DietPlanPresetsService extends BaseService<IDietPlanPreset, DietPla
 
     if (!existing) return null;
 
-    const prepared = await this.preparePreset(request);
+    const prepared = await this.preparePreset(request, existing);
     const updated = await this.repository.replaceScopedById(id, prepared);
 
     this.cache.invalidateAll();

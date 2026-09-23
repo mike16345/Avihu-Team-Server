@@ -132,7 +132,7 @@ async function deploy({ functionName, handlerPath }, envKey = null) {
     console.log(`Uploading code with lambda-build...`);
     execSync(uploadCommand, { stdio: "inherit" });
 
-    await sleep(2000);
+    await sleep(3000);
 
     setupAliases(functionName, promote, ignoreDev);
 

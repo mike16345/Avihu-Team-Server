@@ -2,16 +2,16 @@ import { FullWorkoutPlanSchemaValidation } from "../models/workoutPlanModel";
 import { WorkoutPlanPresetSchemaValidation } from "../models/workoutPlanPresetModel";
 import {
   createValidatorResponse,
-  extractBodyFromEvent,
   extractQueryFromEvent,
   removeNestedIds,
+  stripClientTrainerIdFromBody,
 } from "../utils/utils";
 import { APIGatewayEvent } from "aws-lambda";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
 
 export const validateWorkoutPlan = (event: APIGatewayEvent) => {
   const { id, userId } = extractQueryFromEvent(event);
-  const body = extractBodyFromEvent(event);
+  const body = stripClientTrainerIdFromBody(event);
   const cleanedPlan = removeNestedIds(sanitizeWorkoutPlanForInsert(body));
 
   if (!id && !userId) {
@@ -24,7 +24,7 @@ export const validateWorkoutPlan = (event: APIGatewayEvent) => {
 };
 
 export const validateWorkoutPlanPreset = (event: APIGatewayEvent) => {
-  const body = extractBodyFromEvent(event);
+  const body = stripClientTrainerIdFromBody(event);
   const cleanedPlan = removeNestedIds(sanitizeWorkoutPlanForInsert(body));
 
   const { error } = WorkoutPlanPresetSchemaValidation.validate(cleanedPlan);

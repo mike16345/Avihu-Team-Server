@@ -1,5 +1,7 @@
 import { ObjectId } from "mongoose";
 
+export type DietPlanUnitMode = 1 | 2;
+
 export interface IDietPlan {
   version?: 1;
   userId: string;
@@ -10,6 +12,7 @@ export interface IDietPlan {
   supplements: string[];
   veggiesPerDay?: number;
   customInstructions?: string[];
+  unitDisplayMode?: DietPlanUnitMode;
 }
 
 export interface ICustomItemInstructions {
@@ -43,12 +46,7 @@ export interface IMeal {
  */
 export type DietGoal = "cutting" | "mass";
 export type DietaryRestriction =
-  | "lactose-free"
-  | "vegetarian"
-  | "vegan"
-  | "no-fish"
-  | "no-meat"
-  | "gluten-free";
+  "lactose-free" | "vegetarian" | "vegan" | "no-fish" | "no-meat" | "gluten-free";
 
 export interface IDietPlanMeta {
   goal?: DietGoal;

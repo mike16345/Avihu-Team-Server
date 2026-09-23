@@ -1,7 +1,11 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import Joi from "joi";
 import { DIET_V2_CATALOG_CATEGORIES } from "../interfaces/IDietPlanV2";
-import { createValidatorResponse, extractBodyFromEvent } from "../utils/utils";
+import {
+  createValidatorResponse,
+  extractBodyFromEvent,
+  stripClientTrainerIdFromBody,
+} from "../utils/utils";
 
 const searchSchema = Joi.object({
   category: Joi.string()
@@ -31,11 +35,12 @@ export const validateDietV2CatalogUpdate = (event: APIGatewayProxyEvent) => {
   if (queryResult.error) return createValidatorResponse(false, queryResult.error.message);
 
   try {
+    const body = stripClientTrainerIdFromBody(event);
     const { error } = Joi.object({
       name: Joi.string().trim().min(1).max(200).required(),
     })
       .unknown(false)
-      .validate(extractBodyFromEvent(event));
+      .validate(body);
     return createValidatorResponse(!error, error?.message);
   } catch (_error) {
     return createValidatorResponse(false, "Request body must be valid JSON.");

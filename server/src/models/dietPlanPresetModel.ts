@@ -41,6 +41,7 @@ export const dietPlanSchema = new Schema<IDietPlanPreset & IModel>({
   veggiesPerDay: { type: Number, required: false },
   customInstructions: { type: [String], required: false },
   supplements: { type: [String], required: false, default: [] },
+  unitDisplayMode: { type: Number, enum: [1, 2], required: false },
   ...dietMetaFields,
 });
 
@@ -69,7 +70,9 @@ export const dietMetaValidationFields = {
   carbServings: Joi.number().min(0).max(100).optional(),
   fatServings: Joi.number().min(0).max(100).optional(),
   dietaryRestrictions: Joi.array()
-    .items(Joi.string().valid("lactose-free", "vegetarian", "vegan", "no-fish", "no-meat", "gluten-free"))
+    .items(
+      Joi.string().valid("lactose-free", "vegetarian", "vegan", "no-fish", "no-meat", "gluten-free")
+    )
     .optional(),
   builtByTrainerId: Joi.string().optional(),
 };
@@ -84,5 +87,6 @@ export const DietPlanPresetSchemaValidation = Joi.object({
   supplements: Joi.array().min(0).optional(),
   customInstructions: Joi.array().items(Joi.string()).allow("").optional(),
   freeCalories: Joi.number().optional().min(0),
+  unitDisplayMode: Joi.number().valid(1, 2).optional(),
   ...dietMetaValidationFields,
 });
