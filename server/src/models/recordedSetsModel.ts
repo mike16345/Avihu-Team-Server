@@ -34,7 +34,7 @@ export const MuscleGroupRecordedSets = model("RecordedSets", muscleGroupRecorded
 const RecordedSetJoiSchema = Joi.object<IRecordedSet>({
   plan: Joi.string().required(),
   setNumber: Joi.number(),
-  weight: Joi.number().min(1).required(),
+  weight: Joi.number().min(0).required(),
   repsDone: Joi.number().min(1).required(),
   note: Joi.string().allow(null, ""),
   exerciseId: Joi.string().optional().allow(null, ""),
