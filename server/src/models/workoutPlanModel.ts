@@ -276,8 +276,8 @@ export const stepsCardioValidationSchema = Joi.object({
   daily: Joi.number().integer().min(1).required(),
   perDay: Joi.when("mode", {
     is: "custom",
-    then: Joi.array().items(Joi.number().integer().min(1)).length(7).required(),
-    otherwise: Joi.array().items(Joi.number().integer().min(1)).length(7).optional(),
+    then: Joi.array().items(Joi.number().integer().min(0)).length(7).required(),
+    otherwise: Joi.array().items(Joi.number().integer().min(0)).length(7).optional(),
   }),
   tips: Joi.string().allow(""),
 });

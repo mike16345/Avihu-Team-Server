@@ -5,6 +5,7 @@ import {
   muscleGroupWorkoutPlanSchema,
   workoutPlanSchema,
   FullWorkoutPlanSchemaValidation,
+  stepsCardioValidationSchema,
 } from "../../src/models/workoutPlanModel";
 import {
   ValidSet,
@@ -76,6 +77,19 @@ describe("Mongoose Schemas", () => {
 });
 
 describe("Joi Validation", () => {
+  test.each(["uniform", "custom"] as const)(
+    "allows zero-step rest days in %s step plans",
+    (mode) => {
+      const { error } = stepsCardioValidationSchema.validate({
+        mode,
+        daily: 10000,
+        perDay: [10000, 10000, 10000, 10000, 10000, 10000, 0],
+      });
+
+      expect(error).toBeUndefined();
+    }
+  );
+
   test("should validate a valid workout plan", () => {
     const { error } = FullWorkoutPlanSchemaValidation.validate(validFullWorkoutPlan);
 
