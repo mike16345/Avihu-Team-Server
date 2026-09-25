@@ -24,13 +24,13 @@ function failureCard(test, index) {
   return `<div style="background:#fff;border:1px solid #fecaca;border-left:5px solid #dc2626;border-radius:12px;margin:0 0 14px;padding:18px">
     <div style="color:#991b1b;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Failure ${index}</div>
     <div style="color:#111827;font-size:16px;font-weight:750;margin-top:6px">${escapeHtml(testTitle(test) || "Unnamed test")}</div>
-    ${location ? `<div style="color:#6b7280;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;margin-top:6px">${escapeHtml(location)}</div>` : ""}
-    <pre style="background:#111827;border-radius:9px;color:#f9fafb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:14px 0 0;overflow-wrap:anywhere;padding:14px;white-space:pre-wrap">${escapeHtml(test.stack || test.failureMessage || "No failure message was provided.")}</pre>
+    ${location ? `<div style="color:#6b7280;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;margin-top:6px;overflow-wrap:anywhere;word-break:break-word">${escapeHtml(location)}</div>` : ""}
+    <pre style="background:#111827;border-radius:9px;box-sizing:border-box;color:#f9fafb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:14px 0 0;max-width:100%;overflow-wrap:anywhere;padding:14px;white-space:pre-wrap;word-break:break-word">${escapeHtml(test.stack || test.failureMessage || "No failure message was provided.")}</pre>
   </div>`;
 }
 
 function infrastructureCard(suite, error) {
-  return `<div style="background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #ea580c;border-radius:12px;margin:0 0 14px;padding:18px"><div style="color:#9a3412;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Infrastructure failure</div><div style="color:#111827;font-size:16px;font-weight:750;margin-top:6px">${escapeHtml(suite.name)}</div><pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap">${escapeHtml(error)}</pre></div>`;
+  return `<div style="background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #ea580c;border-radius:12px;margin:0 0 14px;min-width:0;padding:18px"><div style="color:#9a3412;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Infrastructure failure</div><div style="color:#111827;font-size:16px;font-weight:750;margin-top:6px">${escapeHtml(suite.name)}</div><pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap;word-break:break-word">${escapeHtml(error)}</pre></div>`;
 }
 
 export function renderHtml(result, options = {}) {
