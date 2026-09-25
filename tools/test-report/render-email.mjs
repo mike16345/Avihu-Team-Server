@@ -14,7 +14,10 @@ export function renderEmail({ result, html, from, to }) {
   const sender = safeHeader(from, "from");
   const recipient = safeHeader(to, "to");
   const failedCount = Number(result.counts?.failed ?? 0);
-  const subject = `[TESTS FAILED] ${repository} — ${branch} — ${failedCount} failed`;
+  const subject =
+    result.status === "passed"
+      ? `[TESTS PASSED] ${repository} — ${branch}`
+      : `[TESTS FAILED] ${repository} — ${branch} — ${failedCount} failed`;
   const headers = [
     `From: ${sender}`,
     `To: ${recipient}`,

@@ -52,3 +52,19 @@ test("rejects newline injection in every generated header input", () => {
     );
   }
 });
+
+test("labels an unsent passing-run email artifact as passed", () => {
+  const email = renderEmail({
+    result: {
+      ...failedRun,
+      status: "passed",
+      counts: { passed: 239, failed: 0, skipped: 0, total: 239 },
+    },
+    html: "<html><body>passed</body></html>",
+    from: "sender@example.com",
+    to: "recipient@example.com",
+  });
+
+  assert.match(email, /Subject: \[TESTS PASSED\] Avihu Team Server — devel/);
+  assert.doesNotMatch(email, /TESTS FAILED/);
+});
