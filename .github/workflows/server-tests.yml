@@ -53,9 +53,9 @@ jobs:
           include-hidden-files: true
           if-no-files-found: warn
 
-      - name: Check failure-email credentials
+      - name: Check test-report email credentials
         id: smtp_credentials
-        if: always() && steps.test_report.outcome == 'failure'
+        if: always() && hashFiles('.test-report/email.eml') != ''
         working-directory: .
         env:
           TEST_REPORT_SMTP_USER: ${{ secrets.TEST_REPORT_SMTP_USER }}
@@ -67,9 +67,9 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Email failed test report
-        id: send_failure_email
-        if: always() && steps.test_report.outcome == 'failure' && steps.smtp_credentials.outputs.available == 'true'
+      - name: Email test report
+        id: send_test_report_email
+        if: always() && hashFiles('.test-report/email.eml') != '' && steps.smtp_credentials.outputs.available == 'true'
         continue-on-error: true
         working-directory: .
         env:
@@ -83,15 +83,15 @@ jobs:
             --user "${TEST_REPORT_SMTP_USER}:${TEST_REPORT_SMTP_APP_PASSWORD}" \
             --upload-file ".test-report/email.eml"
 
-      - name: Record missing failure-email credentials
-        if: always() && steps.test_report.outcome == 'failure' && steps.smtp_credentials.outputs.available != 'true'
+      - name: Record missing test-report email credentials
+        if: always() && hashFiles('.test-report/email.eml') != '' && steps.smtp_credentials.outputs.available != 'true'
         working-directory: .
-        run: echo "Failure email skipped because SMTP secrets are unavailable." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Test report email skipped because SMTP secrets are unavailable." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Record failure-email delivery error
-        if: always() && steps.test_report.outcome == 'failure' && steps.send_failure_email.outcome == 'failure'
+      - name: Record test-report email delivery error
+        if: always() && steps.send_test_report_email.outcome == 'failure'
         working-directory: .
-        run: echo "Failure email delivery failed; the test report artifact is still available." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Test report email delivery failed; the report artifact is still available." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve failed test status
         if: always() && steps.test_report.outcome == 'failure'
