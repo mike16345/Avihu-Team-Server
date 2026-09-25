@@ -86,6 +86,23 @@ test("HTML shows a concise failure reason before the expandable diagnostic", () 
   assert.ok(stackFrame > summaryEnd);
 });
 
+test("HTML shows duration on every test row", () => {
+  const html = renderHtml(failedRun);
+
+  assert.match(
+    html,
+    /data-testid="failed-test-row"[\s\S]*?suite › failed test[\s\S]*?data-testid="test-duration"[^>]*>6ms</
+  );
+  assert.match(
+    html,
+    /data-testid="passed-test-row"[\s\S]*?suite › passed test[\s\S]*?data-testid="test-duration"[^>]*>4ms</
+  );
+  assert.match(
+    html,
+    /data-testid="skipped-test-row"[\s\S]*?suite › skipped test[\s\S]*?data-testid="test-duration"[^>]*>0ms</
+  );
+});
+
 test("terminal output excludes captured console noise", () => {
   const output = renderTerminal(failedRun);
 

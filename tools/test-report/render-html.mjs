@@ -40,12 +40,16 @@ function countCard(label, value, color) {
   return `<td style="padding:4px;width:25%"><div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-sizing:border-box;padding:12px 6px;text-align:center;width:100%"><div style="color:${color};font-size:clamp(18px,5vw,28px);font-weight:800;line-height:1">${value}</div><div style="color:#6b7280;font-size:10px;font-weight:700;letter-spacing:.04em;margin-top:8px;overflow-wrap:anywhere;text-transform:uppercase">${label}</div></div></td>`;
 }
 
+function durationBadge(durationMs) {
+  return `<span data-testid="test-duration" style="background:#eff6ff;border-radius:999px;color:#1d4ed8;float:right;font-size:12px;font-weight:800;margin-left:12px;padding:2px 8px;white-space:nowrap">${formatDuration(durationMs)}</span>`;
+}
+
 function failureCard(test, index) {
   const location = testLocation(test);
   const title = testTitle(test) || "Unnamed test";
   const reason = firstLine(test.failureMessage || test.stack);
   return `<details data-testid="failure-details" style="background:#fff;border:1px solid #fecaca;border-left:5px solid #dc2626;border-radius:12px;margin:0 0 14px;padding:16px 18px">
-    <summary style="color:#111827;cursor:pointer;font-size:15px;font-weight:750;line-height:1.5">${escapeHtml(title)} — ${escapeHtml(reason)}</summary>
+    <summary data-testid="failed-test-row" style="color:#111827;cursor:pointer;font-size:15px;font-weight:750;line-height:1.5">${escapeHtml(title)} — ${escapeHtml(reason)}${durationBadge(test.durationMs)}</summary>
     <div style="color:#991b1b;font-size:11px;font-weight:800;letter-spacing:.08em;margin-top:12px;text-transform:uppercase">Failure ${index}</div>
     ${location ? `<div style="color:#6b7280;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;margin-top:6px;overflow-wrap:anywhere;word-break:break-word">${escapeHtml(location)}</div>` : ""}
     <pre style="background:#111827;border-radius:9px;box-sizing:border-box;color:#f9fafb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:12px 0 0;max-width:100%;overflow-wrap:anywhere;padding:14px;white-space:pre-wrap;word-break:break-word">${escapeHtml(conciseDiagnostic(test))}</pre>
@@ -86,7 +90,7 @@ export function renderHtml(result, options = {}) {
     .sort((left, right) => left.status.localeCompare(right.status))
     .map(
       (currentTest) =>
-        `<li style="border-bottom:1px solid #f3f4f6;padding:8px 0"><span style="color:${currentTest.status === "passed" ? "#15803d" : "#a16207"};font-weight:800">${currentTest.status === "passed" ? "PASS" : "SKIP"}</span> <span style="color:#374151">${escapeHtml(testTitle(currentTest))}</span></li>`
+        `<li data-testid="${currentTest.status}-test-row" style="border-bottom:1px solid #f3f4f6;min-height:24px;padding:8px 0"><span style="color:${currentTest.status === "passed" ? "#15803d" : "#a16207"};font-weight:800">${currentTest.status === "passed" ? "PASS" : "SKIP"}</span> <span style="color:#374151">${escapeHtml(testTitle(currentTest))}</span>${durationBadge(currentTest.durationMs)}</li>`
     )
     .join("");
   const rawLogs = result.suites
