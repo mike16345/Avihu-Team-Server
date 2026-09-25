@@ -15,22 +15,45 @@ export function truncateText(value, maxCharacters) {
   return `${text.slice(0, Math.max(0, maxCharacters - 1))}… [truncated]`;
 }
 
+function firstLine(value, fallback = "No failure message was provided.") {
+  return (
+    String(value ?? "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean) ?? fallback
+  );
+}
+
+function conciseDiagnostic(test, maxLines = 8, maxCharacters = 2500) {
+  const diagnostic = test.stack || test.failureMessage || "No failure message was provided.";
+  const lines = String(diagnostic)
+    .split(/\r?\n/)
+    .filter((line, index) => index === 0 || line.trim())
+    .slice(0, maxLines)
+    .join("\n");
+  const omittedLines = String(diagnostic).split(/\r?\n/).length - maxLines;
+  const bounded = omittedLines > 0 ? `${lines}\n… ${omittedLines} more lines omitted` : lines;
+  return truncateText(bounded, maxCharacters);
+}
+
 function countCard(label, value, color) {
   return `<td style="padding:4px;width:25%"><div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;box-sizing:border-box;padding:12px 6px;text-align:center;width:100%"><div style="color:${color};font-size:clamp(18px,5vw,28px);font-weight:800;line-height:1">${value}</div><div style="color:#6b7280;font-size:10px;font-weight:700;letter-spacing:.04em;margin-top:8px;overflow-wrap:anywhere;text-transform:uppercase">${label}</div></div></td>`;
 }
 
 function failureCard(test, index) {
   const location = testLocation(test);
-  return `<div style="background:#fff;border:1px solid #fecaca;border-left:5px solid #dc2626;border-radius:12px;margin:0 0 14px;padding:18px">
-    <div style="color:#991b1b;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Failure ${index}</div>
-    <div style="color:#111827;font-size:16px;font-weight:750;margin-top:6px">${escapeHtml(testTitle(test) || "Unnamed test")}</div>
+  const title = testTitle(test) || "Unnamed test";
+  const reason = firstLine(test.failureMessage || test.stack);
+  return `<details data-testid="failure-details" style="background:#fff;border:1px solid #fecaca;border-left:5px solid #dc2626;border-radius:12px;margin:0 0 14px;padding:16px 18px">
+    <summary style="color:#111827;cursor:pointer;font-size:15px;font-weight:750;line-height:1.5">${escapeHtml(title)} — ${escapeHtml(reason)}</summary>
+    <div style="color:#991b1b;font-size:11px;font-weight:800;letter-spacing:.08em;margin-top:12px;text-transform:uppercase">Failure ${index}</div>
     ${location ? `<div style="color:#6b7280;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;margin-top:6px;overflow-wrap:anywhere;word-break:break-word">${escapeHtml(location)}</div>` : ""}
-    <pre style="background:#111827;border-radius:9px;box-sizing:border-box;color:#f9fafb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:14px 0 0;max-width:100%;overflow-wrap:anywhere;padding:14px;white-space:pre-wrap;word-break:break-word">${escapeHtml(test.stack || test.failureMessage || "No failure message was provided.")}</pre>
-  </div>`;
+    <pre style="background:#111827;border-radius:9px;box-sizing:border-box;color:#f9fafb;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.55;margin:12px 0 0;max-width:100%;overflow-wrap:anywhere;padding:14px;white-space:pre-wrap;word-break:break-word">${escapeHtml(conciseDiagnostic(test))}</pre>
+  </details>`;
 }
 
 function infrastructureCard(suite, error) {
-  return `<div style="background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #ea580c;border-radius:12px;margin:0 0 14px;min-width:0;padding:18px"><div style="color:#9a3412;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Infrastructure failure</div><div style="color:#111827;font-size:16px;font-weight:750;margin-top:6px">${escapeHtml(suite.name)}</div><pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap;word-break:break-word">${escapeHtml(error)}</pre></div>`;
+  return `<details style="background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #ea580c;border-radius:12px;margin:0 0 14px;min-width:0;padding:16px 18px"><summary style="color:#111827;cursor:pointer;font-size:15px;font-weight:750">${escapeHtml(suite.name)} — ${escapeHtml(firstLine(error))}</summary><div style="color:#9a3412;font-size:11px;font-weight:800;letter-spacing:.08em;margin-top:12px;text-transform:uppercase">Infrastructure failure</div><pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap;word-break:break-word">${escapeHtml(truncateText(error, 2500))}</pre></details>`;
 }
 
 export function renderHtml(result, options = {}) {
@@ -62,7 +85,8 @@ export function renderHtml(result, options = {}) {
     .filter((currentTest) => currentTest.status !== "failed")
     .sort((left, right) => left.status.localeCompare(right.status))
     .map(
-      (currentTest) => `<li style="border-bottom:1px solid #f3f4f6;padding:8px 0"><span style="color:${currentTest.status === "passed" ? "#15803d" : "#a16207"};font-weight:800">${currentTest.status === "passed" ? "PASS" : "SKIP"}</span> <span style="color:#374151">${escapeHtml(testTitle(currentTest))}</span></li>`
+      (currentTest) =>
+        `<li style="border-bottom:1px solid #f3f4f6;padding:8px 0"><span style="color:${currentTest.status === "passed" ? "#15803d" : "#a16207"};font-weight:800">${currentTest.status === "passed" ? "PASS" : "SKIP"}</span> <span style="color:#374151">${escapeHtml(testTitle(currentTest))}</span></li>`
     )
     .join("");
   const rawLogs = result.suites
@@ -87,7 +111,7 @@ export function renderHtml(result, options = {}) {
     ${failed ? `<section style="margin-top:26px"><h2 style="font-size:20px;margin:0 0 14px">Failures first</h2>${failureCards}${infrastructureCards}</section>` : ""}
     <section style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:24px;overflow:auto;padding:18px"><h2 style="font-size:20px;margin:0 0 10px">Suites</h2><table style="border-collapse:collapse;min-width:620px;width:100%"><thead><tr style="color:#6b7280;font-size:11px;letter-spacing:.06em;text-transform:uppercase"><th style="padding:10px;text-align:left">Suite</th><th style="padding:10px;text-align:left">Status</th><th style="padding:10px;text-align:right">Passed</th><th style="padding:10px;text-align:right">Failed</th><th style="padding:10px;text-align:right">Skipped</th><th style="padding:10px;text-align:right">Duration</th></tr></thead><tbody>${suiteRows}</tbody></table></section>
     <section style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:24px;padding:18px"><h2 style="font-size:20px;margin:0">Passed and skipped</h2><ul style="list-style:none;margin:10px 0 0;padding:0">${passedAndSkipped || '<li style="color:#6b7280">No passed or skipped tests.</li>'}</ul></section>
-    <section style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:24px;padding:18px"><h2 style="font-size:20px;margin:0">Captured console output</h2><p style="color:#6b7280;font-size:13px">The report shows bounded excerpts. Download the artifact paths below for complete logs.</p>${rawLogs}</section>
+    <details data-testid="captured-output" style="background:#fff;border:1px solid #e5e7eb;border-radius:14px;margin-top:24px;padding:18px"><summary style="cursor:pointer;font-size:20px;font-weight:750">Captured console output</summary><p style="color:#6b7280;font-size:13px">The report shows bounded excerpts. Download the artifact paths below for complete logs.</p>${rawLogs}</details>
     <footer style="color:#6b7280;font-size:12px;line-height:1.7;padding:22px 4px">Generated ${escapeHtml(metadata.generatedAt ?? "")}<br>${metadata.runUrl ? `<a href="${escapeHtml(metadata.runUrl)}" style="color:#2563eb">Open GitHub Actions run</a>` : "Local test run"}</footer>
   </main>
 </body></html>`;

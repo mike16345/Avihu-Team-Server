@@ -64,6 +64,28 @@ test("HTML escapes untrusted content and puts failures first", () => {
   assert.ok(html.indexOf("failed test") < html.indexOf("passed test"));
 });
 
+test("HTML keeps failure details and captured logs collapsed", () => {
+  const html = renderHtml(failedRun);
+
+  assert.match(html, /<details[^>]*data-testid="failure-details"/);
+  assert.match(html, /<summary[^>]*>[^<]*suite › failed test/);
+  assert.match(html, /Expected &lt;strong&gt;safe&lt;\/strong&gt; &amp; &quot;quoted&quot;/);
+  assert.match(html, /<details[^>]*data-testid="captured-output"/);
+  assert.equal(
+    /<details[^>]*data-testid="(?:failure-details|captured-output)"[^>]*\sopen(?:\s|>)/.test(html),
+    false
+  );
+});
+
+test("HTML shows a concise failure reason before the expandable diagnostic", () => {
+  const html = renderHtml(failedRun);
+  const summaryEnd = html.indexOf("</summary>");
+  const stackFrame = html.indexOf("at /workspace/tests/sample.test.ts:12:7");
+
+  assert.ok(summaryEnd > 0);
+  assert.ok(stackFrame > summaryEnd);
+});
+
 test("terminal output excludes captured console noise", () => {
   const output = renderTerminal(failedRun);
 
@@ -99,7 +121,10 @@ test("Markdown includes suite counts and the GitHub run link", () => {
   const markdown = renderMarkdown(failedRun);
 
   assert.match(markdown, /\| Unit tests \| Failed \| 1 \| 1 \| 1 \| 3 \|/);
-  assert.match(markdown, /\[Open GitHub Actions run\]\(https:\/\/github\.com\/avihu\/actions\/runs\/123\)/);
+  assert.match(
+    markdown,
+    /\[Open GitHub Actions run\]\(https:\/\/github\.com\/avihu\/actions\/runs\/123\)/
+  );
 });
 
 test("escaping and truncation protect report boundaries", () => {
