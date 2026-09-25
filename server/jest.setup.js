@@ -1,3 +1,5 @@
+process.env.AVIHU_TRAINER_ID ||= "507f191e810c19729de860ea";
+
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 

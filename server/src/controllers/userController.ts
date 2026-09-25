@@ -13,6 +13,7 @@ import BaseController from "./BaseController";
 import AuthService from "../services/AuthService";
 import JwtAuthService from "../services/JwtAuthService";
 import { AUTH_ERROR_CODES } from "../constants/authErrorCodes";
+import { getSystemLibraryOwnerObjectId } from "../config/systemLibrary";
 
 export class UserController extends BaseController<IUser, UserService> {
   private authService: AuthService;
@@ -54,6 +55,25 @@ export class UserController extends BaseController<IUser, UserService> {
       });
     } catch (err: any) {
       return this.errorResponse(err);
+    }
+  };
+
+  getAll = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+    await this.beforeAction(event);
+
+    const query = {
+      ...extractQueryFromEvent(event),
+      _id: { $ne: getSystemLibraryOwnerObjectId() },
+    };
+
+    try {
+      const data = await this.service.find(query);
+      const response = this.successResponse({ data, message: "Successfully found items!" });
+
+      await this.afterAction(response);
+      return response;
+    } catch (error: any) {
+      return this.errorResponse(error);
     }
   };
 

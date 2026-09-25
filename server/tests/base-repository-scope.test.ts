@@ -1,6 +1,10 @@
+import mongoose from "mongoose";
 import { BaseRepository } from "../src/repositories/BaseRepository";
 import { runWithAuthContext } from "../src/utils/authContext";
 import { StatusCode } from "../src/enums/StatusCode";
+
+const TRAINER_ID = "507f191e810c19729de860ea";
+const OTHER_TRAINER_ID = "507f191e810c19729de860eb";
 
 const createModelDouble = (hasTrainerId: boolean) => {
   const model: any = {
@@ -51,13 +55,13 @@ describe("BaseRepository trainer scoping", () => {
       field: "trainerId",
     });
 
-    await runWithAuthContext({ trainerId: "trainer-from-token" }, async () => {
-      await repository.create({ title: "doc", trainerId: "trainer-from-client" });
+    await runWithAuthContext({ trainerId: TRAINER_ID }, async () => {
+      await repository.create({ title: "doc", trainerId: OTHER_TRAINER_ID });
     });
 
     expect(model.create).toHaveBeenCalledWith({
       title: "doc",
-      trainerId: "trainer-from-token",
+      trainerId: new mongoose.Types.ObjectId(TRAINER_ID),
     });
   });
 
@@ -68,12 +72,12 @@ describe("BaseRepository trainer scoping", () => {
       field: "trainerId",
     });
 
-    await runWithAuthContext({ trainerId: "trainer-123" }, async () => {
+    await runWithAuthContext({ trainerId: TRAINER_ID }, async () => {
       await repository.findOne({ query: { slug: "hello-world" } });
     });
 
     expect(model.findOne).toHaveBeenCalledWith(
-      { slug: "hello-world", trainerId: "trainer-123" },
+      { slug: "hello-world", trainerId: new mongoose.Types.ObjectId(TRAINER_ID) },
       undefined,
       undefined
     );
@@ -86,22 +90,22 @@ describe("BaseRepository trainer scoping", () => {
       field: "trainerId",
     });
 
-    await runWithAuthContext({ trainerId: "trainer-123" }, async () => {
+    await runWithAuthContext({ trainerId: TRAINER_ID }, async () => {
       await repository.updateOne({
-        filter: { slug: "doc-1", trainerId: "other-trainer" },
+        filter: { slug: "doc-1", trainerId: OTHER_TRAINER_ID },
         update: {
-          trainerId: "client-trainer",
-          $set: { trainerId: "client-trainer", title: "updated" },
+          trainerId: OTHER_TRAINER_ID,
+          $set: { trainerId: OTHER_TRAINER_ID, title: "updated" },
         },
         options: { new: true },
       });
     });
 
     expect(model.findOneAndUpdate).toHaveBeenCalledWith(
-      { slug: "doc-1", trainerId: "trainer-123" },
+      { slug: "doc-1", trainerId: new mongoose.Types.ObjectId(TRAINER_ID) },
       {
         $set: { title: "updated" },
-        $setOnInsert: { trainerId: "trainer-123" },
+        $setOnInsert: { trainerId: new mongoose.Types.ObjectId(TRAINER_ID) },
       },
       { new: true }
     );

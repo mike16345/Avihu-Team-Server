@@ -34,9 +34,9 @@ const buildTrainerPayload = (overrides: Record<string, unknown> = {}) => ({
 describe("TrainerService library seeding", () => {
   test("createTrainer seeds Avihu library when videoLibraryAccess is enabled", async () => {
     const service = new TrainerService() as any;
-    const copyAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
+    const ensureAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
 
-    service.exerciseLibraryAccessService = { copyAvihuLibraryToTrainer };
+    service.exerciseLibraryAccessService = { ensureAvihuLibraryToTrainer };
     service.userService = {
       createUserWithWelcome: jest
         .fn()
@@ -45,15 +45,15 @@ describe("TrainerService library seeding", () => {
 
     const trainer = await service.createTrainer(buildTrainerPayload({ videoLibraryAccess: true }));
 
-    expect(copyAvihuLibraryToTrainer).toHaveBeenCalledTimes(1);
-    expect(copyAvihuLibraryToTrainer).toHaveBeenCalledWith(trainer._id.toString());
+    expect(ensureAvihuLibraryToTrainer).toHaveBeenCalledTimes(1);
+    expect(ensureAvihuLibraryToTrainer).toHaveBeenCalledWith(trainer._id.toString());
   });
 
   test("createTrainer skips library seeding when videoLibraryAccess is disabled", async () => {
     const service = new TrainerService() as any;
-    const copyAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
+    const ensureAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
 
-    service.exerciseLibraryAccessService = { copyAvihuLibraryToTrainer };
+    service.exerciseLibraryAccessService = { ensureAvihuLibraryToTrainer };
     service.userService = {
       createUserWithWelcome: jest
         .fn()
@@ -62,15 +62,15 @@ describe("TrainerService library seeding", () => {
 
     await service.createTrainer(buildTrainerPayload({ videoLibraryAccess: false }));
 
-    expect(copyAvihuLibraryToTrainer).not.toHaveBeenCalled();
+    expect(ensureAvihuLibraryToTrainer).not.toHaveBeenCalled();
   });
 
   test("updateTrainer seeds Avihu library when videoLibraryAccess changes from false to true", async () => {
     const service = new TrainerService() as any;
     const trainerId = new mongoose.Types.ObjectId();
-    const copyAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
+    const ensureAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
 
-    service.exerciseLibraryAccessService = { copyAvihuLibraryToTrainer };
+    service.exerciseLibraryAccessService = { ensureAvihuLibraryToTrainer };
     jest.spyOn(service, "findById").mockResolvedValue({
       _id: trainerId,
       videoLibraryAccess: false,
@@ -82,16 +82,16 @@ describe("TrainerService library seeding", () => {
 
     await service.updateTrainer(trainerId.toString(), { videoLibraryAccess: true });
 
-    expect(copyAvihuLibraryToTrainer).toHaveBeenCalledTimes(1);
-    expect(copyAvihuLibraryToTrainer).toHaveBeenCalledWith(trainerId.toString());
+    expect(ensureAvihuLibraryToTrainer).toHaveBeenCalledTimes(1);
+    expect(ensureAvihuLibraryToTrainer).toHaveBeenCalledWith(trainerId.toString());
   });
 
   test("updateTrainer does not reseed Avihu library when videoLibraryAccess is already enabled", async () => {
     const service = new TrainerService() as any;
     const trainerId = new mongoose.Types.ObjectId();
-    const copyAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
+    const ensureAvihuLibraryToTrainer = jest.fn().mockResolvedValue(undefined);
 
-    service.exerciseLibraryAccessService = { copyAvihuLibraryToTrainer };
+    service.exerciseLibraryAccessService = { ensureAvihuLibraryToTrainer };
     jest.spyOn(service, "findById").mockResolvedValue({
       _id: trainerId,
       videoLibraryAccess: true,
@@ -103,6 +103,6 @@ describe("TrainerService library seeding", () => {
 
     await service.updateTrainer(trainerId.toString(), { videoLibraryAccess: true });
 
-    expect(copyAvihuLibraryToTrainer).not.toHaveBeenCalled();
+    expect(ensureAvihuLibraryToTrainer).not.toHaveBeenCalled();
   });
 });

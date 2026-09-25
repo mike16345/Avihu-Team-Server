@@ -50,6 +50,7 @@ jobs:
         with:
           name: test-report-${{ github.run_id }}
           path: .test-report/
+          include-hidden-files: true
           if-no-files-found: warn
 
       - name: Check failure-email credentials

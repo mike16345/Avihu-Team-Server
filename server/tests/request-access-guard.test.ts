@@ -5,6 +5,11 @@ import { StatusCode } from "../src/enums/StatusCode";
 import { AUTH_ERROR_CODES } from "../src/constants/authErrorCodes";
 
 describe("enforceRequestUserAccess", () => {
+  const mockUserLookup = (user: any) =>
+    jest.spyOn(UserModel, "findById").mockReturnValue({
+      lean: jest.fn().mockResolvedValue(user),
+    } as any);
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -14,7 +19,7 @@ describe("enforceRequestUserAccess", () => {
     jest
       .spyOn(JwtAuthService.prototype, "verifyAccessToken")
       .mockReturnValue({ userId: "u1", sessionId: "s1", role: "admin", exp: 9999999999 });
-    jest.spyOn(UserModel, "findById").mockResolvedValue(user);
+    mockUserLookup(user);
 
     const event: any = {
       headers: { Authorization: "Bearer valid-token" },
@@ -46,7 +51,7 @@ describe("enforceRequestUserAccess", () => {
     jest
       .spyOn(JwtAuthService.prototype, "verifyAccessToken")
       .mockReturnValue({ sub: "u1", sessionId: "s1", role: "trainer", exp: 9999999999 } as any);
-    jest.spyOn(UserModel, "findById").mockResolvedValue({
+    mockUserLookup({
       _id: "u1",
       role: "trainer",
       hasAccess: false,
@@ -68,7 +73,7 @@ describe("enforceRequestUserAccess", () => {
     jest
       .spyOn(JwtAuthService.prototype, "verifyAccessToken")
       .mockReturnValue({ sub: "u1", sessionId: "s1", role: "subTrainer", exp: 9999999999 } as any);
-    jest.spyOn(UserModel, "findById").mockResolvedValue({
+    mockUserLookup({
       _id: "u1",
       role: "subTrainer",
       hasAccess: true,
@@ -95,7 +100,10 @@ describe("enforceRequestUserAccess", () => {
     });
   });
 
-  test("allows public routes to bypass authentication", async () => {
-    await expect(enforceRequestUserAccess({ headers: {} } as any, "public")).resolves.toBeNull();
+  test("requires a bearer token when invoked for an authenticated public request", async () => {
+    await expect(enforceRequestUserAccess({ headers: {} } as any, "public")).rejects.toMatchObject({
+      statusCode: StatusCode.UNAUTHORIZED,
+      code: AUTH_ERROR_CODES.INVALID_TOKEN,
+    });
   });
 });

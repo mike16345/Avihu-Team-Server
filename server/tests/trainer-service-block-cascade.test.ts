@@ -69,6 +69,7 @@ describe("TrainerService block cascade", () => {
       },
       {
         hasAccess: false,
+        accountStatus: "blocked",
       }
     );
   });
