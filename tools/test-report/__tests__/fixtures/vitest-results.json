@@ -1,0 +1,36 @@
+{
+  "startTime": 1000,
+  "testResults": [
+    {
+      "name": "/workspace/src/sample.test.ts",
+      "startTime": 1000,
+      "endTime": 1040,
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Vitest sample"],
+          "title": "passes",
+          "status": "passed",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["Vitest sample"],
+          "title": "fails",
+          "status": "failed",
+          "duration": 11,
+          "failureMessages": [
+            "AssertionError: Expected <strong>safe</strong> & \"quoted\" — שגיאת בדיקה\n    at /workspace/src/sample.test.ts:22:9"
+          ],
+          "location": { "line": 22, "column": 9 }
+        },
+        {
+          "ancestorTitles": ["Vitest sample"],
+          "title": "skips",
+          "status": "skipped",
+          "duration": 0,
+          "failureMessages": []
+        }
+      ]
+    }
+  ]
+}

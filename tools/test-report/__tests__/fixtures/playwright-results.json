@@ -1,0 +1,62 @@
+{
+  "config": {},
+  "suites": [
+    {
+      "title": "sample.spec.ts",
+      "file": "/workspace/tests/sample.spec.ts",
+      "suites": [
+        {
+          "title": "Playwright sample",
+          "specs": [
+            {
+              "title": "passes",
+              "ok": true,
+              "tests": [
+                {
+                  "status": "expected",
+                  "expectedStatus": "passed",
+                  "results": [{ "status": "passed", "duration": 7 }]
+                }
+              ]
+            },
+            {
+              "title": "fails",
+              "ok": false,
+              "file": "/workspace/tests/sample.spec.ts",
+              "line": 32,
+              "column": 4,
+              "tests": [
+                {
+                  "status": "unexpected",
+                  "expectedStatus": "passed",
+                  "results": [
+                    {
+                      "status": "failed",
+                      "duration": 12,
+                      "error": {
+                        "message": "Expected <strong>safe</strong> & \"quoted\" — שגיאת בדיקה",
+                        "stack": "Error: Expected <strong>safe</strong> & \"quoted\" — שגיאת בדיקה\n    at /workspace/tests/sample.spec.ts:32:4",
+                        "location": { "file": "/workspace/tests/sample.spec.ts", "line": 32, "column": 4 }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "skips",
+              "ok": true,
+              "tests": [
+                {
+                  "status": "skipped",
+                  "expectedStatus": "skipped",
+                  "results": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

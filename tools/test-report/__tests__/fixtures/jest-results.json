@@ -1,0 +1,36 @@
+{
+  "startTime": 1000,
+  "testResults": [
+    {
+      "name": "/workspace/tests/sample.test.ts",
+      "startTime": 1000,
+      "endTime": 1030,
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Jest sample"],
+          "title": "passes",
+          "status": "passed",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["Jest sample"],
+          "title": "fails",
+          "status": "failed",
+          "duration": 10,
+          "failureMessages": [
+            "Error: Expected <strong>safe</strong> & \"quoted\" — שגיאת בדיקה\n    at /workspace/tests/sample.test.ts:12:7"
+          ],
+          "location": { "line": 12, "column": 7 }
+        },
+        {
+          "ancestorTitles": ["Jest sample"],
+          "title": "skips",
+          "status": "pending",
+          "duration": 0,
+          "failureMessages": []
+        }
+      ]
+    }
+  ]
+}
