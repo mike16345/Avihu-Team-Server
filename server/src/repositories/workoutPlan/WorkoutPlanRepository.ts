@@ -17,11 +17,17 @@ export class WorkoutPlanRepository<T> extends BaseRepository<T> {
       typeof this.model.find | typeof this.model.findOne | typeof this.model.findById
     >
   ) {
-    return query.populate({
-      path: "workoutPlans.muscleGroups.exercises.exerciseId",
-      select: "name linkToVideo imageUrl tipFromTrainer",
-      model: exercisePresets,
-    });
+    return query
+      .populate({
+        path: "workoutPlans.muscleGroups.exercises.exerciseId",
+        select: "name linkToVideo imageUrl tipFromTrainer",
+        model: exercisePresets,
+      })
+      .populate({
+        path: "blocks.workoutPlans.muscleGroups.exercises.exerciseId",
+        select: "name linkToVideo imageUrl tipFromTrainer",
+        model: exercisePresets,
+      });
   }
 
   async findOne(options: FindOptions<IFullWorkoutPlan>): Promise<any> {

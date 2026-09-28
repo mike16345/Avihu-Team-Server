@@ -17,6 +17,33 @@ export type TrainerStatus = (typeof TRAINER_STATUSES)[number];
 export type TrainerDietPlanVersion = (typeof TRAINER_DIET_PLAN_VERSIONS)[number];
 export type TrainerSource = (typeof TRAINER_SOURCES)[number];
 
+export const BLOCK_BACKGROUND_STATUSES = [
+  "normal",
+  "low-intensity",
+  "moderate-intensity",
+  "high-intensity",
+  "peak",
+  "deload",
+] as const;
+
+export type BlockBackgroundStatus = (typeof BLOCK_BACKGROUND_STATUSES)[number];
+
+export interface IBlockBackground {
+  status: BlockBackgroundStatus;
+  url: string;
+}
+
+export interface IBlockTipDefault {
+  status: BlockBackgroundStatus;
+  tips: string[];
+}
+
+export interface IDietTipGoal {
+  key: string;
+  label: string;
+  tips: string[];
+}
+
 export interface ITrainer {
   _id: mongoose.Types.ObjectId;
   fullName: string;
@@ -45,6 +72,9 @@ export interface ITrainer {
    * favourites are a personal tool until opt-in to sharing.
    */
   sharesFavorites?: boolean;
+  blockBackgrounds?: IBlockBackground[];
+  blockTipDefaults?: IBlockTipDefault[];
+  dietTipGoals?: IDietTipGoal[];
   createdAt: Date;
   updatedAt: Date;
 }

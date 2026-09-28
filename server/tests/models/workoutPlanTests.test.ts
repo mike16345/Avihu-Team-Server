@@ -18,6 +18,9 @@ import {
   ValidDetailedWorkoutPlan,
   InvalidDetailedWorkoutPlan,
   validFullWorkoutPlan,
+  validFullWorkoutPlanWithBlocks,
+  invalidFullWorkoutPlanTooManyBlocks,
+  invalidFullWorkoutPlanActiveIndexOutOfRange,
 } from "../fixtures/workoutPlanFixtures";
 
 const { model } = mongoose;
@@ -105,5 +108,35 @@ describe("Joi Validation", () => {
     const { error } = FullWorkoutPlanSchemaValidation.validate(invalidPlan);
 
     expect(error).not.toBeUndefined();
+  });
+});
+
+describe("Blocks mode", () => {
+  test("should validate a plan with blocks + activeBlockIndex", () => {
+    const { error } = FullWorkoutPlanSchemaValidation.validate(validFullWorkoutPlanWithBlocks);
+
+    expect(error).toBeUndefined();
+  });
+
+  test("should reject more than 8 blocks", () => {
+    const { error } = FullWorkoutPlanSchemaValidation.validate(
+      invalidFullWorkoutPlanTooManyBlocks
+    );
+
+    expect(error).not.toBeUndefined();
+  });
+
+  test("should reject activeBlockIndex pointing outside blocks", () => {
+    const { error } = FullWorkoutPlanSchemaValidation.validate(
+      invalidFullWorkoutPlanActiveIndexOutOfRange
+    );
+
+    expect(error).not.toBeUndefined();
+  });
+
+  test("should accept a unified plan without blocks fields", () => {
+    const { error } = FullWorkoutPlanSchemaValidation.validate(validFullWorkoutPlan);
+
+    expect(error).toBeUndefined();
   });
 });

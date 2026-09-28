@@ -220,13 +220,13 @@ export const deleteUserDataFromAllCollections = async (userId: string) => {
   const WeighInService = require("../services/weighInService").default;
   const { StepsProgressService } = require("../services/stepsProgressService");
 
-  await new DietPlanService().delete({ userId }).catch((err: any) => console.log(err));
-  await new RecordedSetsService().deleteMany({ userId }).catch((err: any) => console.log(err));
-  await new WeighInService().delete({ userId }).catch((err: any) => console.log(err));
-  await new UserImageUrlService().delete({ userId }).catch((err: any) => console.log(err));
-  await new PasswordsService().deletePasswordByUserId(userId).catch((err: any) => console.log(err));
-  await new WorkoutPlanService().deleteMany({ userId }).catch((err: any) => console.log(err));
-  await new StepsProgressService().deleteMany({ userId }).catch((err: any) => console.log(err));
+  await new DietPlanService().delete({ userId }).catch(() => {});
+  await new RecordedSetsService().deleteMany({ userId }).catch(() => {});
+  await new WeighInService().delete({ userId }).catch(() => {});
+  await new UserImageUrlService().delete({ userId }).catch(() => {});
+  await new PasswordsService().deletePasswordByUserId(userId).catch(() => {});
+  await new WorkoutPlanService().deleteMany({ userId }).catch(() => {});
+  await new StepsProgressService().deleteMany({ userId }).catch(() => {});
 };
 
 export const stripBase64DataUrl = (input: string): { mime?: string; base64: string } => {

@@ -2,6 +2,20 @@ import { IWeeklyFeedback, IWeeklyFeedbackPayload } from "../../interfaces/IWeekl
 import { WeeklyFeedback } from "../../models/weeklyFeedbackModel";
 import { BaseRepository } from "../BaseRepository";
 
+const toSundayUtc = (input: string | Date): Date => {
+  const d = new Date(input);
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay());
+  return d;
+};
+
+const toSaturdayUtc = (weekStart: Date): Date => {
+  const d = new Date(weekStart);
+  d.setUTCDate(d.getUTCDate() + 6);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+};
+
 export default class WeeklyFeedbackRepository extends BaseRepository<IWeeklyFeedback> {
   constructor() {
     super(WeeklyFeedback, { type: "global" });
@@ -12,18 +26,21 @@ export default class WeeklyFeedbackRepository extends BaseRepository<IWeeklyFeed
     payload: IWeeklyFeedbackPayload
   ): Promise<IWeeklyFeedback> => {
     const now = new Date();
+    const weekStart = toSundayUtc(payload.weekStart);
+    const weekEnd = toSaturdayUtc(weekStart);
     const doc = await this.model.findOneAndUpdate(
-      { userId, weekStart: new Date(payload.weekStart) },
+      { userId, weekStart },
       {
         $set: {
           userId,
-          weekStart: new Date(payload.weekStart),
-          weekEnd: new Date(payload.weekEnd),
+          weekStart,
+          weekEnd,
           workouts: payload.workouts,
           nutrition: payload.nutrition,
           weighIns: payload.weighIns.map((w) => ({ date: new Date(w.date), weight: w.weight })),
           sleepHours: payload.sleepHours,
           cardioMinutes: payload.cardioMinutes,
+          cardioMinutesGoal: payload.cardioMinutesGoal,
           steps: payload.steps,
           feedbackText: payload.feedbackText,
           finalized: payload.finalized,
@@ -48,6 +65,6 @@ export default class WeeklyFeedbackRepository extends BaseRepository<IWeeklyFeed
     userId: string,
     weekStart: string
   ): Promise<IWeeklyFeedback | null> => {
-    return await this.model.findOne({ userId, weekStart: new Date(weekStart) }).exec();
+    return await this.model.findOne({ userId, weekStart: toSundayUtc(weekStart) }).exec();
   };
 }

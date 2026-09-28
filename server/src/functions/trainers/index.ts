@@ -35,6 +35,42 @@ const trainerApiRoutes: ApiRouteHandlers = {
     handler: trainerController.delete,
     access: "admin",
   },
+  [`GET ${BASE_PATH}/block-backgrounds`]: {
+    handler: trainerController.getBlockBackgrounds,
+    access: "authenticated",
+  },
+  [`PUT ${BASE_PATH}/block-backgrounds`]: {
+    handler: trainerController.upsertBlockBackground,
+    access: "admin",
+  },
+  [`DELETE ${BASE_PATH}/block-backgrounds`]: {
+    handler: trainerController.deleteBlockBackground,
+    access: "admin",
+  },
+  [`GET ${BASE_PATH}/block-tip-defaults`]: {
+    handler: trainerController.getBlockTipDefaults,
+    access: "authenticated",
+  },
+  [`PUT ${BASE_PATH}/block-tip-defaults`]: {
+    handler: trainerController.upsertBlockTipDefault,
+    access: "admin",
+  },
+  [`DELETE ${BASE_PATH}/block-tip-defaults`]: {
+    handler: trainerController.deleteBlockTipDefault,
+    access: "admin",
+  },
+  [`GET ${BASE_PATH}/diet-tip-goals`]: {
+    handler: trainerController.getDietTipGoals,
+    access: "authenticated",
+  },
+  [`PUT ${BASE_PATH}/diet-tip-goals`]: {
+    handler: trainerController.upsertDietTipGoal,
+    access: "admin",
+  },
+  [`DELETE ${BASE_PATH}/diet-tip-goals`]: {
+    handler: trainerController.deleteDietTipGoal,
+    access: "admin",
+  },
 };
 
 export const handler = async (

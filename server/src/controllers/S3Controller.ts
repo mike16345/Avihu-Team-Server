@@ -8,6 +8,7 @@ import {
   createServerResponse,
   extractBodyFromEvent,
 } from "../utils/utils";
+import { getAuthContext } from "../utils/authContext";
 
 const s3 = new S3({
   apiVersion: "2006-03-01",
@@ -39,6 +40,11 @@ export class S3Controller {
 
     if (!photoId) {
       return createResponse(StatusCode.BAD_REQUEST, "Missing required query parameter: photoId");
+    }
+
+    const ctx = getAuthContext();
+    if (userId && ctx?.role === "user" && ctx?.userId !== userId) {
+      return createResponse(StatusCode.FORBIDDEN, "Cannot delete another user's photos");
     }
 
     const paramsDelete: S3.Types.DeleteObjectRequest = {

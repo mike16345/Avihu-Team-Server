@@ -37,6 +37,7 @@ const weeklyFeedbackSchema = new Schema<IWeeklyFeedback>(
     weighIns: { type: [weighInSubSchema], default: [] },
     sleepHours: { type: Number, min: 0, max: 24, default: null },
     cardioMinutes: { type: Number, min: 0, max: 1000, default: null },
+    cardioMinutesGoal: { type: Number, min: 0, max: 1000, default: null },
     steps: { type: Number, min: 0, default: null },
     feedbackText: { type: String, default: "" },
     finalized: { type: Boolean, default: false },
@@ -68,12 +69,13 @@ const NutritionValidation = Joi.object({
 
 export const WeeklyFeedbackValidation = Joi.object({
   weekStart: Joi.date().required(),
-  weekEnd: Joi.date().required(),
+  weekEnd: Joi.date().greater(Joi.ref("weekStart")).required(),
   workouts: Joi.array().items(WorkoutValidation).default([]),
   nutrition: NutritionValidation.default({ daysCompleted: [], dayNotes: {} }),
   weighIns: Joi.array().items(WeighInValidation).default([]),
   sleepHours: Joi.number().min(0).max(24).allow(null).default(null),
   cardioMinutes: Joi.number().min(0).max(1000).allow(null).default(null),
+  cardioMinutesGoal: Joi.number().min(0).max(1000).allow(null).default(null),
   steps: Joi.number().min(0).allow(null).default(null),
   feedbackText: Joi.string().allow("").default(""),
   finalized: Joi.boolean().default(false),

@@ -1,4 +1,10 @@
-import { ITrainer } from "../interfaces/ITrainer";
+import {
+  BlockBackgroundStatus,
+  IBlockBackground,
+  IBlockTipDefault,
+  IDietTipGoal,
+  ITrainer,
+} from "../interfaces/ITrainer";
 import { IUser } from "../interfaces/IUser";
 import { getSystemLibraryOwnerObjectId } from "../config/systemLibrary";
 import { TrainerModel } from "../models/trainerModel";
@@ -325,6 +331,64 @@ export default class TrainerService extends BaseService<ITrainer, TrainerReposit
     }
 
     return updatedTrainer;
+  }
+
+  async getBlockBackgrounds(id: string): Promise<IBlockBackground[]> {
+    const trainer = await this.repository.getBlockBackgrounds(id);
+    return trainer?.blockBackgrounds ?? [];
+  }
+
+  async upsertBlockBackground(
+    id: string,
+    status: BlockBackgroundStatus,
+    url: string
+  ): Promise<IBlockBackground[]> {
+    return this.repository.upsertBlockBackground(id, status, url);
+  }
+
+  async deleteBlockBackground(
+    id: string,
+    status: BlockBackgroundStatus
+  ): Promise<IBlockBackground[]> {
+    return this.repository.deleteBlockBackground(id, status);
+  }
+
+  async getBlockTipDefaults(id: string): Promise<IBlockTipDefault[]> {
+    const trainer = await this.repository.getBlockTipDefaults(id);
+    return trainer?.blockTipDefaults ?? [];
+  }
+
+  async upsertBlockTipDefault(
+    id: string,
+    status: BlockBackgroundStatus,
+    tips: string[]
+  ): Promise<IBlockTipDefault[]> {
+    return this.repository.upsertBlockTipDefault(id, status, tips);
+  }
+
+  async deleteBlockTipDefault(
+    id: string,
+    status: BlockBackgroundStatus
+  ): Promise<IBlockTipDefault[]> {
+    return this.repository.deleteBlockTipDefault(id, status);
+  }
+
+  async getDietTipGoals(id: string): Promise<IDietTipGoal[]> {
+    const trainer = await this.repository.getDietTipGoals(id);
+    return trainer?.dietTipGoals ?? [];
+  }
+
+  async upsertDietTipGoal(
+    id: string,
+    key: string,
+    label: string,
+    tips: string[]
+  ): Promise<IDietTipGoal[]> {
+    return this.repository.upsertDietTipGoal(id, key, label, tips);
+  }
+
+  async deleteDietTipGoal(id: string, key: string): Promise<IDietTipGoal[]> {
+    return this.repository.deleteDietTipGoal(id, key);
   }
 
   async deleteTrainer(id: string): Promise<ITrainer | null> {

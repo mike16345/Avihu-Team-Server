@@ -410,3 +410,5 @@ insertTrainerId.ts
 # Local Codex/Superpowers design and implementation notes
 docs/superpowers/
 .superpowers/
+server/_import-all.js
+server/_import-snapshot.js

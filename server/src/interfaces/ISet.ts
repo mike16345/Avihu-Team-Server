@@ -14,7 +14,7 @@ export interface IRecordedSet {
   repsDone: number;
   note: string;
   date: Date;
-  rir: number;
+  rir?: number | null;
 }
 
 export type SetInputType = "wheel" | "table";

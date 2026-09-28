@@ -1,6 +1,10 @@
 import Joi from "joi";
 import { Schema, model } from "mongoose";
 import {
+  BLOCK_BACKGROUND_STATUSES,
+  IBlockBackground,
+  IBlockTipDefault,
+  IDietTipGoal,
   ITrainer,
   TRAINER_DIET_PLAN_VERSIONS,
   TRAINER_SOURCES,
@@ -103,6 +107,62 @@ export const trainerSchema = new Schema<ITrainer>(
       type: Boolean,
       default: false,
     },
+    blockBackgrounds: {
+      type: [
+        new Schema<IBlockBackground>(
+          {
+            status: {
+              type: String,
+              required: true,
+              enum: BLOCK_BACKGROUND_STATUSES,
+            },
+            url: {
+              type: String,
+              required: true,
+              trim: true,
+              maxlength: 512,
+            },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
+    blockTipDefaults: {
+      type: [
+        new Schema<IBlockTipDefault>(
+          {
+            status: {
+              type: String,
+              required: true,
+              enum: BLOCK_BACKGROUND_STATUSES,
+            },
+            tips: {
+              type: [{ type: String, trim: true, maxlength: 20000 }],
+              default: [],
+            },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
+    dietTipGoals: {
+      type: [
+        new Schema<IDietTipGoal>(
+          {
+            key: { type: String, required: true, trim: true, maxlength: 64 },
+            label: { type: String, required: true, trim: true, maxlength: 120 },
+            tips: {
+              type: [{ type: String, trim: true, maxlength: 20000 }],
+              default: [],
+            },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -142,4 +202,53 @@ export const TrainerSchemaValidation = Joi.object({
   favoriteWorkoutPresetIds: Joi.array().items(Joi.string()).optional(),
   favoriteDietPresetIds: Joi.array().items(Joi.string()).optional(),
   sharesFavorites: Joi.boolean().optional(),
+  blockBackgrounds: Joi.array()
+    .items(
+      Joi.object({
+        status: Joi.string()
+          .valid(...BLOCK_BACKGROUND_STATUSES)
+          .required(),
+        url: Joi.string().trim().max(512).required(),
+      })
+    )
+    .optional(),
+  blockTipDefaults: Joi.array()
+    .items(
+      Joi.object({
+        status: Joi.string()
+          .valid(...BLOCK_BACKGROUND_STATUSES)
+          .required(),
+        tips: Joi.array().items(Joi.string().trim().max(20000)).default([]),
+      })
+    )
+    .optional(),
+  dietTipGoals: Joi.array()
+    .items(
+      Joi.object({
+        key: Joi.string().trim().max(64).required(),
+        label: Joi.string().trim().max(120).required(),
+        tips: Joi.array().items(Joi.string().trim().max(20000)).default([]),
+      })
+    )
+    .optional(),
 }).prefs({ abortEarly: false, stripUnknown: true });
+
+export const DietTipGoalValidation = Joi.object({
+  key: Joi.string().trim().max(64).required(),
+  label: Joi.string().trim().max(120).required(),
+  tips: Joi.array().items(Joi.string().trim().max(20000)).required(),
+});
+
+export const BlockBackgroundValidation = Joi.object({
+  status: Joi.string()
+    .valid(...BLOCK_BACKGROUND_STATUSES)
+    .required(),
+  url: Joi.string().trim().max(512).required(),
+});
+
+export const BlockTipDefaultValidation = Joi.object({
+  status: Joi.string()
+    .valid(...BLOCK_BACKGROUND_STATUSES)
+    .required(),
+  tips: Joi.array().items(Joi.string().trim().max(20000)).required(),
+});

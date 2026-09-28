@@ -7,13 +7,13 @@ interface IMuscleGroupRecordedSetsDocument extends IMuscleGroupRecordedSets {}
 const recordedSetSchema = new Schema<IRecordedSet>({
   plan: { type: String, required: true },
   exercise: { type: String, required: true },
-  setNumber: { type: Number, min: 1, required: true },
-  weight: { type: Number, min: 1, required: true },
-  repsDone: { type: Number, min: 1, required: true },
+  setNumber: { type: Number, min: 1, max: 100, required: true },
+  weight: { type: Number, min: 0, max: 999, required: true },
+  repsDone: { type: Number, min: 1, max: 150, required: true },
   note: { type: String },
   exerciseId: { type: Schema.Types.ObjectId, required: false },
   date: { type: Date, default: Date.now },
-  rir: { type: Number, min: 0, required: false },
+  rir: { type: Number, min: 0, max: 20, required: false },
 });
 
 const exerciseRecordedSetsSchema = new Schema({
@@ -33,12 +33,14 @@ export const MuscleGroupRecordedSets = model("RecordedSets", muscleGroupRecorded
 
 const RecordedSetJoiSchema = Joi.object<IRecordedSet>({
   plan: Joi.string().required(),
-  setNumber: Joi.number(),
-  weight: Joi.number().min(1).required(),
-  repsDone: Joi.number().min(1).required(),
+  exercise: Joi.string().optional(),
+  setNumber: Joi.number().min(1).max(100),
+  weight: Joi.number().min(0).max(999).required(),
+  repsDone: Joi.number().min(1).max(150).required(),
   note: Joi.string().allow(null, ""),
   exerciseId: Joi.string().optional().allow(null, ""),
   date: Joi.date().default(() => new Date()),
+  rir: Joi.number().min(0).max(20).optional().allow(null),
 });
 
 const muscleGroupRecordedSetsJoiSchema = Joi.object<IMuscleGroupRecordedSets>({

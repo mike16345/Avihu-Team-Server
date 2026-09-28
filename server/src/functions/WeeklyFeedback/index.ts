@@ -14,11 +14,11 @@ const weeklyFeedbackApiRoutes: ApiRouteHandlers = {
     access: "authenticated",
     middlewares: [validateWeeklyFeedback],
   },
-  [`GET ${BASE_PATH}/user/{id}`]: {
+  [`GET ${BASE_PATH}/user`]: {
     handler: weeklyFeedbackController.getByUserId,
     access: "authenticated",
   },
-  [`GET ${BASE_PATH}/user/{id}/week/{weekStart}`]: {
+  [`GET ${BASE_PATH}/user/week`]: {
     handler: weeklyFeedbackController.getByWeek,
     access: "authenticated",
   },

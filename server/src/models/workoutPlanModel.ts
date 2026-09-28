@@ -185,6 +185,39 @@ export const workoutHistoryFields = {
   assignmentLabel: { type: String, maxlength: 120 },
 };
 
+/**
+ * Block-based periodization. A trainee's plan can either run in
+ * "unified" mode (one static set of `workoutPlans`, the historical
+ * behaviour) or "blocks" mode, where the trainer builds up to 8
+ * weekly blocks and marks one as the active week (`activeBlockIndex`).
+ * Each block has its own workoutPlans + tips + optional intensity
+ * status so the mobile app can render the current week's context.
+ * All fields optional — older docs without any of these keep working.
+ *
+ * - id: stable client-side UUID (not the mongo `_id`) — trainers reorder
+ *   blocks, and the id is what the UI keys off.
+ * - name: optional human label ("שבוע 1 — מסה").
+ * - status: intensity tag surfaced as a coloured chip on both the
+ *   trainer editor and the mobile block picker.
+ * - workoutPlans: same shape as the top-level `workoutPlans` — one
+ *   week's worth of workouts (A/B/C/…).
+ * - tips: HTML tips shown when the trainee opens this block. Falls
+ *   back to the top-level `tips` if empty.
+ */
+export const workoutBlockSchema = new Schema({
+  id: { type: String, required: true },
+  name: { type: String },
+  status: {
+    type: String,
+    enum: ["normal", "low-intensity", "moderate-intensity", "high-intensity", "peak", "deload"],
+  },
+  workoutPlans: {
+    type: [workoutPlanSchema],
+    default: [],
+  },
+  tips: { type: [String], required: false },
+});
+
 export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   userId: {
     type: String,
@@ -206,6 +239,34 @@ export const fullWorkoutPlanSchema: Schema<IFullWorkoutPlan> = new Schema({
   cardio: {
     type: cardioPlanSchema,
     required: true,
+  },
+  /**
+   * Block-mode fields. When `mode === "blocks"` the mobile app renders
+   * `blocks[]` instead of the top-level `workoutPlans`, and reads the
+   * currently-active week from `activeBlockIndex`. See
+   * `workoutBlockSchema` above for the block shape. All optional —
+   * omitting these keeps the legacy unified behaviour.
+   */
+  mode: {
+    type: String,
+    enum: ["unified", "blocks"],
+    required: false,
+  },
+  blocks: {
+    type: [workoutBlockSchema],
+    required: false,
+    validate: {
+      validator: function (v?: unknown[]) {
+        return !v || v.length <= 8;
+      },
+      message: "Blocks array cannot exceed 8 entries",
+    },
+  },
+  activeBlockIndex: {
+    type: Number,
+    required: false,
+    min: 0,
+    max: 7,
   },
   ...workoutMetaFields,
   ...workoutHistoryFields,
@@ -327,12 +388,36 @@ export const workoutHistoryValidationFields = {
   assignmentLabel: Joi.string().max(120).allow("").optional(),
 };
 
+export const workoutBlockValidationSchema = Joi.object({
+  id: Joi.string().required(),
+  name: Joi.string().allow("").optional(),
+  status: Joi.string()
+    .valid("normal", "low-intensity", "moderate-intensity", "high-intensity", "peak", "deload")
+    .optional(),
+  workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).optional().default([]),
+  tips: Joi.array().items(Joi.string()).optional(),
+});
+
 export const FullWorkoutPlanSchemaValidation = Joi.object({
   tips: Joi.array().items(Joi.string()).optional(),
   workoutPlans: Joi.array().items(WorkoutPlanSchemaValidation).min(1).required(),
   cardio: cardioPlanValidationSchema.required(),
+  mode: Joi.string().valid("unified", "blocks").optional(),
+  blocks: Joi.array().items(workoutBlockValidationSchema).max(8).optional(),
+  activeBlockIndex: Joi.number().min(0).max(7).optional(),
   ...workoutMetaValidationFields,
   ...workoutHistoryValidationFields,
-});
+}).custom((value, helpers) => {
+  const { activeBlockIndex, blocks } = value;
+  if (typeof activeBlockIndex === "number") {
+    const blockCount = Array.isArray(blocks) ? blocks.length : 0;
+    if (blockCount === 0 || activeBlockIndex >= blockCount) {
+      return helpers.error("any.invalid", {
+        message: "activeBlockIndex must point to an existing block",
+      });
+    }
+  }
+  return value;
+}, "activeBlockIndex bounds check");
 
 export const WorkoutPlan = model<IFullWorkoutPlan>("workoutPlans", fullWorkoutPlanSchema);

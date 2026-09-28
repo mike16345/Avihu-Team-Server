@@ -89,12 +89,53 @@ export interface IWorkoutPlanHistory {
   assignmentLabel?: string;
 }
 
+/**
+ * `unified` — the historical single-plan behaviour: `workoutPlans` is
+ * shown as-is every week. `blocks` — trainer builds 1–8 weekly blocks
+ * in `blocks[]`; the mobile client renders the block indexed by
+ * `activeBlockIndex` and cycles back to 0 after the last block.
+ */
+export type WorkoutPlanMode = "unified" | "blocks";
+
+export type WorkoutBlockStatus =
+  | "normal"
+  | "low-intensity"
+  | "moderate-intensity"
+  | "high-intensity"
+  | "peak"
+  | "deload";
+
+/**
+ * One week's programming inside a periodized plan. The trainer builds
+ * up to 8 of these; each has its own workouts and optional tips /
+ * intensity tag. Mobile shows the block picker and opens the selected
+ * block's workoutPlans as if they were the top-level plan.
+ */
+export interface IWorkoutBlock {
+  /** Stable client-side UUID — the UI keys off this on reorder. */
+  id: string;
+  /** Optional human label ("שבוע 1 — מסה"). */
+  name?: string;
+  /** Intensity tag surfaced as a coloured chip on the block picker. */
+  status?: WorkoutBlockStatus;
+  /** Same shape as top-level `workoutPlans`. */
+  workoutPlans: IDetailedWorkoutPlan[];
+  /** HTML tips for this block; falls back to top-level `tips` if empty. */
+  tips?: string[];
+}
+
 export interface IFullWorkoutPlan extends IWorkoutPlanMeta, IWorkoutPlanHistory {
   userId: string;
   tips: string[];
   workoutPlans: IDetailedWorkoutPlan[];
   cardio: ICardioPlan;
   archivedAt?: Date | null;
+  /** See {@link WorkoutPlanMode}. */
+  mode?: WorkoutPlanMode;
+  /** Up to 8 weekly blocks when `mode === "blocks"`. */
+  blocks?: IWorkoutBlock[];
+  /** 0-based index into `blocks`; the mobile app treats this as "now". */
+  activeBlockIndex?: number;
 }
 
 export interface ICardioPlan {

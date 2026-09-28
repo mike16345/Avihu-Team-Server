@@ -5,6 +5,15 @@ import mongoose from "mongoose";
 import { createResponse, extractBodyFromEvent, extractQueryFromEvent } from "../utils/utils";
 import BaseController from "./BaseController";
 import { IMuscleGroupRecordedSets } from "../interfaces/ISet";
+import { requireAuthContext } from "../utils/authContext";
+
+const ensureOwnUserOrAdmin = (targetUserId: string): string | undefined => {
+  const auth = requireAuthContext();
+  if (!auth.userId) return "unauthorized";
+  if (auth.role === "admin") return undefined;
+  if (auth.userId !== targetUserId) return "forbidden";
+  return undefined;
+};
 
 class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, RecordedSetsService> {
   constructor() {
@@ -21,6 +30,15 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
     );
 
     if (error) return error;
+
+    const authProblem = ensureOwnUserOrAdmin(userId);
+    if (authProblem) {
+      return this.errorResponse(
+        authProblem === "unauthorized" ? "Auth context missing" : "לא ניתן ליצור סט למשתמש אחר",
+        authProblem === "unauthorized" ? StatusCode.UNAUTHORIZED : StatusCode.FORBIDDEN
+      );
+    }
+
     const sets = Array.isArray(recordedSets) ? recordedSets : [recordedSets];
 
     try {
@@ -51,6 +69,14 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
 
     if (error) return error;
 
+    const authProblem = ensureOwnUserOrAdmin(userId);
+    if (authProblem) {
+      return this.errorResponse(
+        authProblem === "unauthorized" ? "Auth context missing" : "לא ניתן לערוך סט של משתמש אחר",
+        authProblem === "unauthorized" ? StatusCode.UNAUTHORIZED : StatusCode.FORBIDDEN
+      );
+    }
+
     try {
       const result = await this.service.updateRecordedSetById(setId, userId, exercise, set);
 
@@ -73,6 +99,14 @@ class RecordedSetsController extends BaseController<IMuscleGroupRecordedSets, Re
     );
 
     if (error) return error;
+
+    const authProblem = ensureOwnUserOrAdmin(userId);
+    if (authProblem) {
+      return this.errorResponse(
+        authProblem === "unauthorized" ? "Auth context missing" : "לא ניתן למחוק סט של משתמש אחר",
+        authProblem === "unauthorized" ? StatusCode.UNAUTHORIZED : StatusCode.FORBIDDEN
+      );
+    }
 
     try {
       const result = await this.service.deleteRecordedSetById(setId, userId, exercise);

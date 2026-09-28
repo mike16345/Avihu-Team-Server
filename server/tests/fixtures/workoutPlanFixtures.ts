@@ -61,3 +61,43 @@ export const validFullWorkoutPlan = {
     },
   },
 };
+
+export const ValidWorkoutBlock = {
+  id: "block-1",
+  name: "שבוע 1 — מסה",
+  status: "moderate-intensity" as const,
+  workoutPlans: [ValidWorkoutPlan],
+  tips: ["התמקד בטכניקה נקייה"],
+};
+
+export const SecondValidWorkoutBlock = {
+  id: "block-2",
+  name: "שבוע 2 — עצימות",
+  status: "high-intensity" as const,
+  workoutPlans: [ValidWorkoutPlan],
+  tips: ["עלה משקל, קצר מנוחות"],
+};
+
+export const validFullWorkoutPlanWithBlocks = {
+  ...validFullWorkoutPlan,
+  mode: "blocks" as const,
+  blocks: [ValidWorkoutBlock, SecondValidWorkoutBlock],
+  activeBlockIndex: 0,
+};
+
+export const invalidFullWorkoutPlanTooManyBlocks = {
+  ...validFullWorkoutPlan,
+  mode: "blocks" as const,
+  blocks: Array.from({ length: 9 }, (_, i) => ({
+    ...ValidWorkoutBlock,
+    id: `block-${i + 1}`,
+  })),
+  activeBlockIndex: 0,
+};
+
+export const invalidFullWorkoutPlanActiveIndexOutOfRange = {
+  ...validFullWorkoutPlan,
+  mode: "blocks" as const,
+  blocks: [ValidWorkoutBlock],
+  activeBlockIndex: 3,
+};

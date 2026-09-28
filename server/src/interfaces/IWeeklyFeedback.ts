@@ -26,6 +26,7 @@ export interface IWeeklyFeedback {
   weighIns: IWeeklyFeedbackWeighIn[];
   sleepHours: number | null;
   cardioMinutes: number | null;
+  cardioMinutesGoal: number | null;
   steps: number | null;
   feedbackText: string;
   finalized: boolean;
@@ -41,6 +42,7 @@ export interface IWeeklyFeedbackPayload {
   weighIns: { date: string; weight: number }[];
   sleepHours: number | null;
   cardioMinutes: number | null;
+  cardioMinutesGoal: number | null;
   steps: number | null;
   feedbackText: string;
   finalized: boolean;

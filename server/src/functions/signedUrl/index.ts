@@ -51,6 +51,10 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     return { ...createResponseWithData(StatusCode.OK, signedUrl), headers: API_HEADERS };
   } catch (e: any) {
     console.log("Error retrieving signed url:", JSON.stringify(e));
+    return {
+      ...createResponse(StatusCode.INTERNAL_SERVER_ERROR, "Failed to generate signed URL"),
+      headers: API_HEADERS,
+    };
   }
 };
 
