@@ -3,10 +3,11 @@
     "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
-    "types": ["jest"],
+    "types": ["jest", "node"],
     "esModuleInterop": true
   },
   "include": ["src", "jest.setup.ts"],

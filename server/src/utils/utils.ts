@@ -139,6 +139,27 @@ export const validateBody = (event: APIGatewayEvent, validator: Joi.AnySchema<an
   return createValidatorResponse(isValid, error?.message);
 };
 
+export const validateAndSanitizeBody = (
+  event: APIGatewayEvent,
+  validator: Joi.AnySchema<any>,
+  data?: any
+) => {
+  const validationInput = data === undefined ? removeNestedIds(extractBodyFromEvent(event)) : data;
+  const { error, value } = validator.validate(validationInput, {
+    stripUnknown: { objects: true, arrays: false },
+  });
+  const isValid = !error;
+
+  if (isValid) {
+    event.body = JSON.stringify(value);
+  }
+
+  return {
+    ...createValidatorResponse(isValid, error?.message),
+    validatedBody: value,
+  };
+};
+
 export const extractBodyFromEvent = (event: APIGatewayEvent) => {
   return JSON.parse(event.body || "{}");
 };

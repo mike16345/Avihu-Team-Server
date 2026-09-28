@@ -1,5 +1,10 @@
 import { DietPlanSchemaValidation, DietPlanUpdateSchemaValidation } from "../models/dietPlanModel";
-import { stripClientTrainerIdFromBody, validateBody } from "../utils/utils";
+import {
+  extractBodyFromEvent,
+  stripClientTrainerIdFromBody,
+  validateAndSanitizeBody,
+  validateBody,
+} from "../utils/utils";
 import { DietPlanPresetSchemaValidation } from "../models/dietPlanPresetModel";
 import { APIGatewayEvent } from "aws-lambda";
 import {
@@ -25,10 +30,9 @@ export const validateDietPlan = (event: APIGatewayEvent) => {
 };
 
 export const validateDietPlanPreset = (event: APIGatewayEvent) => {
-  const body = stripClientTrainerIdFromBody(event);
+  const body = extractBodyFromEvent(event);
+  const schema =
+    body.version === 2 ? DietPlanPresetV2SchemaValidation : DietPlanPresetSchemaValidation;
 
-  return validateBody(
-    event,
-    body.version === 2 ? DietPlanPresetV2SchemaValidation : DietPlanPresetSchemaValidation
-  );
+  return validateAndSanitizeBody(event, schema);
 };

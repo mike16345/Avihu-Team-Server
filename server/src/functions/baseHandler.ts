@@ -1,12 +1,7 @@
 import { Context, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCode } from "../enums/StatusCode";
 import connectToDB from "../db/connect";
-import {
-  createResponse,
-  extractBearerToken,
-  getHeaderValue,
-  removeSensitiveInfoFromLog,
-} from "../utils/utils";
+import { createResponse, extractBearerToken, getHeaderValue } from "../utils/utils";
 import { API_HEADERS } from "../constants/Constants";
 import {
   extractRouteHandler,
@@ -28,6 +23,105 @@ type VerifiedAccessClaims = AccessClaims & {
 
 const jwtAuthService = new JwtAuthService();
 const NEW_ACCESS_TOKEN_HEADER = "x-new-access-token";
+const LOG_CHUNK_SIZE = 48_000;
+const MAX_LOG_DEPTH = 64;
+const REDACTED_LOG_VALUE = "[REDACTED]";
+const MAX_LOG_DEPTH_VALUE = "[MAX LOG DEPTH]";
+const SENSITIVE_LOG_KEYS = new Set([
+  "authorization",
+  "cookie",
+  "setcookie",
+  "password",
+  "confirmpassword",
+  "apppassword",
+  "accesstoken",
+  "refreshtoken",
+  "xnewaccesstoken",
+  "secret",
+  "secretkey",
+  "token",
+  "jwt",
+]);
+
+const normalizeLogKey = (key: string) => key.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const isSensitiveLogKey = (key: string) => {
+  const normalizedKey = normalizeLogKey(key);
+
+  return (
+    SENSITIVE_LOG_KEYS.has(normalizedKey) ||
+    normalizedKey.endsWith("authorization") ||
+    normalizedKey.includes("password") ||
+    normalizedKey.endsWith("accesskey") ||
+    normalizedKey.endsWith("accesskeyid") ||
+    normalizedKey.endsWith("token") ||
+    normalizedKey.endsWith("tokenhash") ||
+    normalizedKey.endsWith("secret") ||
+    normalizedKey.endsWith("apikey") ||
+    normalizedKey.endsWith("privatekey")
+  );
+};
+
+const redactLogValue = (
+  value: unknown,
+  key?: string,
+  seen = new WeakSet<object>(),
+  depth = 0
+): unknown => {
+  if (key && isSensitiveLogKey(key)) {
+    return REDACTED_LOG_VALUE;
+  }
+
+  if (typeof value === "string" && key === "body") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(value);
+    } catch {
+      return "[NON-JSON BODY REDACTED]";
+    }
+
+    return redactLogValue(parsedBody, undefined, seen, depth + 1);
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  if (depth >= MAX_LOG_DEPTH) {
+    return MAX_LOG_DEPTH_VALUE;
+  }
+
+  if (seen.has(value)) {
+    return "[CIRCULAR]";
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.map((item) => redactLogValue(item, undefined, seen, depth + 1));
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([entryKey, entryValue]) => [
+      entryKey,
+      redactLogValue(entryValue, entryKey, seen, depth + 1),
+    ])
+  );
+};
+
+const logLargePayload = (label: string, payload: unknown) => {
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(redactLogValue(payload));
+  } catch {
+    serialized = JSON.stringify("[LOG REDACTION FAILED]");
+  }
+  const totalParts = Math.max(1, Math.ceil(serialized.length / LOG_CHUNK_SIZE));
+
+  for (let index = 0; index < totalParts; index += 1) {
+    const chunk = serialized.slice(index * LOG_CHUNK_SIZE, (index + 1) * LOG_CHUNK_SIZE);
+    console.log(`${label} [${index + 1}/${totalParts}] ${chunk}`);
+  }
+};
 
 const buildAuthContextFromClaims = (claims?: VerifiedAccessClaims) => {
   console.log("Building auth context from claims:", claims);
@@ -82,11 +176,11 @@ export const handleApiCall = async (
     return await runWithAuthContext(authContext, async () => {
       const apiHandler = extractRouteHandler(apiHandlers, routeKey);
 
-      console.log("Handling API request", {
-        headers: removeSensitiveInfoFromLog(event.headers),
-        params: removeSensitiveInfoFromLog(event.pathParameters),
-        query: removeSensitiveInfoFromLog(event.queryStringParameters),
-        body: removeSensitiveInfoFromLog(event.body),
+      logLargePayload("Handling API request", {
+        headers: event.headers,
+        params: event.pathParameters,
+        query: event.queryStringParameters,
+        body: event.body,
         method: httpMethod,
         path,
         routeKey,
@@ -157,7 +251,7 @@ export const handleApiCall = async (
           ...(renewedAccessToken ? { [NEW_ACCESS_TOKEN_HEADER]: renewedAccessToken } : {}),
         },
       };
-      console.log("API response", removeSensitiveInfoFromLog(apiResponse));
+      logLargePayload("API response", apiResponse);
 
       return apiResponse;
     });

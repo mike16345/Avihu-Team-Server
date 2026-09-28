@@ -2,20 +2,20 @@ import { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { exercisePresetValidationSchema } from "../models/exercisePresetModel";
 import { ExercisePresetService } from "../services/exercisePresetService";
 import { FIND_ONE_FAILURE } from "../constants/repository";
-import { stripClientTrainerIdFromBody } from "../utils/utils";
+import { validateAndSanitizeBody } from "../utils/utils";
 
 export const validateExercise = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<{ isValid: boolean; message?: string; validatedExercise?: any }> => {
-  const exercise = stripClientTrainerIdFromBody(event);
   const { id } = event.queryStringParameters || {};
 
   try {
-    const { error } = exercisePresetValidationSchema.validate(exercise);
-    if (error) {
-      return { isValid: false, message: error.message };
+    const validation = validateAndSanitizeBody(event, exercisePresetValidationSchema);
+    if (!validation.isValid) {
+      return { isValid: false, message: validation.message };
     }
+    const exercise = validation.validatedBody;
 
     if (!id) {
       const exerciseExists = await new ExercisePresetService().findOne({ name: exercise.name });
@@ -24,9 +24,6 @@ export const validateExercise = async (
         return { isValid: false, message: "תרגיל כבר קיים במערכת" }; // Exercise already exists in the system
       }
     }
-
-    delete exercise._id;
-    delete exercise.__v;
 
     // Validation passed
     return { isValid: true, validatedExercise: exercise };

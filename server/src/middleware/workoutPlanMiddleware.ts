@@ -5,6 +5,7 @@ import {
   extractQueryFromEvent,
   removeNestedIds,
   stripClientTrainerIdFromBody,
+  validateAndSanitizeBody,
 } from "../utils/utils";
 import { APIGatewayEvent } from "aws-lambda";
 import { sanitizeWorkoutPlanForInsert } from "../utils/workoutPlanUtils";
@@ -18,17 +19,23 @@ export const validateWorkoutPlan = (event: APIGatewayEvent) => {
     return createValidatorResponse(false, "User ID is required!");
   }
 
-  const { error } = FullWorkoutPlanSchemaValidation.validate(cleanedPlan);
-  const isValid = !error;
-  return createValidatorResponse(isValid, error?.message);
+  const { isValid, message } = validateAndSanitizeBody(
+    event,
+    FullWorkoutPlanSchemaValidation,
+    cleanedPlan
+  );
+
+  return createValidatorResponse(isValid, message);
 };
 
 export const validateWorkoutPlanPreset = (event: APIGatewayEvent) => {
   const body = stripClientTrainerIdFromBody(event);
   const cleanedPlan = removeNestedIds(sanitizeWorkoutPlanForInsert(body));
+  const { isValid, message } = validateAndSanitizeBody(
+    event,
+    WorkoutPlanPresetSchemaValidation,
+    cleanedPlan
+  );
 
-  const { error } = WorkoutPlanPresetSchemaValidation.validate(cleanedPlan);
-  const isValid = !error;
-
-  return createValidatorResponse(isValid, error?.message);
+  return createValidatorResponse(isValid, message);
 };

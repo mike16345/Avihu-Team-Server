@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { IDetailedWorkoutPlan, IFullWorkoutPlan } from "../interfaces/IWorkoutPlan";
+import { ICardioPlan, IDetailedWorkoutPlan, IWorkoutPlanMeta } from "../interfaces/IWorkoutPlan";
 import {
   cardioPlanSchema,
   cardioPlanValidationSchema,
@@ -11,8 +11,11 @@ import {
 import Joi from "joi";
 import { IModel } from "../interfaces/IModel";
 
-export interface IWorkoutPlanPreset extends Omit<IFullWorkoutPlan, "userId"> {
+export interface IWorkoutPlanPreset extends IWorkoutPlanMeta {
   name: string;
+  tips: string[];
+  workoutPlans: IDetailedWorkoutPlan[];
+  cardio: ICardioPlan;
 }
 
 export const workoutPlanPresetSchema = new Schema<IWorkoutPlanPreset & IModel>({

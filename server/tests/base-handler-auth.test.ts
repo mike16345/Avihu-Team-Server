@@ -192,6 +192,7 @@ describe("handleApiCall auth flow", () => {
         httpMethod: "GET",
         path: "/protected",
         headers: { Authorization: "Bearer secret-token" },
+        body: JSON.stringify({ password: "body-password", title: "safe-title" }),
         requestContext: { requestId: "req-2" },
       } as any,
       {} as any,
@@ -204,11 +205,132 @@ describe("handleApiCall auth flow", () => {
     );
 
     const logOutput = logSpy.mock.calls.flat().map(String).join(" ");
-    const requestLogCall = logSpy.mock.calls.find(
-      ([message]) => message === "Handling API request"
+    const requestLogCalls = logSpy.mock.calls.filter(
+      ([message]) => typeof message === "string" && message.startsWith("Handling API request")
     );
+    const requestLogOutput = requestLogCalls.flat().join("");
     expect(logOutput).not.toContain("secret-token");
-    expect(requestLogCall?.[1]).toMatchObject({ hasAuthorizationHeader: true });
+    expect(requestLogOutput).not.toContain("secret-token");
+    expect(requestLogOutput).not.toContain("body-password");
+    expect(requestLogOutput).toContain("safe-title");
+    expect(requestLogOutput).toContain('"hasAuthorizationHeader":true');
+  });
+
+  test("logs large API responses as complete string chunks", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const responseBody = JSON.stringify({ data: `${"x".repeat(120_000)}END-OF-RESPONSE` });
+
+    await handleApiCall(
+      {
+        httpMethod: "GET",
+        path: "/large-response",
+        headers: {},
+        requestContext: { requestId: "req-large-response" },
+      } as any,
+      {} as any,
+      {
+        "GET /large-response": {
+          access: "public",
+          handler: async () => ({ statusCode: 200, body: responseBody }),
+        },
+      }
+    );
+
+    const responseLogCalls = logSpy.mock.calls.filter(
+      ([message]) => typeof message === "string" && message.startsWith("API response")
+    );
+    const combinedLogs = responseLogCalls.flat().join("");
+
+    expect(responseLogCalls.length).toBeGreaterThan(1);
+    expect(responseLogCalls.every((call) => call.length === 1 && typeof call[0] === "string")).toBe(
+      true
+    );
+    expect(combinedLogs).toContain("END-OF-RESPONSE");
+    expect(combinedLogs).not.toContain("more characters");
+  });
+
+  test("redacts credential-bearing key variants from request and response logs", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+
+    await handleApiCall(
+      {
+        httpMethod: "POST",
+        path: "/credential-log",
+        headers: {
+          "x-api-key": "request-api-key",
+          "Proxy-Authorization": "proxy-authorization-credential",
+        },
+        body: JSON.stringify({
+          passwordHash: "request-password-hash",
+          nested: {
+            clientSecret: "request-client-secret",
+            accessKeyId: "request-access-key-id",
+            safe: "visible-request-value",
+          },
+        }),
+        requestContext: { requestId: "req-credential-log" },
+      } as any,
+      {} as any,
+      {
+        "POST /credential-log": {
+          access: "public",
+          handler: async () => ({
+            statusCode: 200,
+            body: JSON.stringify({
+              changePasswordSessionId: "password-change-credential",
+              tokenHash: "response-token-hash",
+              resetToken: "response-reset-token",
+              safe: "visible-response-value",
+            }),
+          }),
+        },
+      }
+    );
+
+    const output = logSpy.mock.calls.flat().map(String).join(" ");
+    expect(output).not.toContain("request-api-key");
+    expect(output).not.toContain("proxy-authorization-credential");
+    expect(output).not.toContain("request-password-hash");
+    expect(output).not.toContain("request-client-secret");
+    expect(output).not.toContain("request-access-key-id");
+    expect(output).not.toContain("password-change-credential");
+    expect(output).not.toContain("response-token-hash");
+    expect(output).not.toContain("response-reset-token");
+    expect(output).toContain("visible-request-value");
+    expect(output).toContain("visible-response-value");
+  });
+
+  test("fails closed when a request body is too deeply nested to redact safely", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const secret = "deeply-nested-password";
+    const depth = 10_000;
+    const body = `${'{"nested":'.repeat(depth)}{"password":"${secret}"}${"}".repeat(depth)}`;
+
+    await handleApiCall(
+      {
+        httpMethod: "POST",
+        path: "/deep-log",
+        headers: {},
+        body,
+        requestContext: { requestId: "req-deep-log" },
+      } as any,
+      {} as any,
+      {
+        "POST /deep-log": {
+          access: "public",
+          handler: async () => ({ statusCode: 200, body: "{}" }),
+        },
+      }
+    );
+
+    const requestOutput = logSpy.mock.calls
+      .filter(([message]) =>
+        typeof message === "string" ? message.startsWith("Handling API request") : false
+      )
+      .flat()
+      .join("");
+    expect(requestOutput).not.toContain(secret);
+    expect(requestOutput).toContain("[MAX LOG DEPTH]");
   });
 
   test("adds x-new-access-token to successful authenticated responses when renewal is needed", async () => {

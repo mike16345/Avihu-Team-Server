@@ -129,4 +129,108 @@ describe("trainer-scoped update middleware", () => {
     expect(result.isValid).toBe(true);
     expect(JSON.parse(event.body || "{}")).not.toHaveProperty("trainerId");
   });
+
+  test("accepts a workout preset copied from an API response and removes assignment-only fields", () => {
+    const event = buildEvent({
+      ...validWorkoutPlanPreset,
+      _id: "507f1f77bcf86cd799439020",
+      __v: 4,
+      userId: "507f1f77bcf86cd799439021",
+      archivedAt: null,
+      replacedByPlanId: "507f1f77bcf86cd799439022",
+      assignedBy: "507f1f77bcf86cd799439023",
+      assignedAt: "2026-09-28T12:00:00.000Z",
+      temporaryUntil: "2026-10-28T12:00:00.000Z",
+      restoreToPlanId: "507f1f77bcf86cd799439024",
+      assignmentLabel: "Temporary plan",
+      createdAt: "2026-09-01T12:00:00.000Z",
+      updatedAt: "2026-09-28T12:00:00.000Z",
+      workoutsPerWeek: 4,
+      level: "advanced",
+      goal: "strength",
+    });
+
+    const result = validateWorkoutPlanPreset(event);
+    const sanitized = JSON.parse(event.body || "{}");
+
+    expect(result.isValid).toBe(true);
+    expect(sanitized).toMatchObject({
+      name: validWorkoutPlanPreset.name,
+      workoutsPerWeek: 4,
+      level: "advanced",
+      goal: "strength",
+    });
+    expect(sanitized).not.toHaveProperty("archivedAt");
+    expect(sanitized).not.toHaveProperty("assignedAt");
+    expect(sanitized).not.toHaveProperty("userId");
+    expect(sanitized).not.toHaveProperty("_id");
+    expect(sanitized).not.toHaveProperty("__v");
+  });
+
+  test("accepts a workout plan copied from an API response while preserving history and meta fields", () => {
+    const event = buildEvent({
+      ...validFullWorkoutPlan,
+      _id: "507f1f77bcf86cd799439029",
+      __v: 3,
+      userId: "507f1f77bcf86cd799439030",
+      archivedAt: null,
+      assignedAt: "2026-09-28T12:00:00.000Z",
+      assignmentLabel: "Current plan",
+      workoutsPerWeek: 5,
+      level: "pro",
+    });
+
+    const result = validateWorkoutPlan(event);
+    const sanitized = JSON.parse(event.body || "{}");
+
+    expect(result.isValid).toBe(true);
+    expect(sanitized).toMatchObject({
+      archivedAt: null,
+      assignmentLabel: "Current plan",
+      workoutsPerWeek: 5,
+      level: "pro",
+    });
+    expect(sanitized).not.toHaveProperty("userId");
+    expect(sanitized).not.toHaveProperty("_id");
+    expect(sanitized).not.toHaveProperty("__v");
+  });
+
+  test("accepts a diet preset copied from an API response and removes derived fields", () => {
+    const event = buildEvent({
+      ...validDietPlanPreset,
+      version: 1,
+      _id: "507f1f77bcf86cd799439025",
+      __v: 2,
+      normalizedName: "preset 1",
+    });
+
+    const result = validateDietPlanPreset(event);
+    const sanitized = JSON.parse(event.body || "{}");
+
+    expect(result.isValid).toBe(true);
+    expect(sanitized.name).toBe(validDietPlanPreset.name);
+    expect(sanitized).not.toHaveProperty("normalizedName");
+    expect(sanitized).not.toHaveProperty("_id");
+    expect(sanitized).not.toHaveProperty("__v");
+  });
+
+  test("accepts an exercise preset copied from an API response and removes ownership fields", async () => {
+    const event = buildEvent({
+      ...validExercise,
+      _id: "507f1f77bcf86cd799439026",
+      __v: 1,
+      sourceExerciseId: "507f1f77bcf86cd799439027",
+      sourceOwnerId: "507f1f77bcf86cd799439028",
+    });
+
+    const result = await validateExercise(event, {} as any);
+    const sanitized = JSON.parse(event.body || "{}");
+
+    expect(result.isValid).toBe(true);
+    expect(sanitized.name).toBe(validExercise.name);
+    expect(sanitized).not.toHaveProperty("sourceExerciseId");
+    expect(sanitized).not.toHaveProperty("sourceOwnerId");
+    expect(sanitized).not.toHaveProperty("_id");
+    expect(sanitized).not.toHaveProperty("__v");
+  });
 });
